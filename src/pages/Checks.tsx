@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { subscribeToChecks, addCheck, updateCheck, deleteCheck } from '../services/checkService';
-import { Check, CheckInput, CheckStatus } from '../types';
+import { projectService } from '../services/projectService';
+import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
 const Checks = () => {
@@ -11,6 +12,8 @@ const Checks = () => {
     const [editingCheck, setEditingCheck] = useState<Check | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'pending' | 'paid' | 'all'>('pending');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [projects, setProjects] = useState<Project[]>([]);
 
     const [formData, setFormData] = useState<CheckInput>({
         check_number: '',
@@ -22,13 +25,15 @@ const Checks = () => {
         given_date: new Date().toISOString().split('T')[0],
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending' as CheckStatus,
-        description: ''
+        description: '',
+        project_id: ''
     });
 
     const { user } = useAuth();
 
     useEffect(() => {
         const unsubscribe = subscribeToChecks(setChecks);
+        projectService.getProjects().then(setProjects);
         setLoading(false);
         return unsubscribe;
     }, []);
@@ -37,6 +42,7 @@ const Checks = () => {
         e.preventDefault();
 
         try {
+            setErrorMsg(null);
             if (editingCheck) {
                 await updateCheck(editingCheck.id, formData);
             } else {
@@ -46,9 +52,9 @@ const Checks = () => {
             setShowModal(false);
             setEditingCheck(null);
             resetForm();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving check:', error);
-            alert('Çek kaydedilemedi. Lütfen tekrar deneyin.');
+            setErrorMsg(error.message || 'Çek kaydedilemedi. Lütfen tekrar deneyin.');
         }
     };
 
@@ -63,7 +69,8 @@ const Checks = () => {
             given_date: new Date().toISOString().split('T')[0],
             due_date: new Date().toISOString().split('T')[0],
             status: 'pending',
-            description: ''
+            description: '',
+            project_id: ''
         });
     };
 
@@ -79,7 +86,8 @@ const Checks = () => {
             given_date: check.given_date,
             due_date: check.due_date,
             status: check.status,
-            description: check.description || ''
+            description: check.description || '',
+            project_id: check.project_id || ''
         });
         setShowModal(true);
     };
@@ -88,9 +96,9 @@ const Checks = () => {
         if (window.confirm('Bu çeki silmek istediğinizden emin misiniz?')) {
             try {
                 await deleteCheck(id);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error deleting check:', error);
-                alert('Çek silinemedi. Lütfen tekrar deneyin.');
+                // alert('Çek silinemedi. Lütfen tekrar deneyin.');
             }
         }
     };
@@ -183,6 +191,7 @@ const Checks = () => {
                             onClick={() => {
                                 setEditingCheck(null);
                                 resetForm();
+                                setErrorMsg(null);
                                 setShowModal(true);
                             }}
                             style={{ boxShadow: 'var(--shadow-md)', padding: '12px 25px' }}
@@ -214,6 +223,7 @@ const Checks = () => {
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>FİRMA</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VERECEK KİŞİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>DURUM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center' }}>İŞLEMLER</th>
@@ -246,6 +256,9 @@ const Checks = () => {
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {check.vat_status || ''}
+                                        </td>
+                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
+                                            {projects.find(p => p.id === check.project_id)?.name || '-'}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {check.issuer}
@@ -349,6 +362,20 @@ const Checks = () => {
                                     </div>
 
                                     <div className="form-group">
+                                        <label className="form-label">PROJE (OPSİYONEL)</label>
+                                        <select
+                                            className="form-input"
+                                            value={formData.project_id}
+                                            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                                        >
+                                            <option value="">Proje Seçilmedi</option>
+                                            {projects.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
                                         <label className="form-label">ÇEKİ VERECEK KİŞİ</label>
                                         <input
                                             type="text"
@@ -405,6 +432,20 @@ const Checks = () => {
                                             style={{ resize: 'none' }}
                                         />
                                     </div>
+
+                                    {errorMsg && (
+                                        <div style={{
+                                            gridColumn: 'span 2',
+                                            padding: '10px',
+                                            background: '#fee2e2',
+                                            color: '#991b1b',
+                                            borderRadius: '8px',
+                                            fontSize: '0.85rem',
+                                            border: '1px solid #fecaca'
+                                        }}>
+                                            ⚠️ {errorMsg}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="modal-footer" style={{ padding: '20px 25px', background: '#f8fafc', borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>

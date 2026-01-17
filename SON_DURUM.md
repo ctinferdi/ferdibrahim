@@ -1,16 +1,18 @@
-## 1. Dashboard ve Menü Düzenlemesi (Son Hali)
-- **Üst Menü (Header):** Ayarlar, Profil ve Çıkış butonları ikon olarak sağ üst köşeye taşındı.
-- **Yan Menü (Sidebar):** Menü daraltıldı ve sadece ikon odaklı hale getirildi. "Ana Sayfa" butonu geri eklendi.
-- **Özet Kartlar:** Kartlar istenilen sıraya (Projeler, Çekler, Daireler) getirildi ve "Toplam Satış" kaldırıldı.
+## 1. Tasarım ve Fonksiyonel İyileştirmeler (Son Hali)
+- **Ekstra Kompakt Tasarım:** Uygulama genelindeki tüm boşluklar (margin, padding) azaltılarak "yapışık" ve daha modern bir görünüm sağlandı. Sidebar genişliği ve header yüksekliği optimize edildi.
+- **Projeye Özel Çek Yönetimi:** Proje detay sayfasına "Çekler" sekmesi eklendi. Artık her projeye özel çek ekleyebilir, düzenleyebilir ve silebilirsiniz.
+- **Gelişmiş Hata Yönetimi:** Engelleyici alert pencereleri kaldırıldı, tüm hata mesajları modal içinde şık bir şekilde gösteriliyor.
+- **Harcama Kalemleri Revizesi:** Giderler sayfası veritabanı ile tam uyumlu hale getirildi, gereksiz kodlar (user değişkeni vb.) temizlendi.
+- **Düzenleme ve Silme:** Hem giderler hem de çekler için proje detay sayfasından düzenleme ve güvenli silme (kod doğrulama) işlemleri aktif edildi.
 
 ## 2. Uygulama Erişimi
-Uygulamayı şu an en güncel haliyle **3505** portunda başlattım.
+Uygulamayı şu an en güncel haliyle **3513** portunda başlattım.
 
-- **Adres:** [http://localhost:3505](http://localhost:3505)
+- **Adres:** [http://localhost:3513](http://localhost:3513)
 
-**NOT:** Eğer sayfa hala eski görünüyorsa tarayıcını `Ctrl + R` ile yenile.
+**NOT:** Tasarım değişikliklerini tam görmek için tarayıcınızı `Ctrl + Shift + R` ile yenilemeniz önerilir.
 
-## 3. Vercel İçin Not
-Yapılan tüm bu yeni özelliklerin (Çekler, yeni tasarım vb.) internet sitesinde (Vercel) görünmesi için:
-1. VS Code üzerinden yaptığımız değişiklikleri **Push** yapmalısın.
-2. Vercel paneline gidip **Redeploy** (Yeniden Oluştur) demen yeterli olacaktır.
+## 3. Vercel Yayınlama
+Değişikliklerin internette görünmesi için:
+1. VS Code'dan değişiklikleri **Commit** ve **Push** yapın.
+2. Vercel paneline gidip **Redeploy** butonuna basın.

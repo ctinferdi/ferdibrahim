@@ -11,6 +11,7 @@ const Apartments = () => {
     const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<ApartmentStatus | 'all'>('all');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<ApartmentInput>({
         building_name: '',
@@ -35,6 +36,7 @@ const Apartments = () => {
         e.preventDefault();
 
         try {
+            setErrorMsg(null);
             if (editingApartment) {
                 await updateApartment(editingApartment.id, formData);
             } else {
@@ -44,9 +46,9 @@ const Apartments = () => {
             setShowModal(false);
             setEditingApartment(null);
             resetForm();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving apartment:', error);
-            alert('Daire kaydedilemedi. Lütfen tekrar deneyin.');
+            setErrorMsg(error.message || 'Daire kaydedilemedi. Lütfen tekrar deneyin.');
         }
     };
 
@@ -82,9 +84,9 @@ const Apartments = () => {
         if (window.confirm('Bu daireyi silmek istediğinizden emin misiniz?')) {
             try {
                 await deleteApartment(id);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error deleting apartment:', error);
-                alert('Daire silinemedi. Lütfen tekrar deneyin.');
+                // alert('Daire silinemedi. Lütfen tekrar deneyin.');
             }
         }
     };
@@ -142,6 +144,7 @@ const Apartments = () => {
                         onClick={() => {
                             setEditingApartment(null);
                             resetForm();
+                            setErrorMsg(null);
                             setShowModal(true);
                         }}
                         style={{ boxShadow: 'var(--shadow-md)' }}
@@ -195,73 +198,125 @@ const Apartments = () => {
                     </select>
                 </div>
 
-                {/* Table */}
-                <div className="table-container card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Bina Adı</th>
-                                <th>Daire No</th>
-                                <th>Kat</th>
-                                <th>m²</th>
-                                <th style={{ textAlign: 'right' }}>Fiyat</th>
-                                <th>Durum</th>
-                                <th>Müşteri Bilgisi</th>
-                                <th style={{ textAlign: 'center' }}>İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredApartments.length === 0 ? (
-                                <tr>
-                                    <td colSpan={8} style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
-                                        Kayıt bulunamadı.
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredApartments.map((apartment) => (
-                                    <tr key={apartment.id}>
-                                        <td><strong>{apartment.building_name}</strong></td>
-                                        <td>{apartment.apartment_number}</td>
-                                        <td>{apartment.floor}. Kat</td>
-                                        <td>{apartment.square_meters} m²</td>
-                                        <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--color-success)' }}>
+
+                {/* Apartments Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+                    gap: 'var(--spacing-md)',
+                    gridAutoRows: '1fr'
+                }}>
+                    {filteredApartments.length === 0 ? (
+                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
+                            Kayıt bulunamadı.
+                        </div>
+                    ) : (
+                        filteredApartments.map((apartment) => (
+                            <div key={apartment.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {/* Daire Kartı */}
+                                <div
+                                    className="card"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white',
+                                        position: 'relative',
+                                        cursor: 'pointer',
+                                        padding: 'var(--spacing-lg)',
+                                        marginBottom: 0,
+                                        minHeight: '180px',
+                                        display: 'flex',
+                                        flexDirection: 'column'
+                                    }}>
+                                    {/* Action buttons */}
+                                    <div style={{ position: 'absolute', top: 'var(--spacing-xs)', right: 'var(--spacing-xs)', display: 'flex', gap: '4px' }}>
+                                        <button
+                                            onClick={() => handleEdit(apartment)}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.2)',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                fontSize: '0.8rem',
+                                                transition: 'all var(--transition-fast)'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                            title="Düzenle"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(apartment.id)}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.2)',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: '24px',
+                                                height: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                fontSize: '0.8rem',
+                                                transition: 'all var(--transition-fast)'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                            title="Sil"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+
+                                    <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '3rem' }}>
+                                        {apartment.building_name}
+                                    </h3>
+
+                                    <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}>
+                                        <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: 'var(--spacing-xs)' }}>
+                                            🏠 Daire: {apartment.apartment_number}
+                                        </div>
+                                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>
+                                            <div>📏 {apartment.square_meters} m² | 🏢 {apartment.floor}. Kat</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Durum Barı */}
+                                <div style={{
+                                    background: 'rgba(102, 126, 234, 0.15)',
+                                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    padding: '6px 10px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    fontSize: '0.65rem',
+                                    fontWeight: 600,
+                                    color: 'var(--color-text)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        {getStatusBadge(apartment.status)}
+                                        <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>
                                             {formatCurrency(apartment.price)}
-                                        </td>
-                                        <td>{getStatusBadge(apartment.status)}</td>
-                                        <td>
-                                            {apartment.customer_name ? (
-                                                <div style={{ fontSize: 'var(--font-size-sm)' }}>
-                                                    <div style={{ fontWeight: 600 }}>{apartment.customer_name}</div>
-                                                    <div style={{ opacity: 0.7 }}>{apartment.customer_phone}</div>
-                                                </div>
-                                            ) : (
-                                                <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)' }}>-</span>
-                                            )}
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
-                                                <button
-                                                    className="btn btn-sm"
-                                                    onClick={() => handleEdit(apartment)}
-                                                    style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm"
-                                                    onClick={() => handleDelete(apartment.id)}
-                                                    style={{ background: '#fee2e2', border: '1px solid #fecaca' }}
-                                                >
-                                                    🗑️
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                        </span>
+                                    </div>
+                                    {apartment.customer_name && (
+                                        <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
+                                            👤 {apartment.customer_name}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
+
 
                 {/* Modal */}
                 {showModal && (
@@ -366,6 +421,20 @@ const Apartments = () => {
                                                 />
                                             </div>
                                         </>
+                                    )}
+                                    {errorMsg && (
+                                        <div style={{
+                                            gridColumn: 'span 2',
+                                            padding: '10px',
+                                            background: '#fee2e2',
+                                            color: '#991b1b',
+                                            borderRadius: '8px',
+                                            fontSize: '0.85rem',
+                                            border: '1px solid #fecaca',
+                                            marginTop: '10px'
+                                        }}>
+                                            ⚠️ {errorMsg}
+                                        </div>
                                     )}
                                 </div>
 

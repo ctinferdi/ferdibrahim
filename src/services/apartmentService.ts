@@ -53,10 +53,19 @@ export const deleteApartment = async (id: string): Promise<void> => {
     if (error) throw error;
 };
 
+export const bulkAddApartments = async (apartments: ApartmentInput[], userId: string): Promise<void> => {
+    const { error } = await supabase
+        .from('apartments')
+        .insert(apartments.map(apt => ({ ...apt, user_id: userId })));
+
+    if (error) throw error;
+};
+
 export const apartmentService = {
     subscribeToApartments,
     getApartments,
     addApartment,
     updateApartment,
-    deleteApartment
+    deleteApartment,
+    bulkAddApartments
 };

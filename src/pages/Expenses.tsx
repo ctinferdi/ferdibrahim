@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { subscribeToExpenses, addExpense, updateExpense, deleteExpense } from '../services/expenseService';
+import { expenseService } from '../services/expenseService';
 import { Expense, ExpenseInput } from '../types';
-import { useAuth } from '../contexts/AuthContext';
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -10,18 +9,19 @@ const Expenses = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<ExpenseInput>({
-        kategori: '',
-        aciklama: '',
-        tutar: 0,
-        tarih: new Date()
+        category: '',
+        description: '',
+        amount: 0,
+        date: new Date().toISOString().split('T')[0]
     });
 
-    const { currentUser } = useAuth();
+
 
     useEffect(() => {
-        const unsubscribe = subscribeToExpenses(setExpenses);
+        const unsubscribe = expenseService.subscribeToExpenses(setExpenses);
         setLoading(false);
         return unsubscribe;
     }, []);
@@ -30,49 +30,63 @@ const Expenses = () => {
         e.preventDefault();
 
         try {
+            setErrorMsg(null);
             if (editingExpense) {
-                await updateExpense(editingExpense.id, formData);
+                await expenseService.updateExpense(editingExpense.id, formData);
             } else {
-                await addExpense(formData, currentUser!.uid);
+                await expenseService.addExpense(formData);
             }
 
             setShowModal(false);
             setEditingExpense(null);
-            setFormData({ kategori: '', aciklama: '', tutar: 0, tarih: new Date() });
-        } catch (error) {
+            resetForm();
+        } catch (error: any) {
             console.error('Error saving expense:', error);
-            alert('Harcama kaydedilemedi. Lütfen tekrar deneyin.');
+            setErrorMsg(error.message || 'Harcama kaydedilemedi. Lütfen tekrar deneyin.');
         }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            category: '',
+            description: '',
+            amount: 0,
+            date: new Date().toISOString().split('T')[0]
+        });
     };
 
     const handleEdit = (expense: Expense) => {
         setEditingExpense(expense);
         setFormData({
-            kategori: expense.kategori,
-            aciklama: expense.aciklama,
-            tutar: expense.tutar,
-            tarih: expense.tarih
+            category: expense.category,
+            description: expense.description,
+            amount: expense.amount,
+            date: expense.date,
+            project_id: expense.project_id,
+            partner_id: expense.partner_id,
+            payment_method: expense.payment_method,
+            recipient: expense.recipient
         });
+        setErrorMsg(null);
         setShowModal(true);
     };
 
     const handleDelete = async (id: string) => {
         if (window.confirm('Bu harcamayı silmek istediğinizden emin misiniz?')) {
             try {
-                await deleteExpense(id);
-            } catch (error) {
+                await expenseService.deleteExpense(id);
+            } catch (error: any) {
                 console.error('Error deleting expense:', error);
-                alert('Harcama silinemedi. Lütfen tekrar deneyin.');
             }
         }
     };
 
     const filteredExpenses = expenses.filter(exp =>
-        exp.kategori.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exp.aciklama.toLowerCase().includes(searchTerm.toLowerCase())
+        (exp.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (exp.description || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + exp.tutar, 0);
+    const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -94,14 +108,15 @@ const Expenses = () => {
 
     return (
         <Layout>
-            <div>
-                <div className="flex justify-between items-center mb-xl">
-                    <h1>💰 Harcama Kalemleri</h1>
+            <div className="animate-fadeIn">
+                <div className="flex justify-between items-center mb-sm">
+                    <h1 style={{ margin: 0 }}>💰 Harcama Kalemleri</h1>
                     <button
                         className="btn btn-primary"
                         onClick={() => {
                             setEditingExpense(null);
-                            setFormData({ kategori: '', aciklama: '', tutar: 0, tarih: new Date() });
+                            resetForm();
+                            setErrorMsg(null);
                             setShowModal(true);
                         }}
                     >
@@ -110,7 +125,7 @@ const Expenses = () => {
                 </div>
 
                 {/* Search and Summary */}
-                <div className="card mb-lg">
+                <div className="card mb-sm">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
                         <input
                             type="text"
@@ -153,11 +168,11 @@ const Expenses = () => {
                             <tbody>
                                 {filteredExpenses.map((expense) => (
                                     <tr key={expense.id}>
-                                        <td>{expense.tarih.toLocaleDateString('tr-TR')}</td>
-                                        <td><span className="badge badge-info">{expense.kategori}</span></td>
-                                        <td>{expense.aciklama}</td>
+                                        <td>{new Date(expense.date).toLocaleDateString('tr-TR')}</td>
+                                        <td><span className="badge badge-info">{expense.category}</span></td>
+                                        <td>{expense.description}</td>
                                         <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-danger)' }}>
-                                            {formatCurrency(expense.tutar)}
+                                            {formatCurrency(expense.amount)}
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <button
@@ -198,8 +213,8 @@ const Expenses = () => {
                                         <input
                                             type="text"
                                             className="form-input"
-                                            value={formData.kategori}
-                                            onChange={(e) => setFormData({ ...formData, kategori: e.target.value })}
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                             placeholder="Örn: Malzeme, İşçilik, Nakliye"
                                             required
                                         />
@@ -210,8 +225,8 @@ const Expenses = () => {
                                         <input
                                             type="text"
                                             className="form-input"
-                                            value={formData.aciklama}
-                                            onChange={(e) => setFormData({ ...formData, aciklama: e.target.value })}
+                                            value={formData.description}
+                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             placeholder="Harcama detayı"
                                             required
                                         />
@@ -222,8 +237,8 @@ const Expenses = () => {
                                         <input
                                             type="number"
                                             className="form-input"
-                                            value={formData.tutar}
-                                            onChange={(e) => setFormData({ ...formData, tutar: Number(e.target.value) })}
+                                            value={formData.amount}
+                                            onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
                                             min="0"
                                             step="0.01"
                                             required
@@ -235,11 +250,25 @@ const Expenses = () => {
                                         <input
                                             type="date"
                                             className="form-input"
-                                            value={formData.tarih instanceof Date ? formData.tarih.toISOString().split('T')[0] : ''}
-                                            onChange={(e) => setFormData({ ...formData, tarih: new Date(e.target.value) })}
+                                            value={formData.date}
+                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                             required
                                         />
                                     </div>
+
+                                    {errorMsg && (
+                                        <div style={{
+                                            padding: '10px',
+                                            background: '#fee2e2',
+                                            color: '#991b1b',
+                                            borderRadius: '8px',
+                                            fontSize: '0.85rem',
+                                            border: '1px solid #fecaca',
+                                            marginBottom: '15px'
+                                        }}>
+                                            ⚠️ {errorMsg}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="modal-footer">

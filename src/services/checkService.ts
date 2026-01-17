@@ -28,22 +28,52 @@ export const getChecks = async (): Promise<Check[]> => {
 };
 
 export const addCheck = async (check: CheckInput, userId: string): Promise<void> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase
-        .from('checks')
-        .insert([{
-            ...check,
-            user_id: userId,
-            created_by_email: user?.email
-        }]);
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-    if (error) throw error;
+        // Define data to insert explicitly to avoid issues with missing columns
+        const checkData: any = {
+            check_number: check.check_number,
+            amount: check.amount,
+            company: check.company,
+            recipient: check.company, // Add this to satisfy the NOT NULL constraint in DB
+            category: check.category,
+            issuer: check.issuer,
+            given_date: check.given_date,
+            due_date: check.due_date,
+            status: check.status,
+            description: check.description || '',
+            project_id: check.project_id,
+            user_id: userId
+        };
+
+        // Add optional fields only if they exist in the input
+        if (check.vat_status) checkData.vat_status = check.vat_status;
+        if (user?.email) checkData.created_by_email = user.email;
+
+        const { error } = await supabase
+            .from('checks')
+            .insert([checkData]);
+
+        if (error) {
+            console.error('Supabase Insert Error:', error);
+            throw error;
+        }
+    } catch (err) {
+        console.error('addCheck Service Error:', err);
+        throw err;
+    }
 };
 
 export const updateCheck = async (id: string, check: Partial<Check>): Promise<void> => {
+    const updateData: any = { ...check };
+    if (check.company) {
+        updateData.recipient = check.company;
+    }
+
     const { error } = await supabase
         .from('checks')
-        .update(check)
+        .update(updateData)
         .eq('id', id);
 
     if (error) throw error;

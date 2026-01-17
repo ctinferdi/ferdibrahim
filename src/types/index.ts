@@ -39,6 +39,7 @@ export interface Check {
     due_date: string;
     status: CheckStatus;
     description?: string;
+    project_id?: string;
     created_by_email?: string;
     user_id?: string;
     created_at?: string;
@@ -47,7 +48,7 @@ export interface Check {
 export type CheckInput = Omit<Check, 'id' | 'user_id' | 'created_at'>;
 
 // Apartment types
-export type ApartmentStatus = 'available' | 'reserved' | 'sold';
+export type ApartmentStatus = 'available' | 'sold' | 'owner';
 
 export interface Apartment {
     id: string;
@@ -55,10 +56,13 @@ export interface Apartment {
     apartment_number: string;
     floor: number;
     square_meters: number;
-    price: number;
+    price: number; // Hedef Satış Fiyatı
+    sold_price?: number; // Gerçek Satış Fiyatı
+    paid_amount?: number; // Alınan Ödeme
     status: ApartmentStatus;
     customer_name?: string;
     customer_phone?: string;
+    project_id?: string;
     user_id?: string;
     created_at?: string;
 }

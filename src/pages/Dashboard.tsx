@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
@@ -54,22 +55,32 @@ const Dashboard = () => {
     return (
         <Layout>
             <div className="animate-fadeIn">
-                <h1 className="mb-lg">Ana Sayfa</h1>
+                <h1 className="mb-xs" style={{ fontSize: 'var(--font-size-xl)' }}>Ana Sayfa</h1>
 
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: 'var(--spacing-lg)',
-                    marginBottom: 'var(--spacing-2xl)'
+                    gap: 'var(--spacing-sm)',
+                    marginBottom: 'var(--spacing-sm)'
                 }}>
                     {/* Projeler Kartı */}
-                    <div className="card" style={{
+                    <Link to="/projeler" className="card" style={{
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
                         border: 'none',
                         position: 'relative',
-                        overflow: 'hidden'
-                    }}>
+                        overflow: 'hidden',
+                        textDecoration: 'none',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-5px)';
+                            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🏗️</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>
                             AKTİF PROJELER
@@ -80,16 +91,26 @@ const Dashboard = () => {
                         <p style={{ marginTop: '0.5rem', opacity: 0.8, fontSize: 'var(--font-size-sm)' }}>
                             Toplam {projects.length} proje
                         </p>
-                    </div>
+                    </Link>
 
                     {/* Bekleyen Çekler Kartı */}
-                    <div className="card" style={{
+                    <Link to="/cekler" className="card" style={{
                         background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                         color: 'white',
                         border: 'none',
                         position: 'relative',
-                        overflow: 'hidden'
-                    }}>
+                        overflow: 'hidden',
+                        textDecoration: 'none',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-5px)';
+                            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>💳</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>
                             BEKLEYEN ÇEKLER
@@ -100,16 +121,26 @@ const Dashboard = () => {
                         <p style={{ marginTop: '0.5rem', opacity: 0.8, fontSize: 'var(--font-size-sm)' }}>
                             {pendingChecks.length} adet beklemede
                         </p>
-                    </div>
+                    </Link>
 
                     {/* Daireler Kartı */}
-                    <div className="card" style={{
+                    <Link to="/daireler" className="card" style={{
                         background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                         color: 'white',
                         border: 'none',
                         position: 'relative',
-                        overflow: 'hidden'
-                    }}>
+                        overflow: 'hidden',
+                        textDecoration: 'none',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-5px)';
+                            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🏢</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>
                             MÜSAİT DAİRELER
@@ -120,7 +151,7 @@ const Dashboard = () => {
                         <p style={{ marginTop: '0.5rem', opacity: 0.8, fontSize: 'var(--font-size-sm)' }}>
                             Toplam {apartments.length} daire
                         </p>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* Vadesi Yaklaşan Çekler Uyarısı */}

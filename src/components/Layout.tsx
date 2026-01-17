@@ -27,7 +27,7 @@ const Layout = ({ children }: LayoutProps) => {
     };
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)' }}>
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)', overflowX: 'hidden' }}>
             {/* Sidebar */}
             <aside style={{
                 width: '100px',
@@ -39,7 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
                 height: '100vh',
                 zIndex: 100
             }}>
-                <nav style={{ flex: 1, padding: 'var(--spacing-xl) 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <nav style={{ flex: 1, padding: 'var(--spacing-md) 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (
@@ -55,15 +55,15 @@ const Layout = ({ children }: LayoutProps) => {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     marginBottom: 'var(--spacing-md)',
-                                    borderRadius: 'var(--radius-lg)',
+                                    borderRadius: 'var(--radius-sm)',
                                     background: isActive ? 'var(--color-primary-light)' : 'transparent',
                                     color: isActive ? 'var(--color-primary)' : 'var(--color-text)',
                                     transition: 'all var(--transition-fast)',
                                     textDecoration: 'none'
                                 }}
                             >
-                                <span style={{ fontSize: '1.5rem' }}>{item.icon}</span>
-                                <span style={{ fontSize: '10px', marginTop: '4px', fontWeight: isActive ? 700 : 500, textAlign: 'center' }}>
+                                <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+                                <span style={{ fontSize: '9px', marginTop: '2px', fontWeight: isActive ? 700 : 500, textAlign: 'center' }}>
                                     {item.label.split(' ')[1]}
                                 </span>
                             </Link>
@@ -76,13 +76,13 @@ const Layout = ({ children }: LayoutProps) => {
             <div style={{ flex: 1, marginLeft: '100px', display: 'flex', flexDirection: 'column' }}>
                 {/* Top Header */}
                 <header style={{
-                    height: '70px',
+                    height: '50px',
                     background: 'var(--color-white)',
-                    padding: '0 var(--spacing-2xl)',
+                    padding: '0 var(--spacing-xl)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'flex-end',
-                    gap: 'var(--spacing-lg)',
+                    gap: 'var(--spacing-md)',
                     boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
                     zIndex: 90,
                     position: 'sticky',
@@ -94,13 +94,13 @@ const Layout = ({ children }: LayoutProps) => {
                         title="Ayarlar"
                         style={{
                             textDecoration: 'none',
-                            width: '40px',
-                            height: '40px',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '1.2rem',
+                            fontSize: '1rem',
                             transition: 'background 0.2s',
                             background: location.pathname === '/ayarlar' ? 'var(--color-bg)' : 'transparent'
                         }}
@@ -114,77 +114,68 @@ const Layout = ({ children }: LayoutProps) => {
                         ⚙️
                     </Link>
 
-                    {/* Profile Icon */}
-                    <div
-                        title={user?.email || ''}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: 'var(--gradient-primary)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '1rem',
-                            boxShadow: '0 4px 10px rgba(102, 126, 234, 0.3)',
-                            cursor: 'default'
-                        }}
-                    >
-                        {user?.email?.[0].toUpperCase()}
-                    </div>
-
                     {/* Logout Icon */}
                     <button
                         onClick={handleLogout}
                         title="Çıkış Yap"
                         style={{
-                            width: '40px',
-                            height: '40px',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '50%',
                             border: 'none',
                             background: 'transparent',
-                            fontSize: '1.2rem',
                             cursor: 'pointer',
-                            transition: 'background 0.2s'
+                            transition: 'background 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--color-danger)'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                        🚪
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
                     </button>
 
-                    <div style={{ width: '1px', height: '30px', background: 'var(--color-border)', margin: '0 var(--spacing-sm)' }}></div>
+                    <div style={{ width: '1px', height: '24px', background: 'var(--color-border)', margin: '0 var(--spacing-xs)' }}></div>
 
-                    {/* Logo (Link to Home) */}
-                    <Link to="/" style={{ textDecoration: 'none', textAlign: 'right', minWidth: '120px' }}>
-                        <h2 style={{
-                            fontSize: 'var(--font-size-md)',
-                            fontWeight: 800,
-                            background: 'var(--gradient-primary)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
+                    {/* Logo & Email Stack (Link to Home) */}
+                    <Link to="/" style={{
+                        textDecoration: 'none',
+                        textAlign: 'right',
+                        minWidth: '110px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <p style={{
+                            fontSize: '10px',
+                            color: 'var(--color-primary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
                             margin: 0,
+                            fontWeight: 800,
                             lineHeight: 1
                         }}>
-                            Ferdi İbrahim
-                        </h2>
+                            İnşaat Yönetim
+                        </p>
                         <p style={{
                             fontSize: '9px',
                             color: 'var(--color-text-light)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                            margin: '2px 0 0 0',
-                            fontWeight: 600
+                            margin: '1px 0 0 0',
+                            fontWeight: 500
                         }}>
-                            İnşaat Yönetim
+                            {user?.email}
                         </p>
                     </Link>
                 </header>
 
                 {/* Content */}
-                <main style={{ padding: 'var(--spacing-xl)', flex: 1 }}>
+                <main style={{ padding: 'var(--spacing-sm) var(--spacing-lg)', flex: 1 }}>
                     {children}
                 </main>
             </div>

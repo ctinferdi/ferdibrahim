@@ -2,11 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { projectService } from '../services/projectService';
-import { Project, ProjectInput, ProjectPartnerInput } from '../types';
+import { checkService } from '../services/checkService';
+import { apartmentService } from '../services/apartmentService';
+import { Project, ProjectInput, ProjectPartnerInput, Check, Apartment } from '../types';
 
 const Projects: React.FC = () => {
     const navigate = useNavigate();
     const [projects, setProjects] = useState<Project[]>([]);
+    const [checks, setChecks] = useState<Check[]>([]);
+    const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
@@ -18,9 +22,15 @@ const Projects: React.FC = () => {
     ]);
 
     useEffect(() => {
-        const unsubscribe = projectService.subscribeToProjects(setProjects);
+        const unsubscribeProjects = projectService.subscribeToProjects(setProjects);
+        const unsubscribeChecks = checkService.subscribeToChecks(setChecks);
+        const unsubscribeApartments = apartmentService.subscribeToApartments(setApartments);
         setLoading(false);
-        return unsubscribe;
+        return () => {
+            unsubscribeProjects();
+            unsubscribeChecks();
+            unsubscribeApartments();
+        };
     }, []);
 
     const addPartner = () => {
@@ -38,6 +48,7 @@ const Projects: React.FC = () => {
     };
 
     const [saving, setSaving] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const handleSaveProject = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,7 +85,8 @@ const Projects: React.FC = () => {
             // Kullanıcının isteği üzerine sayfayı yenile
             window.location.reload();
         } catch (error: any) {
-            alert('Hata: ' + error.message);
+            console.error('Error creating project:', error);
+            setErrorMsg(error.message || 'Proje oluşturulamadı.');
         } finally {
             setSaving(false);
         }
@@ -94,7 +106,7 @@ const Projects: React.FC = () => {
                     await projectService.deleteProject(deletingProject.id);
                     const updatedProjects = await projectService.getProjects();
                     setProjects(updatedProjects);
-                    alert('Proje başarıyla silindi!');
+                    // alert('Proje başarıyla silindi!');
                     window.location.reload();
                 }
                 setShowDeleteModal(false);
@@ -121,10 +133,13 @@ const Projects: React.FC = () => {
 
     return (
         <Layout>
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+            <div className="animate-fadeIn">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                     <h1 className="mb-0">Projeler</h1>
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                    <button className="btn btn-primary" onClick={() => {
+                        setErrorMsg(null);
+                        setShowModal(true);
+                    }}>
                         + Yeni Proje
                     </button>
                 </div>
@@ -133,76 +148,135 @@ const Projects: React.FC = () => {
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-                    gap: 'var(--spacing-lg)'
+                    gap: 'var(--spacing-md)',
+                    gridAutoRows: '1fr'
                 }}>
                     {projects.map((project) => {
                         const totalPartners = project.partners?.length || 0;
+                        const projectChecks = checks.filter(c => c.project_id === project.id);
+                        const pendingChecks = projectChecks.filter(c => c.status === 'pending').length;
+                        const paidChecks = projectChecks.filter(c => c.status === 'paid').length;
+
                         return (
-                            <div
-                                key={project.id}
-                                className="card"
-                                onClick={() => navigate(`/projeler/${project.id}`)}
-                                style={{
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    color: 'white',
-                                    position: 'relative',
-                                    cursor: 'pointer'
-                                }}>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        const code = Math.floor(1000 + Math.random() * 9000).toString();
-                                        setGeneratedSecurityCode(code);
-                                        setDeletingProject({ id: project.id, name: project.name });
-                                        setShowDeleteModal(true);
-                                    }}
+                            <div key={project.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                {/* Proje Kartı */}
+                                <div
+                                    className="card"
+                                    onClick={() => navigate(`/projeler/${project.id}`)}
                                     style={{
-                                        position: 'absolute',
-                                        top: 'var(--spacing-md)',
-                                        right: 'var(--spacing-md)',
-                                        background: 'rgba(255,255,255,0.2)',
-                                        border: 'none',
-                                        borderRadius: '50%',
-                                        width: '32px',
-                                        height: '32px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        color: 'white',
+                                        position: 'relative',
                                         cursor: 'pointer',
-                                        fontSize: '1rem',
-                                        transition: 'all var(--transition-fast)'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                                    title="Projeyi Sil"
-                                >
-                                    🗑️
-                                </button>
+                                        padding: 'var(--spacing-lg)',
+                                        marginBottom: 0,
+                                        minHeight: '180px',
+                                        display: 'flex',
+                                        flexDirection: 'column'
+                                    }}>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const code = Math.floor(1000 + Math.random() * 9000).toString();
+                                            setGeneratedSecurityCode(code);
+                                            setDeletingProject({ id: project.id, name: project.name });
+                                            setShowDeleteModal(true);
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 'var(--spacing-xs)',
+                                            right: 'var(--spacing-xs)',
+                                            background: 'rgba(255,255,255,0.2)',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '24px',
+                                            height: '24px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            fontSize: '0.8rem',
+                                            transition: 'all var(--transition-fast)'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                        title="Projeyi Sil"
+                                    >
+                                        🗑️
+                                    </button>
 
-                                <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '2rem' }}>{project.name}</h3>
-                                {project.description && (
-                                    <p style={{ opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-md)' }}>
-                                        {project.description}
-                                    </p>
-                                )}
+                                    <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '2rem' }}>{project.name}</h3>
 
-                                <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
-                                    <div style={{ fontSize: 'var(--font-size-sm)', opacity: 0.9 }}>
+                                    <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}>
                                         {totalPartners > 0 ? (
                                             <>
-                                                <div style={{ marginBottom: 'var(--spacing-xs)' }}>
-                                                    👥 {totalPartners} Ortak
-                                                </div>
-                                                {project.partners?.map((partner) => (
+                                                <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: 'var(--spacing-xs)' }}>👥 {totalPartners} Ortak</div>
+                                                {project.partners?.slice(0, 3).map((partner) => (
                                                     <div key={partner.id} style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>
                                                         • {partner.name}: %{partner.share_percentage}
                                                     </div>
                                                 ))}
+                                                {totalPartners > 3 && <div style={{ opacity: 0.8 }}>...</div>}
                                             </>
                                         ) : (
-                                            <div>👤 Tek Sahip</div>
+                                            <div style={{ opacity: 0.9 }}>👤 Tek Sahip</div>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* Çek Durumu Barı */}
+                                <div style={{
+                                    background: 'rgba(102, 126, 234, 0.15)',
+                                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    padding: '6px 10px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    fontSize: '0.65rem',
+                                    fontWeight: 600,
+                                    color: 'var(--color-text)'
+                                }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span>💳</span>
+                                        <span>ÇEK: {projectChecks.length}</span>
+                                    </span>
+                                    <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
+                                        {pendingChecks} Bekle. / {paidChecks} Öden.
+                                    </span>
+                                </div>
+
+                                {/* Daire Durumu Barı */}
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/projeler/${project.id}`);
+                                    }}
+                                    style={{
+                                        background: 'rgba(67, 233, 123, 0.15)',
+                                        border: '1px solid rgba(67, 233, 123, 0.3)',
+                                        borderRadius: 'var(--radius-sm)',
+                                        padding: '6px 10px',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        color: 'var(--color-text)',
+                                        cursor: 'pointer',
+                                        transition: 'all var(--transition-fast)'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.25)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.15)'}
+                                >
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span>🏠</span>
+                                        <span>DAİRE: {apartments.filter(a => a.project_id === project.id).length}</span>
+                                    </span>
+                                    <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
+                                        {apartments.filter(a => a.project_id === project.id && a.status === 'available').length} Müsait /
+                                        {apartments.filter(a => a.project_id === project.id && a.status === 'sold').length} Satıldı
+                                    </span>
                                 </div>
                             </div>
                         );
@@ -312,6 +386,20 @@ const Projects: React.FC = () => {
                                     </button>
 
                                 </div>
+
+                                {errorMsg && (
+                                    <div style={{
+                                        padding: '10px',
+                                        background: '#fee2e2',
+                                        color: '#991b1b',
+                                        borderRadius: '8px',
+                                        fontSize: '0.85rem',
+                                        border: '1px solid #fecaca',
+                                        marginBottom: '15px'
+                                    }}>
+                                        ⚠️ {errorMsg}
+                                    </div>
+                                )}
 
                                 <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
                                     <button
