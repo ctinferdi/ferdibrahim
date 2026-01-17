@@ -368,7 +368,7 @@ const ProjectDetail: React.FC = () => {
                                     onClick={() => setShowBulkModal(true)}
                                     style={{ padding: '0.4rem 1rem' }}
                                 >
-                                    {apartments.length > 0 ? '🗺️ Kat Planı Güncelle' : '🗺️ Kat Planı Oluştur'}
+                                    {apartments.length > 0 ? '🔄 Kat Planını Güncelle' : '🗺️ Kat Planı Oluştur'}
                                 </button>
                                 <button
                                     className="btn btn-secondary"
@@ -698,13 +698,13 @@ const ProjectDetail: React.FC = () => {
                                                 <th style={{ padding: '4px 8px', textAlign: 'right', fontSize: '10px', fontWeight: 600 }}>ALINAN</th>
                                                 <th style={{ padding: '4px 8px', textAlign: 'right', fontSize: '10px', fontWeight: 600 }}>KALAN</th>
                                                 <th style={{ padding: '4px 8px', textAlign: 'center', fontSize: '10px', fontWeight: 600 }}>DURUM</th>
-                                                <th style={{ padding: '4px 8px', textAlign: 'left', fontSize: '10px', fontWeight: 600 }}>MÜŞTERİ</th>
+                                                <th style={{ padding: '4px 8px', textAlign: 'left', fontSize: '10px', fontWeight: 600, width: '100%' }}>MÜŞTERİ</th>
                                                 <th style={{ padding: '4px 8px', textAlign: 'right', fontSize: '10px', fontWeight: 600 }}></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {apartments
-                                                .filter(a => a.status === 'sold') // Sadece Satılanlar listede gözüksün (Mal sahipleri ve boşlar gözükmesin)
+                                                .filter(a => a.status === 'sold') // Sadece satılanlar listede görünsün
                                                 .sort((a, b) => {
                                                     if (b.floor !== a.floor) return b.floor - a.floor;
                                                     const numA = parseInt(a.apartment_number);
@@ -744,7 +744,7 @@ const ProjectDetail: React.FC = () => {
                                                                     SAT
                                                                 </span>
                                                             </td>
-                                                            <td style={{ padding: '4px 8px', fontSize: '11px', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            <td style={{ padding: '4px 8px', fontSize: '11px' }}>
                                                                 {apartment.customer_name || '-'}
                                                             </td>
                                                             <td style={{ padding: '4px 8px', textAlign: 'right' }}>
@@ -805,7 +805,7 @@ const ProjectDetail: React.FC = () => {
                                 </div>
 
                                 {/* Sağ Taraf - Bina Planı */}
-                                <div style={{ width: '450px', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: 'var(--spacing-lg)', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                                <div style={{ width: 'fit-content', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', padding: 'var(--spacing-lg)', border: '1px solid var(--color-border)', flexShrink: 0 }}>
                                     <h3 style={{ fontSize: 'var(--font-size-md)', margin: '0 0 var(--spacing-md) 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <span>🏗️ Bina Planı</span>
                                         <span style={{ fontSize: '10px', fontWeight: 'normal', color: 'var(--color-text-light)', marginLeft: 'auto' }}>Tıklayarak düzenle</span>
@@ -827,15 +827,8 @@ const ProjectDetail: React.FC = () => {
                                             overflowY: 'auto'
                                         }}>
                                             {/* Katları grupla ve sırala */}
-                                            {[...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a).map(floor => {
+                                            {[...new Set(apartments.map(a => a.floor))].sort((a: any, b: any) => b - a).map(floor => {
                                                 const floorApts = apartments.filter(a => a.floor === floor);
-
-                                                // Her kattaki maksimum daire indeksini bul (hizalama için)
-                                                const maxFloorIndex = Math.max(...apartments.map(a => {
-                                                    const parts = a.apartment_number.split('-');
-                                                    const num = parseInt(parts[parts.length - 1]);
-                                                    return isNaN(num) ? 1 : num;
-                                                }));
 
                                                 const aptMap: { [key: number]: any } = {};
                                                 floorApts.forEach(apt => {
@@ -861,76 +854,81 @@ const ProjectDetail: React.FC = () => {
                                                             alignItems: 'center',
                                                             justifyContent: 'flex-end'
                                                         }}>
-                                                            {floor === 0 ? 'ZEMİN' : floor < 0 ? `B${Math.abs(floor)}` : `${floor}.K`}
+                                                            {Number(floor) === 0 ? 'ZEMİN' : Number(floor) < 0 ? `B${Math.abs(Number(floor))}` : `${floor}.K`}
                                                         </div>
 
                                                         {/* Daireler */}
                                                         <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
-                                                            {/* Tüm daireler için standart ızgara düzeni */}
-                                                            {Array.from({ length: maxFloorIndex }).map((_, idx) => {
-                                                                const aptIndex = idx + 1;
-                                                                const apt = aptMap[aptIndex];
-                                                                if (!apt) return <div key={`empty-${floor}-${aptIndex}`} style={{ width: '50px', height: '35px' }}></div>;
+                                                            {floorApts
+                                                                .sort((a, b) => {
+                                                                    const aIdx = parseInt(a.apartment_number.split('-').pop() || '0');
+                                                                    const bIdx = parseInt(b.apartment_number.split('-').pop() || '0');
+                                                                    return aIdx - bIdx;
+                                                                })
+                                                                .map((apt: any) => {
 
-                                                                let bgColor = '#f8fafc';
-                                                                let textColor = '#64748b';
-                                                                let borderColor = '#e2e8f0';
-                                                                let label = apt.apartment_number;
+                                                                    let bgColor = '#f8fafc';
+                                                                    let textColor = '#64748b';
+                                                                    let borderColor = '#e2e8f0';
+                                                                    let label = apt.apartment_number;
 
-                                                                if (apt.status === 'sold') {
-                                                                    bgColor = '#dcfce7'; textColor = '#15803d'; borderColor = '#bbf7d0';
-                                                                    label = apt.customer_name || apt.apartment_number;
-                                                                } else if (apt.status === 'owner') {
-                                                                    bgColor = '#fef9c3'; textColor = '#854d0e'; borderColor = '#fef08a';
-                                                                    label = apt.customer_name || 'MAL';
-                                                                } else if (apt.status === 'available') {
-                                                                    bgColor = '#eff6ff'; textColor = '#1e40af'; borderColor = '#dbeafe';
-                                                                }
+                                                                    if (apt.status === 'sold') {
+                                                                        bgColor = '#dcfce7'; textColor = '#15803d'; borderColor = '#bbf7d0';
+                                                                        label = apt.customer_name || apt.apartment_number;
+                                                                    } else if (apt.status === 'owner') {
+                                                                        bgColor = '#fef9c3'; textColor = '#854d0e'; borderColor = '#fef08a';
+                                                                        label = apt.customer_name || 'MAL';
+                                                                    } else if (apt.status === 'available') {
+                                                                        bgColor = '#eff6ff'; textColor = '#1e40af'; borderColor = '#dbeafe';
+                                                                    }
 
-                                                                return (
-                                                                    <div
-                                                                        key={apt.id}
-                                                                        title={apt.apartment_number}
-                                                                        onClick={() => {
-                                                                            setEditingApartmentId(apt.id);
-                                                                            setApartmentFormData({ ...apt, project_id: apt.project_id || id || '' });
-                                                                            setShowApartmentModal(true);
-                                                                        }}
-                                                                        style={{
-                                                                            background: bgColor,
-                                                                            color: textColor,
-                                                                            borderRadius: '4px',
-                                                                            fontSize: '9px',
-                                                                            fontWeight: 800,
-                                                                            cursor: 'pointer',
-                                                                            border: `1px solid ${borderColor}`,
-                                                                            width: '50px',
-                                                                            height: '35px',
-                                                                            display: 'flex',
-                                                                            flexDirection: 'column',
-                                                                            alignItems: 'center',
-                                                                            justifyContent: 'center',
-                                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                                                            transition: 'all 0.2s'
-                                                                        }}
-                                                                        onMouseEnter={(e) => {
-                                                                            e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
-                                                                            e.currentTarget.style.zIndex = '10';
-                                                                        }}
-                                                                        onMouseLeave={(e) => {
-                                                                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                                                                            e.currentTarget.style.zIndex = '1';
-                                                                        }}
-                                                                    >
-                                                                        <div>{apt.apartment_number}</div>
-                                                                        {apt.status !== 'available' && (
-                                                                            <div style={{ fontSize: '6px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
-                                                                                {label.split(' ')[0]}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                                    // Tek daireli katlarda kutucuk tüm genişliği kaplasın
+                                                                    const boxWidth = floorApts.length === 1 ? '100%' : '50px';
+
+                                                                    return (
+                                                                        <div
+                                                                            key={apt.id}
+                                                                            title={apt.apartment_number}
+                                                                            onClick={() => {
+                                                                                setEditingApartmentId(apt.id);
+                                                                                setApartmentFormData({ ...apt, project_id: apt.project_id || id || '' });
+                                                                                setShowApartmentModal(true);
+                                                                            }}
+                                                                            style={{
+                                                                                background: bgColor,
+                                                                                color: textColor,
+                                                                                borderRadius: '4px',
+                                                                                fontSize: '9px',
+                                                                                fontWeight: 800,
+                                                                                cursor: 'pointer',
+                                                                                border: `1px solid ${borderColor}`,
+                                                                                width: boxWidth,
+                                                                                height: '35px',
+                                                                                display: 'flex',
+                                                                                flexDirection: 'column',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center',
+                                                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                                                                transition: 'all 0.2s'
+                                                                            }}
+                                                                            onMouseEnter={(e) => {
+                                                                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                                                                                e.currentTarget.style.zIndex = '10';
+                                                                            }}
+                                                                            onMouseLeave={(e) => {
+                                                                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                                                e.currentTarget.style.zIndex = '1';
+                                                                            }}
+                                                                        >
+                                                                            <div>{apt.apartment_number}</div>
+                                                                            {apt.status !== 'available' && (
+                                                                                <div style={{ fontSize: '6px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
+                                                                                    {label.split(' ')[0]}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                         </div>
                                                     </div>
                                                 );
@@ -1645,7 +1643,7 @@ const ProjectDetail: React.FC = () => {
                             padding: 'var(--spacing-lg)'
                         }}>
                             <h2 style={{ marginTop: 0, marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-lg)' }}>
-                                Toplu Kat Planı Oluştur
+                                {apartments.length > 0 ? 'Kat Planını Güncelle' : 'Toplu Kat Planı Oluştur'}
                             </h2>
                             <p style={{ fontSize: '11px', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
                                 Belirlediğiniz kat aralığında her kat için istenen sayıda boş daire oluşturur.
@@ -1794,7 +1792,7 @@ const ProjectDetail: React.FC = () => {
                                         }
                                     }}
                                 >
-                                    Planı Oluştur
+                                    {apartments.length > 0 ? 'Planı Güncelle' : 'Planı Oluştur'}
                                 </button>
                                 <button
                                     className="btn btn-secondary"
