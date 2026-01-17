@@ -866,136 +866,71 @@ const ProjectDetail: React.FC = () => {
 
                                                         {/* Daireler */}
                                                         <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
-                                                            {floorApts.length === 1 ? (
-                                                                // Tek daire varsa tam genişlik
-                                                                (() => {
-                                                                    const apt = floorApts[0];
-                                                                    let bgColor = '#f8fafc';
-                                                                    let textColor = '#64748b';
-                                                                    let borderColor = '#e2e8f0';
-                                                                    let label = apt.apartment_number;
+                                                            {/* Tüm daireler için standart ızgara düzeni */}
+                                                            {Array.from({ length: maxFloorIndex }).map((_, idx) => {
+                                                                const aptIndex = idx + 1;
+                                                                const apt = aptMap[aptIndex];
+                                                                if (!apt) return <div key={`empty-${floor}-${aptIndex}`} style={{ width: '50px', height: '35px' }}></div>;
 
-                                                                    if (apt.status === 'sold') {
-                                                                        bgColor = '#dcfce7'; textColor = '#15803d'; borderColor = '#bbf7d0';
-                                                                        label = apt.customer_name || apt.apartment_number;
-                                                                    } else if (apt.status === 'owner') {
-                                                                        bgColor = '#fef9c3'; textColor = '#854d0e'; borderColor = '#fef08a';
-                                                                        label = apt.customer_name || 'MAL SAHİBİ';
-                                                                    } else if (apt.status === 'available') {
-                                                                        bgColor = '#eff6ff'; textColor = '#1e40af'; borderColor = '#dbeafe';
-                                                                    }
+                                                                let bgColor = '#f8fafc';
+                                                                let textColor = '#64748b';
+                                                                let borderColor = '#e2e8f0';
+                                                                let label = apt.apartment_number;
 
-                                                                    return (
-                                                                        <div
-                                                                            key={apt.id}
-                                                                            title={`${apt.apartment_number} - ${apt.status}`}
-                                                                            onClick={() => {
-                                                                                setEditingApartmentId(apt.id);
-                                                                                setApartmentFormData({ ...apt, project_id: apt.project_id || id || '' });
-                                                                                setShowApartmentModal(true);
-                                                                            }}
-                                                                            style={{
-                                                                                background: bgColor,
-                                                                                color: textColor,
-                                                                                borderRadius: '4px',
-                                                                                fontSize: '9px',
-                                                                                fontWeight: 800,
-                                                                                cursor: 'pointer',
-                                                                                border: `1px solid ${borderColor}`,
-                                                                                width: '100%',
-                                                                                height: '35px',
-                                                                                display: 'flex',
-                                                                                flexDirection: 'column',
-                                                                                alignItems: 'center',
-                                                                                justifyContent: 'center',
-                                                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                                                                transition: 'all 0.2s'
-                                                                            }}
-                                                                            onMouseEnter={(e) => {
-                                                                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                                                                e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                                                                            }}
-                                                                            onMouseLeave={(e) => {
-                                                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                                                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
-                                                                            }}
-                                                                        >
-                                                                            <div style={{ fontWeight: 800 }}>{apt.apartment_number}</div>
-                                                                            {apt.status !== 'available' && (
-                                                                                <div style={{ fontSize: '7px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '90%' }}>
-                                                                                    {label.split(' ')[0]}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    );
-                                                                })()
-                                                            ) : (
-                                                                // Çoklu daireler için ızgara
-                                                                Array.from({ length: maxFloorIndex }).map((_, idx) => {
-                                                                    const aptIndex = idx + 1;
-                                                                    const apt = aptMap[aptIndex];
-                                                                    if (!apt) return <div key={`empty-${floor}-${aptIndex}`} style={{ width: '50px', height: '35px' }}></div>;
+                                                                if (apt.status === 'sold') {
+                                                                    bgColor = '#dcfce7'; textColor = '#15803d'; borderColor = '#bbf7d0';
+                                                                    label = apt.customer_name || apt.apartment_number;
+                                                                } else if (apt.status === 'owner') {
+                                                                    bgColor = '#fef9c3'; textColor = '#854d0e'; borderColor = '#fef08a';
+                                                                    label = apt.customer_name || 'MAL';
+                                                                } else if (apt.status === 'available') {
+                                                                    bgColor = '#eff6ff'; textColor = '#1e40af'; borderColor = '#dbeafe';
+                                                                }
 
-                                                                    let bgColor = '#f8fafc';
-                                                                    let textColor = '#64748b';
-                                                                    let borderColor = '#e2e8f0';
-                                                                    let label = apt.apartment_number;
-
-                                                                    if (apt.status === 'sold') {
-                                                                        bgColor = '#dcfce7'; textColor = '#15803d'; borderColor = '#bbf7d0';
-                                                                        label = apt.customer_name || apt.apartment_number;
-                                                                    } else if (apt.status === 'owner') {
-                                                                        bgColor = '#fef9c3'; textColor = '#854d0e'; borderColor = '#fef08a';
-                                                                        label = apt.customer_name || 'MAL';
-                                                                    } else if (apt.status === 'available') {
-                                                                        bgColor = '#eff6ff'; textColor = '#1e40af'; borderColor = '#dbeafe';
-                                                                    }
-
-                                                                    return (
-                                                                        <div
-                                                                            key={apt.id}
-                                                                            title={apt.apartment_number}
-                                                                            onClick={() => {
-                                                                                setEditingApartmentId(apt.id);
-                                                                                setApartmentFormData({ ...apt, project_id: apt.project_id || id || '' });
-                                                                                setShowApartmentModal(true);
-                                                                            }}
-                                                                            style={{
-                                                                                background: bgColor,
-                                                                                color: textColor,
-                                                                                borderRadius: '4px',
-                                                                                fontSize: '9px',
-                                                                                fontWeight: 800,
-                                                                                cursor: 'pointer',
-                                                                                border: `1px solid ${borderColor}`,
-                                                                                width: '50px',
-                                                                                height: '35px',
-                                                                                display: 'flex',
-                                                                                flexDirection: 'column',
-                                                                                alignItems: 'center',
-                                                                                justifyContent: 'center',
-                                                                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                                                                transition: 'all 0.2s'
-                                                                            }}
-                                                                            onMouseEnter={(e) => {
-                                                                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
-                                                                                e.currentTarget.style.zIndex = '10';
-                                                                            }}
-                                                                            onMouseLeave={(e) => {
-                                                                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                                                                                e.currentTarget.style.zIndex = '1';
-                                                                            }}
-                                                                        >
-                                                                            <div>{apt.apartment_number}</div>
-                                                                            {apt.status !== 'available' && (
-                                                                                <div style={{ fontSize: '6px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
-                                                                                    {label.split(' ')[0]}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    );
-                                                                })
-                                                            )}
+                                                                return (
+                                                                    <div
+                                                                        key={apt.id}
+                                                                        title={apt.apartment_number}
+                                                                        onClick={() => {
+                                                                            setEditingApartmentId(apt.id);
+                                                                            setApartmentFormData({ ...apt, project_id: apt.project_id || id || '' });
+                                                                            setShowApartmentModal(true);
+                                                                        }}
+                                                                        style={{
+                                                                            background: bgColor,
+                                                                            color: textColor,
+                                                                            borderRadius: '4px',
+                                                                            fontSize: '9px',
+                                                                            fontWeight: 800,
+                                                                            cursor: 'pointer',
+                                                                            border: `1px solid ${borderColor}`,
+                                                                            width: '50px',
+                                                                            height: '35px',
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                                                            transition: 'all 0.2s'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                                                                            e.currentTarget.style.zIndex = '10';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                                                            e.currentTarget.style.zIndex = '1';
+                                                                        }}
+                                                                    >
+                                                                        <div>{apt.apartment_number}</div>
+                                                                        {apt.status !== 'available' && (
+                                                                            <div style={{ fontSize: '6px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
+                                                                                {label.split(' ')[0]}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </div>
                                                 );
