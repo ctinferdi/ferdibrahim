@@ -1,24 +1,16 @@
-# Son Durum ve Yapılacaklar
+## 1. Dashboard ve Menü Düzenlemesi (Son Hali)
+- **Üst Menü (Header):** Ayarlar, Profil ve Çıkış butonları ikon olarak sağ üst köşeye taşındı.
+- **Yan Menü (Sidebar):** Menü daraltıldı ve sadece ikon odaklı hale getirildi. "Ana Sayfa" butonu geri eklendi.
+- **Özet Kartlar:** Kartlar istenilen sıraya (Projeler, Çekler, Daireler) getirildi ve "Toplam Satış" kaldırıldı.
 
-## 1. Yerel Çalışma (Localhost)
-Uygulamanı şu an **3600** portunda başlattım.
+## 2. Uygulama Erişimi
+Uygulamayı şu an en güncel haliyle **3505** portunda başlattım.
 
--   **Adres:** [http://localhost:3600](http://localhost:3600)
--   **Yapılacak:** Bu adrese girip **Kayıt Ol** diyerek yeni hesabını oluştur.
--   **Kritik:** Artık `.env` dosyasında doğru anahtar olduğu için "Anonymous sign-ins are disabled" hatası almayacaksın.
+- **Adres:** [http://localhost:3505](http://localhost:3505)
 
-## 2. Vercel'e Yükleme (Canlıya Alma)
-Yerelde çalıştığını doğruladıktan sonra siteni güncellemek için:
+**NOT:** Eğer sayfa hala eski görünüyorsa tarayıcını `Ctrl + R` ile yenile.
 
-1.  **Değişiklikleri Gönder:** Yaptığımız tasarım ve kod değişikliklerini GitHub'a yükle (Commit & Push).
-    *   Terminalin çalışmadığı için bunu senin yapman gerekebilir (VS Code sol menüdeki "Source Control" kısmından).
-2.  **Vercel Ayarları (ÇOK ÖNEMLİ):**
-    *   Vercel paneline git.
-    *   Projeni seç -> **Settings** -> **Environment Variables**.
-    *   `VITE_SUPABASE_ANON_KEY` değerini düzenle (Edit) ve `.env` dosyasına yapıştırdığımız o uzun `eyJ...` ile başlayan kodu oraya da yapıştır.
-    *   **Save** de.
-3.  **Yeniden Başlat (Redeploy):**
-    *   **Deployments** sekmesine gel.
-    *   Son deploy'un yanındaki üç noktaya tıkla -> **Redeploy**.
-
-Bu adımları tamamladığında siten hem bilgisayarında hem de internette sorunsuz çalışacak.
+## 3. Vercel İçin Not
+Yapılan tüm bu yeni özelliklerin (Çekler, yeni tasarım vb.) internet sitesinde (Vercel) görünmesi için:
+1. VS Code üzerinden yaptığımız değişiklikleri **Push** yapmalısın.
+2. Vercel paneline gidip **Redeploy** (Yeniden Oluştur) demen yeterli olacaktır.

@@ -15,6 +15,11 @@ export interface Expense {
     date: string;
     user_id?: string;
     created_at?: string;
+    project_id?: string;
+    partner_id?: string;
+    payment_method?: string;
+    recipient?: string;
+    created_by_email?: string;
 }
 
 export type ExpenseInput = Omit<Expense, 'id' | 'user_id' | 'created_at'>;
@@ -24,11 +29,17 @@ export type CheckStatus = 'pending' | 'paid' | 'cancelled';
 
 export interface Check {
     id: string;
-    recipient: string;
-    amount: number;
-    due_date: string;
     check_number: string;
+    amount: number;
+    company: string;
+    category: string;
+    vat_status?: string;
+    issuer: string;
+    given_date: string;
+    due_date: string;
     status: CheckStatus;
+    description?: string;
+    created_by_email?: string;
     user_id?: string;
     created_at?: string;
 }
@@ -53,3 +64,27 @@ export interface Apartment {
 }
 
 export type ApartmentInput = Omit<Apartment, 'id' | 'user_id' | 'created_at'>;
+
+// Project types
+export type ProjectStatus = 'active' | 'completed' | 'archived';
+
+export interface ProjectPartner {
+    id: string;
+    project_id: string;
+    name: string;
+    share_percentage: number;
+    created_at?: string;
+}
+
+export interface Project {
+    id: string;
+    name: string;
+    description?: string;
+    status: ProjectStatus;
+    user_id?: string;
+    created_at?: string;
+    partners?: ProjectPartner[];
+}
+
+export type ProjectInput = Omit<Project, 'id' | 'user_id' | 'created_at' | 'partners'>;
+export type ProjectPartnerInput = Omit<ProjectPartner, 'id' | 'created_at'>;

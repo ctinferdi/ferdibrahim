@@ -24,7 +24,8 @@ export const expenseService = {
         const { data, error } = await supabase
             .from('expenses')
             .select('*')
-            .order('date', { ascending: false });
+            .order('date', { ascending: false })
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
         return data as Expense[];
@@ -34,7 +35,11 @@ export const expenseService = {
         const { data: { user } } = await supabase.auth.getUser();
         const { error } = await supabase
             .from('expenses')
-            .insert([{ ...expense, user_id: user?.id }]);
+            .insert([{
+                ...expense,
+                user_id: user?.id,
+                created_by_email: user?.email
+            }]);
 
         if (error) throw error;
     },
