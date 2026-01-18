@@ -1,0 +1,89 @@
+import React from 'react';
+import { Expense, Project } from '../../types';
+
+interface ExpenseTableProps {
+    expenses: Expense[];
+    project: Project;
+    onEdit: (expense: Expense) => void;
+    onDelete: (id: string, name: string) => void;
+    formatCurrency: (value: number) => string;
+}
+
+const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, onDelete, formatCurrency }) => {
+    if (expenses.length === 0) {
+        return (
+            <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+                Henüz gider eklenmemiş. "+ Gider Ekle" butonuna tıklayarak başlayın.
+            </p>
+        );
+    }
+
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr style={{ background: 'var(--color-bg)', borderBottom: '2px solid var(--color-border)' }}>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>TARİH</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KİM İÇİN</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ÖDEME ŞEKLİ</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>VERİLEN KİŞİ</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>İŞ ADI</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>AÇIKLAMA</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>TUTAR</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>İŞLEMLER</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {expenses.map((expense) => {
+                        const partner = project.partners?.find(p => p.id === expense.partner_id);
+                        return (
+                            <tr key={expense.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
+                                    {new Date(expense.date).toLocaleDateString('tr-TR')}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                    {partner ? partner.name : '-'}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
+                                    {expense.payment_method || '-'}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
+                                    {expense.recipient || '-'}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                    {expense.category}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                                    {expense.description}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                    {formatCurrency(expense.amount)}
+                                </td>
+                                <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center' }}>
+                                    <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center' }}>
+                                        <button
+                                            onClick={() => onEdit(expense)}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                            title="Düzenle"
+                                        >
+                                            📝
+                                        </button>
+                                        <button
+                                            onClick={() => onDelete(expense.id, expense.category)}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                            title="Sil"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default ExpenseTable;

@@ -33,8 +33,6 @@ const Login: React.FC = () => {
         <div className="auth-container">
             <div className="auth-card glass">
                 <div className="auth-header">
-                    <h1>Ferdi İbrahim</h1>
-                    <p>İnşaat Finansal Yönetim Sistemi</p>
                 </div>
 
                 {error && (

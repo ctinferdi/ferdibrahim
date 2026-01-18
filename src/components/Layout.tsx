@@ -81,97 +81,171 @@ const Layout = ({ children }: LayoutProps) => {
                     padding: '0 var(--spacing-xl)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    gap: 'var(--spacing-md)',
+                    justifyContent: 'space-between',
                     boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
                     zIndex: 90,
                     position: 'sticky',
                     top: 0
                 }}>
-                    {/* Settings Icon */}
-                    <Link
-                        to="/ayarlar"
-                        title="Ayarlar"
-                        style={{
+                    {/* Navigation Buttons (Back & Forward) */}
+                    <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                        <button
+                            onClick={() => window.history.back()}
+                            title="Geri"
+                            style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: 'white',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                color: 'var(--color-text)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateX(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.2)';
+                                e.currentTarget.style.color = 'var(--color-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateX(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                                e.currentTarget.style.color = 'var(--color-text)';
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => window.history.forward()}
+                            title="İleri"
+                            style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '10px',
+                                border: 'none',
+                                background: 'white',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                color: 'var(--color-text)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateX(2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.2)';
+                                e.currentTarget.style.color = 'var(--color-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateX(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+                                e.currentTarget.style.color = 'var(--color-text)';
+                            }}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {/* Right side items */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                        {/* Settings Icon */}
+                        <Link
+                            to="/ayarlar"
+                            title="Ayarlar"
+                            style={{
+                                textDecoration: 'none',
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
+                                transition: 'background 0.2s',
+                                background: location.pathname === '/ayarlar' ? 'var(--color-bg)' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg)'}
+                            onMouseLeave={(e) => {
+                                if (location.pathname !== '/ayarlar') {
+                                    e.currentTarget.style.background = 'transparent';
+                                }
+                            }}
+                        >
+                            ⚙️
+                        </Link>
+
+                        {/* Logout Icon */}
+                        <button
+                            onClick={handleLogout}
+                            title="Çıkış Yap"
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                border: 'none',
+                                background: 'transparent',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-danger)'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                        </button>
+
+                        <div style={{ width: '1px', height: '24px', background: 'var(--color-border)', margin: '0 var(--spacing-xs)' }}></div>
+
+                        {/* Logo & Email Stack (Link to Home) */}
+                        <Link to="/" style={{
                             textDecoration: 'none',
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
+                            textAlign: 'right',
+                            minWidth: '110px',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1rem',
-                            transition: 'background 0.2s',
-                            background: location.pathname === '/ayarlar' ? 'var(--color-bg)' : 'transparent'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg)'}
-                        onMouseLeave={(e) => {
-                            if (location.pathname !== '/ayarlar') {
-                                e.currentTarget.style.background = 'transparent';
-                            }
-                        }}
-                    >
-                        ⚙️
-                    </Link>
-
-                    {/* Logout Icon */}
-                    <button
-                        onClick={handleLogout}
-                        title="Çıkış Yap"
-                        style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: 'transparent',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--color-danger)'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                    </button>
-
-                    <div style={{ width: '1px', height: '24px', background: 'var(--color-border)', margin: '0 var(--spacing-xs)' }}></div>
-
-                    {/* Logo & Email Stack (Link to Home) */}
-                    <Link to="/" style={{
-                        textDecoration: 'none',
-                        textAlign: 'right',
-                        minWidth: '110px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
-                    }}>
-                        <p style={{
-                            fontSize: '10px',
-                            color: 'var(--color-primary)',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px',
-                            margin: 0,
-                            fontWeight: 800,
-                            lineHeight: 1
+                            flexDirection: 'column',
+                            justifyContent: 'center'
                         }}>
-                            İnşaat Yönetim
-                        </p>
-                        <p style={{
-                            fontSize: '9px',
-                            color: 'var(--color-text-light)',
-                            margin: '1px 0 0 0',
-                            fontWeight: 500
-                        }}>
-                            {user?.email}
-                        </p>
-                    </Link>
+                            <p style={{
+                                fontSize: '10px',
+                                color: 'var(--color-primary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '1px',
+                                margin: 0,
+                                fontWeight: 800,
+                                lineHeight: 1
+                            }}>
+                                İnşaat Yönetim
+                            </p>
+                            <p style={{
+                                fontSize: '9px',
+                                color: 'var(--color-text-light)',
+                                margin: '1px 0 0 0',
+                                fontWeight: 500
+                            }}>
+                                {user?.email}
+                            </p>
+                        </Link>
+                    </div>
                 </header>
 
                 {/* Content */}

@@ -25,7 +25,7 @@ export interface Expense {
 export type ExpenseInput = Omit<Expense, 'id' | 'user_id' | 'created_at'>;
 
 // Check types
-export type CheckStatus = 'pending' | 'paid' | 'cancelled';
+export type CheckStatus = 'pending' | 'paid';
 
 export interface Check {
     id: string;
@@ -48,7 +48,7 @@ export interface Check {
 export type CheckInput = Omit<Check, 'id' | 'user_id' | 'created_at'>;
 
 // Apartment types
-export type ApartmentStatus = 'available' | 'sold' | 'owner';
+export type ApartmentStatus = 'available' | 'sold' | 'owner' | 'common';
 
 export interface Apartment {
     id: string;
@@ -62,6 +62,7 @@ export interface Apartment {
     status: ApartmentStatus;
     customer_name?: string;
     customer_phone?: string;
+    sort_order?: number;
     project_id?: string;
     user_id?: string;
     created_at?: string;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import { projectService } from '../services/projectService';
 import { checkService } from '../services/checkService';
@@ -8,7 +9,20 @@ import { Project, ProjectInput, ProjectPartnerInput, Check, Apartment } from '..
 
 const Projects: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
+
+    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
+    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+
+    const handleAdminAction = (action: () => void) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için yönetici (ctinferdi veya ibrahim.erhan2) onayına ihtiyaç var.`);
+            return;
+        }
+        action();
+    };
+
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
@@ -177,10 +191,12 @@ const Projects: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const code = Math.floor(1000 + Math.random() * 9000).toString();
-                                            setGeneratedSecurityCode(code);
-                                            setDeletingProject({ id: project.id, name: project.name });
-                                            setShowDeleteModal(true);
+                                            handleAdminAction(() => {
+                                                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                                                setGeneratedSecurityCode(code);
+                                                setDeletingProject({ id: project.id, name: project.name });
+                                                setShowDeleteModal(true);
+                                            });
                                         }}
                                         style={{
                                             position: 'absolute',

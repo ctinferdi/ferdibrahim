@@ -21,7 +21,8 @@ export const getApartments = async (): Promise<Apartment[]> => {
     const { data, error } = await supabase
         .from('apartments')
         .select('*')
-        .order('building_name', { ascending: true });
+        .order('building_name', { ascending: true })
+        .order('created_at', { ascending: true });
 
     if (error) throw error;
     return data as Apartment[];
@@ -61,11 +62,21 @@ export const bulkAddApartments = async (apartments: ApartmentInput[], userId: st
     if (error) throw error;
 };
 
+export const bulkDeleteApartments = async (ids: string[]): Promise<void> => {
+    const { error } = await supabase
+        .from('apartments')
+        .delete()
+        .in('id', ids);
+
+    if (error) throw error;
+};
+
 export const apartmentService = {
     subscribeToApartments,
     getApartments,
     addApartment,
     updateApartment,
     deleteApartment,
-    bulkAddApartments
+    bulkAddApartments,
+    bulkDeleteApartments
 };

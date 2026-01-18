@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
 
 type UserRole = 'admin' | 'editor';
@@ -15,6 +16,18 @@ const Settings: React.FC = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+
+    const { user } = useAuth();
+    const superAdminEmail = 'ctinferdi@gmail.com';
+    const isSuperAdmin = user?.email === superAdminEmail;
+
+    const handleAdminAction = (action: () => void) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için ${superAdminEmail} onayına ihtiyaç var. (Şu an yetkiniz yok)`);
+            return;
+        }
+        action();
+    };
 
     const fetchUsers = async () => {
         setLoadingUsers(true);
@@ -90,22 +103,22 @@ const Settings: React.FC = () => {
                 {/* Tab Navigation */}
                 <div style={{
                     display: 'flex',
-                    gap: 'var(--spacing-sm)',
-                    marginBottom: 'var(--spacing-xl)',
-                    borderBottom: '2px solid var(--color-border)',
-                    paddingBottom: 'var(--spacing-md)'
+                    gap: '6px',
+                    marginBottom: 'var(--spacing-lg)',
+                    borderBottom: '1px solid var(--color-border)',
+                    paddingBottom: '8px'
                 }}>
                     <button
                         onClick={() => setActiveTab('users')}
                         style={{
-                            padding: 'var(--spacing-md) var(--spacing-lg)',
+                            padding: '8px 16px',
                             background: activeTab === 'users' ? 'var(--color-primary)' : 'transparent',
                             color: activeTab === 'users' ? 'white' : 'var(--color-text)',
                             border: 'none',
-                            borderRadius: 'var(--radius-md)',
+                            borderRadius: 'var(--radius-sm)',
                             cursor: 'pointer',
                             fontWeight: 600,
-                            fontSize: 'var(--font-size-md)',
+                            fontSize: '0.85rem',
                             transition: 'all var(--transition-fast)'
                         }}
                     >
@@ -114,14 +127,14 @@ const Settings: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('general')}
                         style={{
-                            padding: 'var(--spacing-md) var(--spacing-lg)',
+                            padding: '8px 16px',
                             background: activeTab === 'general' ? 'var(--color-primary)' : 'transparent',
                             color: activeTab === 'general' ? 'white' : 'var(--color-text)',
                             border: 'none',
-                            borderRadius: 'var(--radius-md)',
+                            borderRadius: 'var(--radius-sm)',
                             cursor: 'pointer',
                             fontWeight: 600,
-                            fontSize: 'var(--font-size-md)',
+                            fontSize: '0.85rem',
                             transition: 'all var(--transition-fast)'
                         }}
                     >
@@ -131,42 +144,42 @@ const Settings: React.FC = () => {
 
                 {/* Users Tab */}
                 {activeTab === 'users' && (
-                    <div className="card" style={{ maxWidth: '600px' }}>
-                        <h2 className="mb-md" style={{ fontSize: '1.5rem' }}>Yeni Kullanıcı Oluştur</h2>
-                        <p className="mb-lg" style={{ color: 'var(--color-text-light)' }}>
+                    <div className="card" style={{ maxWidth: '480px', padding: '20px' }}>
+                        <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Yeni Kullanıcı Oluştur</h2>
+                        <p className="mb-md" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
                             Panele giriş yapabilecek yeni bir kullanıcı hesabı oluşturun.
                         </p>
 
                         {message && (
-                            <div className="success-message">
+                            <div className="success-message" style={{ padding: '8px 12px', fontSize: '0.85rem', marginBottom: '15px' }}>
                                 {message}
                             </div>
                         )}
 
                         {error && (
-                            <div className="error-message">
+                            <div className="error-message" style={{ padding: '8px 12px', fontSize: '0.85rem', marginBottom: '15px' }}>
                                 {error}
                             </div>
                         )}
 
                         <form onSubmit={handleCreateUser}>
-                            <div className="form-group">
-                                <label className="form-label">KULLANICI ROLÜ</label>
+                            <div className="form-group" style={{ marginBottom: '15px' }}>
+                                <label className="form-label" style={{ fontSize: '10px', marginBottom: '6px' }}>KULLANICI ROLÜ</label>
                                 <div style={{
                                     display: 'flex',
-                                    gap: 'var(--spacing-md)',
-                                    marginBottom: 'var(--spacing-md)'
+                                    gap: '10px'
                                 }}>
                                     <label style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 'var(--spacing-sm)',
-                                        padding: 'var(--spacing-md)',
-                                        border: `2px solid ${newUserRole === 'admin' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                        borderRadius: 'var(--radius-md)',
+                                        gap: '8px',
+                                        padding: '8px 12px',
+                                        border: `1.5px solid ${newUserRole === 'admin' ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                        borderRadius: 'var(--radius-sm)',
                                         cursor: 'pointer',
                                         flex: 1,
-                                        background: newUserRole === 'admin' ? 'var(--color-primary-light)' : 'white'
+                                        background: newUserRole === 'admin' ? 'var(--color-primary-light)' : 'white',
+                                        transition: 'all 0.2s'
                                     }}>
                                         <input
                                             type="radio"
@@ -176,24 +189,25 @@ const Settings: React.FC = () => {
                                             onChange={() => setNewUserRole('admin')}
                                             style={{ display: 'none' }}
                                         />
-                                        <span style={{ fontSize: '1.5rem' }}>👑</span>
+                                        <span style={{ fontSize: '1.2rem' }}>👑</span>
                                         <div>
-                                            <div style={{ fontWeight: 600 }}>Yönetici</div>
-                                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                                                Tüm yetkilere sahip
+                                            <div style={{ fontWeight: 600, fontSize: '13px' }}>Yönetici</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--color-text-light)', lineHeight: 1.1 }}>
+                                                Tam Yetki
                                             </div>
                                         </div>
                                     </label>
                                     <label style={{
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 'var(--spacing-sm)',
-                                        padding: 'var(--spacing-md)',
-                                        border: `2px solid ${newUserRole === 'editor' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                        borderRadius: 'var(--radius-md)',
+                                        gap: '8px',
+                                        padding: '8px 12px',
+                                        border: `1.5px solid ${newUserRole === 'editor' ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                                        borderRadius: 'var(--radius-sm)',
                                         cursor: 'pointer',
                                         flex: 1,
-                                        background: newUserRole === 'editor' ? 'var(--color-primary-light)' : 'white'
+                                        background: newUserRole === 'editor' ? 'var(--color-primary-light)' : 'white',
+                                        transition: 'all 0.2s'
                                     }}>
                                         <input
                                             type="radio"
@@ -203,31 +217,32 @@ const Settings: React.FC = () => {
                                             onChange={() => setNewUserRole('editor')}
                                             style={{ display: 'none' }}
                                         />
-                                        <span style={{ fontSize: '1.5rem' }}>✏️</span>
+                                        <span style={{ fontSize: '1.2rem' }}>✏️</span>
                                         <div>
-                                            <div style={{ fontWeight: 600 }}>Düzenleyici</div>
-                                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                                                Sınırlı yetkiler
+                                            <div style={{ fontWeight: 600, fontSize: '13px' }}>Düzenleyici</div>
+                                            <div style={{ fontSize: '10px', color: 'var(--color-text-light)', lineHeight: 1.1 }}>
+                                                Sınırlı Yetki
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <label className="form-label">E-POSTA ADRESİ</label>
+                            <div className="form-group" style={{ marginBottom: '15px' }}>
+                                <label className="form-label" style={{ fontSize: '10px', marginBottom: '6px' }}>E-POSTA ADRESİ</label>
                                 <input
                                     type="email"
                                     className="form-input"
                                     value={newUserEmail}
                                     onChange={(e) => setNewUserEmail(e.target.value)}
                                     placeholder="ornek@ferdibrahim.com"
+                                    style={{ padding: '8px 12px', fontSize: '13px' }}
                                     required
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label className="form-label">ŞİFRE</label>
+                            <div className="form-group" style={{ marginBottom: '20px' }}>
+                                <label className="form-label" style={{ fontSize: '10px', marginBottom: '6px' }}>ŞİFRE</label>
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type={showPassword ? 'text' : 'password'}
@@ -237,7 +252,7 @@ const Settings: React.FC = () => {
                                         placeholder="••••••••"
                                         minLength={6}
                                         required
-                                        style={{ paddingRight: '3rem' }}
+                                        style={{ paddingRight: '2.5rem', padding: '8px 12px', fontSize: '13px' }}
                                     />
                                     <button
                                         type="button"
@@ -267,42 +282,39 @@ const Settings: React.FC = () => {
                                 type="submit"
                                 className="btn btn-primary btn-block"
                                 disabled={loading}
+                                style={{ padding: '10px', fontSize: '14px', fontWeight: 700 }}
                             >
                                 {loading ? 'Oluşturuluyor...' : 'Kullanıcıyı Oluştur'}
                             </button>
                         </form>
 
                         {/* User List */}
-                        <div style={{ marginTop: 'var(--spacing-2xl)', paddingTop: 'var(--spacing-xl)', borderTop: '1px solid var(--color-border)' }}>
-                            <h2 className="mb-md" style={{ fontSize: '1.5rem' }}>Kayıtlı Kullanıcılar</h2>
+                        <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
+                            <h2 className="mb-md" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Kayıtlı Kullanıcılar</h2>
 
                             {loadingUsers ? (
                                 <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)' }}>
                                     <div className="spinner"></div>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     {users.map((user: any) => (
                                         <div key={user.id} style={{
-                                            padding: 'var(--spacing-md)',
+                                            padding: '10px 15px',
                                             background: 'var(--color-bg)',
-                                            borderRadius: 'var(--radius-md)',
+                                            borderRadius: 'var(--radius-sm)',
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
-                                            flexWrap: 'wrap',
-                                            gap: 'var(--spacing-sm)'
+                                            border: '1px solid var(--color-border)'
                                         }}>
-                                            <div style={{ flex: 1, minWidth: '200px' }}>
-                                                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontWeight: 600, fontSize: '13px' }}>
                                                     {user.email}
                                                 </div>
-                                                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                                                    {user.user_metadata?.role === 'admin' ? '👑 Yönetici' : '✏️ Düzenleyici'}
+                                                <div style={{ fontSize: '10px', color: 'var(--color-text-light)', marginTop: '2px' }}>
+                                                    {user.user_metadata?.role === 'admin' ? '👑 Yönetici' : '✏️ Düzenleyici'} • {new Date(user.created_at).toLocaleDateString('tr-TR')}
                                                 </div>
-                                            </div>
-                                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                                                {new Date(user.created_at).toLocaleDateString('tr-TR')}
                                             </div>
                                         </div>
                                     ))}
@@ -314,22 +326,23 @@ const Settings: React.FC = () => {
                                     )}
 
                                     <div style={{
-                                        marginTop: 'var(--spacing-md)',
-                                        padding: 'var(--spacing-md)',
+                                        marginTop: '15px',
+                                        padding: '10px',
                                         background: 'var(--color-primary-light)',
-                                        borderRadius: 'var(--radius-md)',
-                                        fontSize: 'var(--font-size-sm)'
+                                        borderRadius: 'var(--radius-sm)',
+                                        fontSize: '11px',
+                                        color: 'var(--color-primary)',
+                                        border: '1px solid rgba(102, 126, 234, 0.2)'
                                     }}>
-                                        <strong>Not:</strong> Kullanıcı silme ve şifre sıfırlama işlemleri için{' '}
+                                        <strong>⚠️ Not:</strong> Kullanıcı silme ve şifre sıfırlama işlemleri için{' '}
                                         <a
                                             href="https://supabase.com/dashboard"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}
+                                            style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600 }}
                                         >
-                                            Supabase Dashboard
-                                        </a>
-                                        {' '}→ Authentication → Users bölümünü kullanın.
+                                            Supabase Paneli
+                                        </a>'ni kullanın.
                                     </div>
                                 </div>
                             )}
@@ -339,21 +352,21 @@ const Settings: React.FC = () => {
 
                 {/* General Settings Tab */}
                 {activeTab === 'general' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-                        <div className="card" style={{ maxWidth: '600px' }}>
-                            <h2 className="mb-md" style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div className="card" style={{ maxWidth: '480px', padding: '20px' }}>
+                            <h2 className="mb-xs" style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 🔔 Bildirim Ayarları
                             </h2>
-                            <p className="mb-lg" style={{ color: 'var(--color-text-light)' }}>
-                                Çek vadeleri yaklaştığında uyarı maili gitmesini istediğiniz adresleri buraya ekleyin.
+                            <p className="mb-md" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
+                                Çek vadeleri yaklaştığında uyarı maili gidecek adresler.
                             </p>
 
-                            <NotificationEmailsManager />
+                            <NotificationEmailsManager handleAdminAction={handleAdminAction} />
                         </div>
 
-                        <div className="card" style={{ maxWidth: '600px' }}>
-                            <h2 className="mb-md" style={{ fontSize: '1.5rem' }}>Sistem Ayarları</h2>
-                            <p style={{ color: 'var(--color-text-light)' }}>
+                        <div className="card" style={{ maxWidth: '480px', padding: '20px' }}>
+                            <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Sistem Ayarları</h2>
+                            <p style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
                                 Diğer genel ayarlar yakında eklenecek...
                             </p>
                         </div>
@@ -364,7 +377,7 @@ const Settings: React.FC = () => {
     );
 };
 
-const NotificationEmailsManager: React.FC = () => {
+const NotificationEmailsManager: React.FC<{ handleAdminAction: (action: () => void) => void }> = ({ handleAdminAction }) => {
     const [emails, setEmails] = useState<any[]>([]);
     const [newEmail, setNewEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -402,14 +415,16 @@ const NotificationEmailsManager: React.FC = () => {
         setLoading(false);
     };
 
-    const handleDeleteEmail = async (id: string) => {
-        const { error } = await supabase
-            .from('notification_settings')
-            .delete()
-            .eq('id', id);
+    const handleDeleteEmail = (id: string) => {
+        handleAdminAction(async () => {
+            const { error } = await supabase
+                .from('notification_settings')
+                .delete()
+                .eq('id', id);
 
-        if (error) alert('Hata: ' + error.message);
-        else fetchEmails();
+            if (error) alert('Hata: ' + error.message);
+            else fetchEmails();
+        });
     };
 
     return (

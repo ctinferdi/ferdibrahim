@@ -4,6 +4,7 @@ import { subscribeToChecks, addCheck, updateCheck, deleteCheck } from '../servic
 import { projectService } from '../services/projectService';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
 
 const Checks = () => {
     const [checks, setChecks] = useState<Check[]>([]);
@@ -14,6 +15,18 @@ const Checks = () => {
     const [activeTab, setActiveTab] = useState<'pending' | 'paid' | 'all'>('pending');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    const { user } = useAuth();
+    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
+    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+
+    const handleAdminAction = (action: () => void) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için yönetici onayı gereklidir.`);
+            return;
+        }
+        action();
+    };
 
     const [formData, setFormData] = useState<CheckInput>({
         check_number: '',
@@ -29,7 +42,6 @@ const Checks = () => {
         project_id: ''
     });
 
-    const { user } = useAuth();
 
     useEffect(() => {
         const unsubscribe = subscribeToChecks(setChecks);
@@ -92,15 +104,16 @@ const Checks = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Bu çeki silmek istediğinizden emin misiniz?')) {
-            try {
-                await deleteCheck(id);
-            } catch (error: any) {
-                console.error('Error deleting check:', error);
-                // alert('Çek silinemedi. Lütfen tekrar deneyin.');
+    const handleDelete = (id: string) => {
+        handleAdminAction(async () => {
+            if (window.confirm('Bu çeki silmek istediğinizden emin misiniz?')) {
+                try {
+                    await deleteCheck(id);
+                } catch (error: any) {
+                    console.error('Error deleting check:', error);
+                }
             }
-        }
+        });
     };
 
     const formatCurrency = (amount: number) => {
@@ -220,7 +233,7 @@ const Checks = () => {
                             <tr>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>TARİH</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKLER</th>
-                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>FİRMA</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ŞİRKET</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
@@ -293,80 +306,84 @@ const Checks = () => {
 
                 {/* Modal */}
                 {showModal && (
-                    <div className="modal-overlay" style={{ backdropFilter: 'blur(5px)', backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setShowModal(false)}>
-                        <div className="modal" style={{ maxWidth: '600px', borderRadius: '15px' }} onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header" style={{ background: 'var(--color-bg-alt)', padding: '20px 25px' }}>
-                                <h2 className="modal-title" style={{ margin: 0, fontSize: '1.4rem' }}>{editingCheck ? 'Çeki Düzenle' : 'Yeni Çek Kaydı'}</h2>
-                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', opacity: 0.5 }}>×</button>
+                    <div className="modal-overlay" style={{ backdropFilter: 'blur(3px)', backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setShowModal(false)}>
+                        <div className="modal" style={{ maxWidth: '480px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header" style={{ background: 'var(--color-bg-alt)', padding: '12px 20px', borderBottom: '1px solid var(--color-border)' }}>
+                                <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{editingCheck ? 'Çeki Düzenle' : 'Yeni Çek Kaydı'}</h2>
+                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', opacity: 0.5 }}>×</button>
                             </div>
 
                             <form onSubmit={handleSubmit}>
-                                <div className="modal-body" style={{ padding: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                                        <label className="form-label">FİRMA ADI</label>
+                                <div className="modal-body" style={{ padding: '15px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ŞİRKET BİLGİSİ</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.company}
                                             onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                                             placeholder="Örn: ÖZYILMAZLAR"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">ÇEK NO</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ÇEK NO</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.check_number}
                                             onChange={(e) => setFormData({ ...formData, check_number: e.target.value })}
                                             placeholder="000123"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">TUTAR (₺)</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>TUTAR (₺)</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-input"
-                                            value={formData.amount}
-                                            onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                                            min="0"
-                                            step="0.01"
+                                            value={formatNumberWithDots(formData.amount)}
+                                            onChange={(e) => setFormData({ ...formData, amount: parseNumberFromDots(e.target.value) })}
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">KULLANILACAK YER</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>KULLANILACAK YER</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                             placeholder="Örn: BETON, ASANSÖR"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">KDV DURUMU</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>KDV DURUMU</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.vat_status}
                                             onChange={(e) => setFormData({ ...formData, vat_status: e.target.value })}
                                             placeholder="Örn: KDV DAHİL"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">PROJE (OPSİYONEL)</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>PROJE (OPSİYONEL)</label>
                                         <select
                                             className="form-input"
                                             value={formData.project_id}
                                             onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                                            style={{ padding: '8px 12px', fontSize: '13px', height: 'auto' }}
                                         >
                                             <option value="">Proje Seçilmedi</option>
                                             {projects.map(p => (
@@ -375,61 +392,64 @@ const Checks = () => {
                                         </select>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">ÇEKİ VERECEK KİŞİ</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ÇEKİ VERECEK KİŞİ</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.issuer}
                                             onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
                                             placeholder="Örn: ERHANLAR"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">DURUM</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>DURUM</label>
                                         <select
                                             className="form-select"
                                             value={formData.status}
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value as CheckStatus })}
+                                            style={{ padding: '8px 12px', fontSize: '13px', margin: 0 }}
                                         >
                                             <option value="pending">Beklemede</option>
                                             <option value="paid">Ödendi</option>
-                                            <option value="cancelled">İptal</option>
                                         </select>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">VERİLİŞ TARİHİ</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>VERİLİŞ TARİHİ</label>
                                         <input
                                             type="date"
                                             className="form-input"
                                             value={formData.given_date}
                                             onChange={(e) => setFormData({ ...formData, given_date: e.target.value })}
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">VADE TARİHİ</label>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>VADE TARİHİ</label>
                                         <input
                                             type="date"
                                             className="form-input"
                                             value={formData.due_date}
                                             onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                                        <label className="form-label">AÇIKLAMA (OPSİYONEL)</label>
+                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>AÇIKLAMA (OPSİYONEL)</label>
                                         <textarea
                                             className="form-input"
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                            rows={2}
-                                            style={{ resize: 'none' }}
+                                            rows={1}
+                                            style={{ resize: 'none', padding: '8px 12px', fontSize: '13px' }}
                                         />
                                     </div>
 
@@ -448,12 +468,12 @@ const Checks = () => {
                                     )}
                                 </div>
 
-                                <div className="modal-footer" style={{ padding: '20px 25px', background: '#f8fafc', borderBottomLeftRadius: '15px', borderBottomRightRadius: '15px' }}>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ padding: '10px 20px' }}>
+                                <div className="modal-footer" style={{ padding: '12px 20px', background: '#f8fafc', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', borderTop: '1px solid var(--color-border)' }}>
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ padding: '8px 15px', fontSize: '13px' }}>
                                         İptal
                                     </button>
-                                    <button type="submit" className="btn btn-primary" style={{ padding: '10px 30px', fontWeight: 600 }}>
-                                        {editingCheck ? 'Değişiklikleri Kaydet' : 'Çeki Kaydet'}
+                                    <button type="submit" className="btn btn-primary" style={{ padding: '8px 25px', fontWeight: 600, fontSize: '13px' }}>
+                                        {editingCheck ? 'Güncelle' : 'Kaydet'}
                                     </button>
                                 </div>
                             </form>

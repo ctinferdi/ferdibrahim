@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { expenseService } from '../services/expenseService';
+import { useAuth } from '../contexts/AuthContext';
 import { Expense, ExpenseInput } from '../types';
+import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -10,6 +12,18 @@ const Expenses = () => {
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    const { user } = useAuth();
+    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
+    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+
+    const handleAdminAction = (action: () => void) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için yönetici onayı gereklidir.`);
+            return;
+        }
+        action();
+    };
 
     const [formData, setFormData] = useState<ExpenseInput>({
         category: '',
@@ -71,14 +85,16 @@ const Expenses = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Bu harcamayı silmek istediğinizden emin misiniz?')) {
-            try {
-                await expenseService.deleteExpense(id);
-            } catch (error: any) {
-                console.error('Error deleting expense:', error);
+    const handleDelete = (id: string) => {
+        handleAdminAction(async () => {
+            if (window.confirm('Bu harcamayı silmek istediğinizden emin misiniz?')) {
+                try {
+                    await expenseService.deleteExpense(id);
+                } catch (error: any) {
+                    console.error('Error deleting expense:', error);
+                }
             }
-        }
+        });
     };
 
     const filteredExpenses = expenses.filter(exp =>
@@ -198,60 +214,63 @@ const Expenses = () => {
 
                 {/* Modal */}
                 {showModal && (
-                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                        <div className="modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h2 className="modal-title">
-                                    {editingExpense ? 'Harcama Düzenle' : 'Yeni Harcama'}
+                    <div className="modal-overlay" style={{ backdropFilter: 'blur(3px)', backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setShowModal(false)}>
+                        <div className="modal" style={{ maxWidth: '400px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header" style={{ background: 'var(--color-bg-alt)', padding: '12px 20px', borderBottom: '1px solid var(--color-border)' }}>
+                                <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+                                    {editingExpense ? 'Harcama Düzenle' : 'Yeni Harcama Kaydı'}
                                 </h2>
+                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', opacity: 0.5 }}>×</button>
                             </div>
 
                             <form onSubmit={handleSubmit}>
-                                <div className="modal-body">
-                                    <div className="form-group">
-                                        <label className="form-label">Kategori</label>
+                                <div className="modal-body" style={{ padding: '15px 20px' }}>
+                                    <div className="form-group" style={{ marginBottom: '10px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>KATEGORİ</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                             placeholder="Örn: Malzeme, İşçilik, Nakliye"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Açıklama</label>
+                                    <div className="form-group" style={{ marginBottom: '10px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>AÇIKLAMA</label>
                                         <input
                                             type="text"
                                             className="form-input"
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             placeholder="Harcama detayı"
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Tutar (₺)</label>
+                                    <div className="form-group" style={{ marginBottom: '10px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>TUTAR (₺)</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-input"
-                                            value={formData.amount}
-                                            onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                                            min="0"
-                                            step="0.01"
+                                            value={formatNumberWithDots(formData.amount)}
+                                            onChange={(e) => setFormData({ ...formData, amount: parseNumberFromDots(e.target.value) })}
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Tarih</label>
+                                    <div className="form-group" style={{ marginBottom: '5px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>TARİH</label>
                                         <input
                                             type="date"
                                             className="form-input"
                                             value={formData.date}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                            style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
                                         />
                                     </div>
@@ -271,15 +290,16 @@ const Expenses = () => {
                                     )}
                                 </div>
 
-                                <div className="modal-footer">
+                                <div className="modal-footer" style={{ padding: '12px 20px', background: '#f8fafc', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', borderTop: '1px solid var(--color-border)' }}>
                                     <button
                                         type="button"
                                         className="btn btn-secondary"
                                         onClick={() => setShowModal(false)}
+                                        style={{ padding: '8px 15px', fontSize: '13px' }}
                                     >
                                         İptal
                                     </button>
-                                    <button type="submit" className="btn btn-primary">
+                                    <button type="submit" className="btn btn-primary" style={{ padding: '8px 25px', fontWeight: 600, fontSize: '13px' }}>
                                         {editingExpense ? 'Güncelle' : 'Kaydet'}
                                     </button>
                                 </div>

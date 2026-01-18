@@ -13,6 +13,18 @@ const Apartments = () => {
     const [statusFilter, setStatusFilter] = useState<ApartmentStatus | 'all'>('all');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const { user } = useAuth();
+    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
+    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+
+    const handleAdminAction = (action: () => void) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için yönetici onayına ihtiyaç var.`);
+            return;
+        }
+        action();
+    };
+
     const [formData, setFormData] = useState<ApartmentInput>({
         building_name: '',
         apartment_number: '',
@@ -24,7 +36,6 @@ const Apartments = () => {
         customer_phone: '',
     });
 
-    const { user } = useAuth();
 
     useEffect(() => {
         const unsubscribe = subscribeToApartments(setApartments);
@@ -80,27 +91,28 @@ const Apartments = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Bu daireyi silmek istediğinizden emin misiniz?')) {
-            try {
-                await deleteApartment(id);
-            } catch (error: any) {
-                console.error('Error deleting apartment:', error);
-                // alert('Daire silinemedi. Lütfen tekrar deneyin.');
+    const handleDelete = (id: string) => {
+        handleAdminAction(async () => {
+            if (window.confirm('Bu daireyi silmek istediğinizden emin misiniz?')) {
+                try {
+                    await deleteApartment(id);
+                } catch (error: any) {
+                    console.error('Error deleting apartment:', error);
+                }
             }
-        }
+        });
     };
 
     const filteredApartments = apartments.filter(apt => {
         const matchesSearch =
             (apt.building_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (apt.apartment_number || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || apt.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' ? true : apt.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
     const availableCount = apartments.filter(a => a.status === 'available').length;
-    const reservedCount = apartments.filter(a => a.status === 'reserved').length;
+    const ownerCount = apartments.filter(a => a.status === 'owner').length;
     const soldCount = apartments.filter(a => a.status === 'sold').length;
     const totalRevenue = apartments.filter(a => a.status === 'sold').reduce((sum, a) => sum + (a.price || 0), 0);
 
@@ -115,11 +127,13 @@ const Apartments = () => {
     const getStatusBadge = (status: ApartmentStatus) => {
         const badges = {
             available: { className: 'badge-success', label: 'Müsait' },
-            reserved: { className: 'badge-warning', label: 'Rezerve' },
-            sold: { className: 'badge-info', label: 'Satıldı' }
+            owner: { className: 'badge-warning', label: 'M. Sahibi' },
+            sold: { className: 'badge-info', label: 'Satıldı' },
+            common: { className: 'badge-secondary', label: 'Ortak Alan' }
         };
         const badge = badges[status] || badges.available;
-        return <span className={`badge ${badge.className}`}>{badge.label}</span>;
+        const style = status === 'common' ? { background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' } : {};
+        return <span className={`badge ${badge.className}`} style={style}>{badge.label}</span>;
     };
 
     if (loading) {
@@ -135,41 +149,25 @@ const Apartments = () => {
     return (
         <Layout>
             <div className="animate-fadeIn">
-                <div className="flex justify-between items-center mb-xl">
+                <div className="flex justify-between items-center mb-md">
                     <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '1.2em' }}>🏢</span> Daire Yönetimi
                     </h1>
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => {
-                            setEditingApartment(null);
-                            resetForm();
-                            setErrorMsg(null);
-                            setShowModal(true);
-                        }}
-                        style={{ boxShadow: 'var(--shadow-md)' }}
-                    >
-                        ➕ Yeni Daire
-                    </button>
                 </div>
 
                 {/* Summary Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-xl)' }}>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', border: 'none' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>MÜSAİT</h3>
-                        <div style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800 }}>{availableCount}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>SATILACAK</h3>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{availableCount}</div>
                     </div>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', border: 'none' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>REZERVE</h3>
-                        <div style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800 }}>{reservedCount}</div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>M. SAHİBİ</h3>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{ownerCount}</div>
                     </div>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', border: 'none' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>SATILDI</h3>
-                        <div style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800 }}>{soldCount}</div>
-                    </div>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>TOPLAM SATIŞ</h3>
-                        <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800 }}>{formatCurrency(totalRevenue)}</div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>SATILDI</h3>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{soldCount}</div>
                     </div>
                 </div>
 
@@ -182,18 +180,17 @@ const Apartments = () => {
                             placeholder="🔍 Bina veya Daire No Ara..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ margin: 0, paddingLeft: '40px' }}
+                            style={{ margin: 0, padding: '8px 12px', paddingLeft: '40px', fontSize: '13px' }}
                         />
                     </div>
                     <select
                         className="form-select"
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as ApartmentStatus | 'all')}
-                        style={{ minWidth: '180px', margin: 0 }}
+                        style={{ minWidth: '180px', margin: 0, padding: '8px 12px', fontSize: '13px' }}
                     >
                         <option value="all">Tüm Durumlar</option>
                         <option value="available">Müsait</option>
-                        <option value="reserved">Rezerve</option>
                         <option value="sold">Satıldı</option>
                     </select>
                 </div>
@@ -202,9 +199,9 @@ const Apartments = () => {
                 {/* Apartments Grid */}
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-                    gap: 'var(--spacing-md)',
-                    gridAutoRows: '1fr'
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
+                    gap: '12px',
+                    gridAutoRows: 'auto'
                 }}>
                     {filteredApartments.length === 0 ? (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
@@ -221,9 +218,9 @@ const Apartments = () => {
                                         color: 'white',
                                         position: 'relative',
                                         cursor: 'pointer',
-                                        padding: 'var(--spacing-lg)',
+                                        padding: '12px 15px',
                                         marginBottom: 0,
-                                        minHeight: '180px',
+                                        minHeight: '130px',
                                         display: 'flex',
                                         flexDirection: 'column'
                                     }}>
@@ -273,15 +270,15 @@ const Apartments = () => {
                                         </button>
                                     </div>
 
-                                    <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '3rem' }}>
+                                    <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '8px', paddingRight: '2.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apartment.building_name}
                                     </h3>
 
-                                    <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}>
-                                        <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: 'var(--spacing-xs)' }}>
+                                    <div style={{ marginTop: 'auto', fontSize: '11px' }}>
+                                        <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: '2px' }}>
                                             🏠 Daire: {apartment.apartment_number}
                                         </div>
-                                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>
+                                        <div style={{ fontSize: '10px', opacity: 0.8 }}>
                                             <div>📏 {apartment.square_meters} m² | 🏢 {apartment.floor}. Kat</div>
                                         </div>
                                     </div>
@@ -394,8 +391,9 @@ const Apartments = () => {
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value as ApartmentStatus })}
                                         >
                                             <option value="available">Müsait</option>
-                                            <option value="reserved">Rezerve</option>
+                                            <option value="owner">M. Sahibi</option>
                                             <option value="sold">Satıldı</option>
+                                            <option value="common">Ortak Alan</option>
                                         </select>
                                     </div>
 

@@ -143,7 +143,7 @@ const Dashboard = () => {
                         }}>
                         <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🏢</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                            MÜSAİT DAİRELER
+                            SATILACAK DAİRELER
                         </h3>
                         <div style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800 }}>
                             {availableApartments.length}

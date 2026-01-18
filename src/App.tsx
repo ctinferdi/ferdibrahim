@@ -13,6 +13,19 @@ import Apartments from './pages/Apartments';
 import './index.css';
 
 function App() {
+    // Sayfa yenilendiğinde aynı sayfada kalsın, ancak tarayıcı kapatılıp açıldığında (yeni session) 
+    // her zaman ana sayfaya (Dashboard) yönlendirsin.
+    React.useEffect(() => {
+        const isSessionActive = sessionStorage.getItem('session_active');
+        if (!isSessionActive) {
+            // Yeni bir session başladıysa veya tarayıcı/bilgisayar yeni açıldıysa
+            if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                window.location.href = '/';
+            }
+            sessionStorage.setItem('session_active', 'true');
+        }
+    }, []);
+
     return (
         <AuthProvider>
             <BrowserRouter>
