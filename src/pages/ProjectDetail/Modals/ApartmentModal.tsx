@@ -230,6 +230,14 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             </div>
                         )}
 
+                        {/* File Upload Section */}
+                        <FileUploadSection
+                            editingApartmentId={editingApartmentId}
+                            apartmentFormData={apartmentFormData}
+                            setApartments={setApartments}
+                            projectId={id}
+                        />
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
