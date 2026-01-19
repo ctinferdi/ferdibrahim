@@ -223,7 +223,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fff5f5', borderRadius: '4px', border: '1px dashed #feb2b2' }}>
                                     <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: '#c53030' }}>KALAN ALACAK:</span>
                                     <span style={{ fontWeight: 'bold', color: '#c53030' }}>
-                                        {formatCurrency((apartmentFormData.sold_price || 0) - (apartmentFormData.paid_amount || 0))}
+                                        {formatCurrency(parseNumberFromDots(apartmentFormData.sold_price) - parseNumberFromDots(apartmentFormData.paid_amount))}
                                     </span>
                                 </div>
                             </div>

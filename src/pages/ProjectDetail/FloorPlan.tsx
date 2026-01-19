@@ -32,6 +32,16 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     // Katları grupla ve sırala
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a: any, b: any) => b - a);
 
+    // Her kattaki daire sayısını bul ve maksimumu al
+    const maxAptsPerFloor = Math.max(...floors.map(floor =>
+        apartments.filter(a => a.floor === floor).length
+    ));
+
+    // Sabit daire genişliği hesapla (container genişliği - kat etiketi - boşluklar)
+    // Container yaklaşık 280px, kat etiketi 50px, gap'ler için pay bırak
+    const aptWidth = maxAptsPerFloor > 0 ? Math.floor((280 - 50 - (maxAptsPerFloor - 1) * 4) / maxAptsPerFloor) : 50;
+    const calculatedWidth = Math.max(aptWidth, 40); // Minimum 40px
+
     return (
         <div style={{
             display: 'flex',
@@ -58,8 +68,8 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     <div key={floor} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {/* Kat Etiketi */}
                         <div style={{
-                            width: '50px',
-                            minWidth: '50px',
+                            width: '80px',
+                            minWidth: '80px',
                             fontSize: '9px',
                             fontWeight: 700,
                             textAlign: 'right',
@@ -71,11 +81,16 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                             alignItems: 'center',
                             justifyContent: 'flex-end'
                         }}>
-                            {Number(floor) === 0 ? 'ZEMİN' : Number(floor) < 0 ? `B${Math.abs(Number(floor))}` : `${floor}.K`}
+                            {Number(floor) === 0 ? 'ZEMİN' : Number(floor) < 0 ? `BODRUM ${Math.abs(Number(floor))}` : `${floor}•KAT`}
                         </div>
 
                         {/* Daireler */}
-                        <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${floorApts.length}, 1fr)`,
+                            gap: '4px',
+                            flex: 1
+                        }}>
                             {floorApts.map((apt) => {
                                 let bgColor = '#f8fafc';
                                 let textColor = '#64748b';
@@ -104,8 +119,6 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             fontWeight: 800,
                                             cursor: 'pointer',
                                             border: `1px solid ${borderColor}`,
-                                            flex: 1, // Stretch to fill row
-                                            minWidth: '50px', // But don't get too small
                                             height: '35px',
                                             display: 'flex',
                                             flexDirection: 'column',
@@ -133,9 +146,11 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             padding: '0 2px',
                                             wordBreak: 'break-word'
                                         }}>
-                                            {hoveredAptId === apt.id && apt.customer_name && apt.status !== 'common'
-                                                ? apt.customer_name.toUpperCase()
-                                                : apt.apartment_number}
+                                            {apt.status === 'common'
+                                                ? 'ORTAK ALAN'
+                                                : hoveredAptId === apt.id && apt.customer_name
+                                                    ? apt.customer_name.toUpperCase()
+                                                    : apt.apartment_number}
                                         </div>
                                     </div>
                                 );

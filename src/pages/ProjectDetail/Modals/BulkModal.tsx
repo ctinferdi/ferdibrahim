@@ -58,14 +58,14 @@ const BulkModal: React.FC<BulkModalProps> = ({
     if (!isOpen) return null;
 
     const handleBulkSubmit = async () => {
+        console.log('[BulkModal] handleBulkSubmit çağrıldı');
+        console.log('[BulkModal] bulkFormData:', bulkFormData);
+        console.log('[BulkModal] apartments.length:', apartments.length);
+
         try {
             const isUpdate = apartments.length > 0;
-            const confirmMessage = isUpdate
-                ? 'DİKKAT! Kat planını güncellerseniz, mevcut "Müsait" durumundaki TÜM daireler silinecek ve yeni plan oluşturulacak. Satılmış ve Mal Sahibi daireler korunacak. Devam edilsin mi?'
-                : 'Bu işlem seçilen ayarlara göre yeni daireler oluşturacaktır. Devam edilsin mi?';
 
-            if (!confirm(confirmMessage)) return;
-
+            console.log('[BulkModal] İşlem başlatılıyor...');
             setLoading(true);
 
             if (isUpdate) {
@@ -90,12 +90,6 @@ const BulkModal: React.FC<BulkModalProps> = ({
                 const countToAdd = targetCount - existingInFloor.length;
 
                 if (countToAdd > 0) {
-                    // Mevcut numaraları al ki çakışmasın
-                    const existingNumbers = existingInFloor.map(a => {
-                        const num = parseInt(a.apartment_number);
-                        return isNaN(num) ? 0 : num;
-                    });
-                    let nextNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
                     // Sıralama için son sıra numarasını bul (yoksa 0)
                     const existingSortOrders = existingInFloor.map(a => a.sort_order || 0);
                     let nextSortOrder = existingSortOrders.length > 0 ? Math.max(...existingSortOrders) + 1 : 1;
@@ -104,7 +98,7 @@ const BulkModal: React.FC<BulkModalProps> = ({
                         const isDuplex = f === bulkFormData.endFloor && bulkFormData.hasDuplex;
                         newApartments.push({
                             building_name: project?.name || 'Bina',
-                            apartment_number: `${nextNum}${isDuplex ? ' (DBX)' : ''}`,
+                            apartment_number: '', // Boş bırak, kullanıcı manuel girecek
                             floor: f,
                             square_meters: isDuplex ? 200 : 100,
                             price: 0,
@@ -112,7 +106,6 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             sort_order: nextSortOrder, // Sabit sıra numarası
                             project_id: id || ''
                         });
-                        nextNum++;
                         nextSortOrder++;
                     }
                 }
@@ -123,15 +116,25 @@ const BulkModal: React.FC<BulkModalProps> = ({
             }
 
             // Refresh all data (summary cards + tables)
+            console.log('[BulkModal] Veriler yenileniyor...');
             await loadAllData();
+            console.log('[BulkModal] Veriler yenilendi');
 
             setLoading(false);
-            alert(isUpdate ? 'Kat planı başarıyla güncellendi!' : 'Kat planı başarıyla oluşturuldu!');
+            const successMsg = isUpdate ? 'Kat planı başarıyla güncellendi!' : 'Kat planı başarıyla oluşturuldu!';
+            console.log('[BulkModal] BAŞARILI:', successMsg);
+            console.log('[BulkModal] Toplam eklenen daire:', newApartments.length);
+
+            // 1 saniye bekle ki kullanıcı sonucu görsün
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             onClose();
         } catch (error: any) {
-            console.error('Toplu oluşturma hatası:', error);
+            console.error('[BulkModal] HATA OLUŞTU:', error);
+            console.error('[BulkModal] Hata mesajı:', error.message);
+            console.error('[BulkModal] Hata stack:', error.stack);
             setLoading(false);
-            alert('Bir hata oluştu!');
+            alert(`Bir hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
         }
     };
 
@@ -169,7 +172,10 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             <input
                                 type="number"
                                 value={bulkFormData.startFloor}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, startFloor: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    setBulkFormData({ ...bulkFormData, startFloor: isNaN(val) ? -1 : val });
+                                }}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -180,7 +186,10 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             <input
                                 type="number"
                                 value={bulkFormData.endFloor}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, endFloor: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    setBulkFormData({ ...bulkFormData, endFloor: isNaN(val) ? 1 : val });
+                                }}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -193,9 +202,11 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             </label>
                             <input
                                 type="number"
-                                min="0"
                                 value={bulkFormData.basementApts}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, basementApts: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    setBulkFormData({ ...bulkFormData, basementApts: isNaN(val) ? 0 : val });
+                                }}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -205,9 +216,11 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             </label>
                             <input
                                 type="number"
-                                min="0"
                                 value={bulkFormData.groundApts}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, groundApts: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    setBulkFormData({ ...bulkFormData, groundApts: isNaN(val) ? 0 : val });
+                                }}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -217,9 +230,11 @@ const BulkModal: React.FC<BulkModalProps> = ({
                             </label>
                             <input
                                 type="number"
-                                min="1"
                                 value={bulkFormData.normalApts}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, normalApts: parseInt(e.target.value) })}
+                                onChange={(e) => {
+                                    const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                                    setBulkFormData({ ...bulkFormData, normalApts: val === '' ? 1 : (isNaN(val) ? 1 : val) });
+                                }}
                                 style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                             />
                         </div>
@@ -242,9 +257,11 @@ const BulkModal: React.FC<BulkModalProps> = ({
                                 </label>
                                 <input
                                     type="number"
-                                    min="1"
                                     value={bulkFormData.duplexCount}
-                                    onChange={(e) => setBulkFormData({ ...bulkFormData, duplexCount: parseInt(e.target.value) })}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        setBulkFormData({ ...bulkFormData, duplexCount: isNaN(val) ? 1 : val });
+                                    }}
                                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
                                 />
                             </div>
