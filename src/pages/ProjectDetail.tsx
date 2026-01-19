@@ -309,42 +309,38 @@ const ProjectDetail: React.FC = () => {
 
                 {/* QR Code Section - Only on apartments tab */}
                 {activeTab === 'apartments' && project.public_code && (
-                    <div className="card" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
-                        <div style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <div style={{ flex: 1, minWidth: '300px' }}>
-                                <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, marginBottom: 'var(--spacing-sm)', margin: 0 }}>
-                                    📱 Karekod ile Satış
-                                </h3>
-                                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)' }}>
-                                    Bu karekodu binaya asarak müşterilerin mobil cihazlarından satılık daireleri görüntülemesini sağlayabilirsiniz.
-                                </p>
-                                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-                                    <a
-                                        href={`${window.location.origin}/projeler/${project.public_code}/public`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-secondary"
-                                        style={{ fontSize: '11px', padding: '0.4rem 1rem' }}
-                                    >
-                                        🔗 Public Sayfayı Aç
-                                    </a>
-                                    <button
-                                        onClick={() => {
-                                            const link = document.createElement('a');
-                                            link.download = `${project.name}-qr-code.png`;
-                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(window.location.origin + '/projeler/' + project.public_code + '/public')}`;
-                                            link.click();
-                                        }}
-                                        className="btn"
-                                        style={{ fontSize: '11px', padding: '0.4rem 1rem', background: '#10b981', color: 'white' }}
-                                    >
-                                        💾 QR Kodu İndir
-                                    </button>
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                <QRCode value={`${window.location.origin}/projeler/${project.public_code}/public`} size={160} />
-                            </div>
+                    <div className="card" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)', maxWidth: '500px', marginLeft: 'auto' }}>
+                        <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, marginBottom: 'var(--spacing-sm)', margin: 0, marginBottom: '12px' }}>
+                            📱 Karekod ile Satış
+                        </h3>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)' }}>
+                            Karekodu binaya asın, müşteriler mobil cihazdan daireleri görsün.
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                            <a
+                                href={`${window.location.origin}/projeler/${project.public_code}/public`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-secondary"
+                                style={{ fontSize: '10px', padding: '0.35rem 0.8rem', flex: 1 }}
+                            >
+                                🔗 Public Sayfa
+                            </a>
+                            <button
+                                onClick={() => {
+                                    const link = document.createElement('a');
+                                    link.download = `${project.name}-qr.png`;
+                                    link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(window.location.origin + '/projeler/' + project.public_code + '/public')}`;
+                                    link.click();
+                                }}
+                                className="btn"
+                                style={{ fontSize: '10px', padding: '0.35rem 0.8rem', background: '#10b981', color: 'white', flex: 1 }}
+                            >
+                                💾 İndir
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                            <QRCode value={`${window.location.origin}/projeler/${project.public_code}/public`} size={140} />
                         </div>
                     </div>
                 )}
