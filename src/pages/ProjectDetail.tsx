@@ -14,6 +14,7 @@ import ExpenseTable from './ProjectDetail/ExpenseTable';
 import CheckTable from './ProjectDetail/CheckTable';
 import ApartmentTable from './ProjectDetail/ApartmentTable';
 import SummaryCards from './ProjectDetail/SummaryCards';
+import QRCode from '../components/QRCode';
 
 // Modals
 import ExpenseModal from './ProjectDetail/Modals/ExpenseModal';
@@ -305,6 +306,48 @@ const ProjectDetail: React.FC = () => {
 
                 {/* Summaries */}
                 <SummaryCards activeTab={activeTab} generalTotal={generalTotal} project={project} getPartnerTotal={getPartnerTotal} aptStats={aptStats} formatCurrency={formatCurrency} />
+
+                {/* QR Code Section - Only on apartments tab */}
+                {activeTab === 'apartments' && project.public_code && (
+                    <div className="card" style={{ padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
+                        <div style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1, minWidth: '300px' }}>
+                                <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, marginBottom: 'var(--spacing-sm)', margin: 0 }}>
+                                    📱 Karekod ile Satış
+                                </h3>
+                                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)' }}>
+                                    Bu karekodu binaya asarak müşterilerin mobil cihazlarından satılık daireleri görüntülemesini sağlayabilirsiniz.
+                                </p>
+                                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                                    <a
+                                        href={`${window.location.origin}/projeler/${project.public_code}/public`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-secondary"
+                                        style={{ fontSize: '11px', padding: '0.4rem 1rem' }}
+                                    >
+                                        🔗 Public Sayfayı Aç
+                                    </a>
+                                    <button
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.download = `${project.name}-qr-code.png`;
+                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(window.location.origin + '/projeler/' + project.public_code + '/public')}`;
+                                            link.click();
+                                        }}
+                                        className="btn"
+                                        style={{ fontSize: '11px', padding: '0.4rem 1rem', background: '#10b981', color: 'white' }}
+                                    >
+                                        💾 QR Kodu İndir
+                                    </button>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                <QRCode value={`${window.location.origin}/projeler/${project.public_code}/public`} size={160} />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Content Area */}
                 <div className="card" style={{ padding: 'var(--spacing-md)', display: 'flex', gap: 'var(--spacing-lg)', minHeight: '500px' }}>

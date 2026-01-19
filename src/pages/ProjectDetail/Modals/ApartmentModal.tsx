@@ -1,5 +1,6 @@
 import { apartmentService } from '../../../services/apartmentService';
 import { formatNumberWithDots, parseNumberFromDots } from '../../../utils/formatters';
+import FileUploadSection from './FileUploadSection';
 
 interface ApartmentModalProps {
     isOpen: boolean;
