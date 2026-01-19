@@ -50,6 +50,14 @@ export type CheckInput = Omit<Check, 'id' | 'user_id' | 'created_at'>;
 // Apartment types
 export type ApartmentStatus = 'available' | 'sold' | 'owner' | 'common';
 
+export interface PlanFile {
+    id: string;
+    name: string;
+    url: string;
+    type: 'pdf' | 'image' | 'dwg';
+    uploaded_at: string;
+}
+
 export interface Apartment {
     id: string;
     building_name: string;
@@ -63,6 +71,7 @@ export interface Apartment {
     customer_name?: string;
     customer_phone?: string;
     sort_order?: number;
+    plan_files?: PlanFile[]; // Daire planları/resimleri
     project_id?: string;
     user_id?: string;
     created_at?: string;
@@ -86,6 +95,7 @@ export interface Project {
     name: string;
     description?: string;
     status: ProjectStatus;
+    public_code?: string; // Karekod için benzersiz kod
     user_id?: string;
     created_at?: string;
     partners?: ProjectPartner[];
