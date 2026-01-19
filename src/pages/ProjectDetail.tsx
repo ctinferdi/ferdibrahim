@@ -130,6 +130,14 @@ const ProjectDetail: React.FC = () => {
         try {
             const proj = await projectService.getProject(id);
             if (!proj) throw new Error('Proje bulunamadı');
+
+            // Otomatik public_code oluştur (yoksa)
+            if (!proj.public_code) {
+                const publicCode = crypto.randomUUID();
+                await projectService.updateProject(id, { public_code: publicCode });
+                proj.public_code = publicCode;
+            }
+
             setProject(proj);
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
                 setSelectedPartner(proj.partners[0].id);
