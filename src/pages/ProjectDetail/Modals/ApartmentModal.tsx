@@ -89,7 +89,9 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 padding: 'var(--spacing-lg)'
             }}>
                 <h2 style={{ marginTop: 0, marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-lg)' }}>
-                    {editingApartmentId ? 'Daire Düzenle' : 'Yeni Daire Ekle'}
+                    {editingApartmentId
+                        ? `Daire ${apartmentFormData.apartment_number || '—'} - Düzenle`
+                        : 'Yeni Daire Ekle'}
                 </h2>
                 <form onSubmit={handleSubmit}>
                     <div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
