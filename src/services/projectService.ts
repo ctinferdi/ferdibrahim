@@ -31,6 +31,21 @@ class ProjectService {
         return data;
     }
 
+    // Get project by public code (for public viewing)
+    async getProjectByPublicCode(publicCode: string): Promise<Project | null> {
+        const { data, error } = await supabase
+            .from('projects')
+            .select(`
+                *,
+                partners:project_partners(*)
+            `)
+            .eq('public_code', publicCode)
+            .single();
+
+        if (error) throw error;
+        return data;
+    }
+
     // Create new project
     async createProject(project: ProjectInput): Promise<Project> {
         const { data: { user } } = await supabase.auth.getUser();
