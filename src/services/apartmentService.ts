@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
-import { Apartment, ApartmentInput } from '../types';
+import { Apartment, ApartmentInput, PlanFile } from '../types';
+import { storageService } from './storageService';
 
 export const subscribeToApartments = (onUpdate: (apartments: Apartment[]) => void) => {
     getApartments().then(onUpdate);
@@ -71,6 +72,81 @@ export const bulkDeleteApartments = async (ids: string[]): Promise<void> => {
     if (error) throw error;
 };
 
+// Add plan file to apartment
+export const addPlanFile = async (apartmentId: string, file: File): Promise<void> => {
+    // Upload file to storage
+    const planFile = await storageService.uploadFile(file, apartmentId);
+
+    // Get current apartment
+    const { data: apartment, error: fetchError } = await supabase
+        .from('apartments')
+        .select('plan_files')
+        .eq('id', apartmentId)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    // Add new file to array
+    const currentFiles = (apartment?.plan_files as PlanFile[]) || [];
+    const updatedFiles = [...currentFiles, planFile];
+
+    // Update apartment
+    const { error: updateError } = await supabase
+        .from('apartments')
+        .update({ plan_files: updatedFiles })
+        .eq('id', apartmentId);
+
+    if (updateError) throw updateError;
+};
+
+// Remove plan file from apartment
+export const removePlanFile = async (apartmentId: string, fileId: string): Promise<void> => {
+    // Get current apartment
+    const { data: apartment, error: fetchError } = await supabase
+        .from('apartments')
+        .select('plan_files')
+        .eq('id', apartmentId)
+        .single();
+
+    if (fetchError) throw fetchError;
+
+    // Remove file from array
+    const currentFiles = (apartment?.plan_files as PlanFile[]) || [];
+    const updatedFiles = currentFiles.filter(f => f.id !== fileId);
+
+    // Update apartment
+    const { error: updateError } = await supabase
+        .from('apartments')
+        .update({ plan_files: updatedFiles })
+        .eq('id', apartmentId);
+
+    if (updateError) throw updateError;
+};
+
+// Get apartments by project public code (for public viewing)
+export const getApartmentsByPublicCode = async (publicCode: string): Promise<Apartment[]> => {
+    // First get project by public code
+    const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('public_code', publicCode)
+        .single();
+
+    if (projectError) throw projectError;
+
+    // Then get apartments for that project, only available ones
+    const { data, error } = await supabase
+        .from('apartments')
+        .select('*')
+        .eq('project_id', project.id)
+        .eq('status', 'available')
+        .order('floor', { ascending: false })
+        .order('apartment_number', { ascending: true });
+
+    if (error) throw error;
+    return data as Apartment[];
+};
+
 export const apartmentService = {
     subscribeToApartments,
     getApartments,
@@ -78,5 +154,8 @@ export const apartmentService = {
     updateApartment,
     deleteApartment,
     bulkAddApartments,
-    bulkDeleteApartments
+    bulkDeleteApartments,
+    addPlanFile,
+    removePlanFile,
+    getApartmentsByPublicCode
 };

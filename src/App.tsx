@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import PublicProject from './pages/PublicProject';
 import Checks from './pages/Checks';
 import Apartments from './pages/Apartments';
 import './index.css';
@@ -72,14 +73,13 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
-                    <Route
-                        path="/daireler"
-                        element={
-                            <ProtectedRoute>
-                                <Apartments />
-                            </ProtectedRoute>
-                        }
-                    />
+                    <Route path="/daireler" element={
+                        <ProtectedRoute>
+                            <Apartments />
+                        </ProtectedRoute>
+                    } />
+                    {/* Public route - no auth required */}
+                    <Route path="/projeler/:publicCode/public" element={<PublicProject />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>

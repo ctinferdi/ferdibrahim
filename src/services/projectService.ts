@@ -51,9 +51,12 @@ class ProjectService {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
+        // Generate unique public code for QR
+        const publicCode = crypto.randomUUID();
+
         const { data, error } = await supabase
             .from('projects')
-            .insert([{ ...project, user_id: user.id }])
+            .insert([{ ...project, user_id: user.id, public_code: publicCode }])
             .select()
             .single();
 
