@@ -96,6 +96,10 @@ export interface Project {
     description?: string;
     status: ProjectStatus;
     public_code?: string; // Karekod için benzersiz kod
+    company_name?: string; // Firma adı
+    company_address?: string; // Firma adresi
+    company_location?: string; // Firma konumu
+    whatsapp_number?: string; // WhatsApp numarası
     user_id?: string;
     created_at?: string;
     partners?: ProjectPartner[];

@@ -109,7 +109,6 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                 return (
                                     <div
                                         key={apt.id}
-                                        title={apt.apartment_number}
                                         onClick={() => onApartmentClick(apt)}
                                         style={{
                                             background: bgColor,
@@ -140,17 +139,13 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                     >
                                         <div style={{
                                             fontWeight: 800,
-                                            fontSize: hoveredAptId === apt.id && apt.customer_name ? '8px' : '11px',
+                                            fontSize: '11px',
                                             lineHeight: 1.1,
                                             textAlign: 'center',
                                             padding: '0 2px',
                                             wordBreak: 'break-word'
                                         }}>
-                                            {apt.status === 'common'
-                                                ? 'ORTAK ALAN'
-                                                : hoveredAptId === apt.id && apt.customer_name
-                                                    ? apt.customer_name.toUpperCase()
-                                                    : apt.apartment_number}
+                                            {apt.status === 'common' ? 'ORTAK ALAN' : apt.apartment_number}
                                         </div>
                                     </div>
                                 );

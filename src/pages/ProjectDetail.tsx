@@ -401,8 +401,12 @@ const ProjectDetail: React.FC = () => {
                                         💾 İndir
                                     </button>
                                 </div>
+                                {/* QR Kod */}
                                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <QRCode value={`${window.location.origin}/projeler/${project.public_code}/public`} size={120} />
+                                    <QRCode
+                                        value={`https://www.insaathesapp.com/projeler/${project.public_code}/public`}
+                                        size={120}
+                                    />
                                 </div>
                             </div>
                         )}

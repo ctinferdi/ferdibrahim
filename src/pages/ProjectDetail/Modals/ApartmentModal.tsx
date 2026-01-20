@@ -115,10 +115,11 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    required={apartmentFormData.status !== 'common_area'}
                                     value={apartmentFormData.apartment_number}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, apartment_number: e.target.value })}
                                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    placeholder={apartmentFormData.status === 'common_area' ? 'Opsiyonel' : 'Daire numarası'}
                                 />
                             </div>
                             <div>
@@ -135,31 +136,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    M² (Brüt)
-                                </label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={apartmentFormData.square_meters}
-                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, square_meters: parseFloat(e.target.value) })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    Sıra No (Sıralama için)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={apartmentFormData.sort_order || 0}
-                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, sort_order: parseInt(e.target.value) })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                />
-                            </div>
-                        </div>
+
 
                         <div>
                             <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
