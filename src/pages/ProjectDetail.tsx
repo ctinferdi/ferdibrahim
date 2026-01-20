@@ -103,6 +103,15 @@ const ProjectDetail: React.FC = () => {
     });
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
 
+    // Firma Bilgileri State
+    const [companyFormData, setCompanyFormData] = useState({
+        company_name: '',
+        company_address: '',
+        company_location: '',
+        whatsapp_number: ''
+    });
+    const [isSavingCompany, setIsSavingCompany] = useState(false);
+
     const [bulkFormData, setBulkFormData] = useState({
         startFloor: -1,
         endFloor: 5,
@@ -143,6 +152,14 @@ const ProjectDetail: React.FC = () => {
             }
 
             setProject(proj);
+
+            // Firma bilgilerini yükle
+            setCompanyFormData({
+                company_name: (proj as any).company_name || '',
+                company_address: (proj as any).company_address || '',
+                company_location: (proj as any).company_location || '',
+                whatsapp_number: (proj as any).whatsapp_number || ''
+            });
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
                 setSelectedPartner(proj.partners[0].id);
             }
@@ -160,6 +177,21 @@ const ProjectDetail: React.FC = () => {
             navigate('/projeler');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const saveCompanyInfo = async () => {
+        if (!id) return;
+        setIsSavingCompany(true);
+        try {
+            await projectService.updateProject(id, companyFormData);
+            alert('✅ Firma bilgileri kaydedildi!');
+            await loadAllData();
+        } catch (error) {
+            console.error('Firma bilgileri kaydetme hatası:', error);
+            alert('❌ Kaydetme başarısız!');
+        } finally {
+            setIsSavingCompany(false);
         }
     };
 
@@ -410,6 +442,74 @@ const ProjectDetail: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Firma Bilgileri - Public Sayfada Görünür */}
+                        {activeTab === 'apartments' && (
+                            <div style={{ padding: 'var(--spacing-sm)', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24', marginBottom: 'var(--spacing-md)' }}>
+                                <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    🏢 Firma Bilgileri (Public Sayfa)
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>Firma Adı</label>
+                                        <input
+                                            type="text"
+                                            value={companyFormData.company_name}
+                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_name: e.target.value })}
+                                            placeholder="Örn: İnşaat A.Ş."
+                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>Adres</label>
+                                        <input
+                                            type="text"
+                                            value={companyFormData.company_address}
+                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_address: e.target.value })}
+                                            placeholder="Örn: Bahçelievler Mah. No:123"
+                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>Konum</label>
+                                        <input
+                                            type="text"
+                                            value={companyFormData.company_location}
+                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_location: e.target.value })}
+                                            placeholder="Örn: İstanbul, Türkiye"
+                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>WhatsApp No</label>
+                                        <input
+                                            type="tel"
+                                            value={companyFormData.whatsapp_number}
+                                            onChange={(e) => setCompanyFormData({ ...companyFormData, whatsapp_number: e.target.value })}
+                                            placeholder="Örn: 905551234567"
+                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                        />
+                                        <small style={{ fontSize: '8px', color: '#64748b' }}>Format: 905551234567 (başında 90)</small>
+                                    </div>
+                                    <button
+                                        onClick={saveCompanyInfo}
+                                        disabled={isSavingCompany}
+                                        className="btn"
+                                        style={{
+                                            fontSize: '10px',
+                                            padding: '8px',
+                                            background: '#8b5cf6',
+                                            color: 'white',
+                                            marginTop: '4px',
+                                            opacity: isSavingCompany ? 0.6 : 1
+                                        }}
+                                    >
+                                        {isSavingCompany ? '💾 Kaydediliyor...' : '💾 Kaydet'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
                             <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
