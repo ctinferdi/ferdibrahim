@@ -68,20 +68,20 @@ const PublicProject: React.FC = () => {
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
             {/* Header */}
-            <div style={{ maxWidth: '900px', margin: '0 auto', marginBottom: '24px' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
                     {/* Firma Bilgileri */}
                     <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
-                        🏢 {project.company_name || 'Firma Adı'}
+                        🏢 {(project as any).company_name || 'Firma Adı'}
                     </h1>
-                    {project.company_address && (
+                    {(project as any).company_address && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>
-                            📍 {project.company_address}
+                            📍 {(project as any).company_address}
                         </p>
                     )}
-                    {project.company_location && (
+                    {(project as any).company_location && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-                            🌍 {project.company_location}
+                            🌍 {(project as any).company_location}
                         </p>
                     )}
                     <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px' }}>
@@ -92,30 +92,31 @@ const PublicProject: React.FC = () => {
                 </div>
             </div>
 
-            {/* Floor Plan - ALL OPEN */}
-            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            {/* Floor Plan - Horizontal Layout */}
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
                     <h2 style={{ margin: 0, marginBottom: '20px', fontSize: '20px', fontWeight: 800 }}>🏢 Bina Planı</h2>
 
                     {apartments.length === 0 ? (
                         <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Henüz daire eklenmemiş.</p>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {floors.map(floor => {
                                 const floorApts = apartments.filter(a => a.floor === floor).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                                const singleApt = floorApts.length === 1;
 
                                 return (
-                                    <div key={floor}>
-                                        {/* Kat Başlığı */}
-                                        <h3 style={{ margin: 0, marginBottom: '12px', fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>
+                                    <div key={floor} style={{ display: 'flex', alignItems: 'stretch', gap: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
+                                        {/* Kat Label */}
+                                        <div style={{ minWidth: '100px', fontWeight: 800, fontSize: '14px', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingRight: '12px', borderRight: '2px solid #e2e8f0' }}>
                                             {getFloorLabel(floor)}
-                                        </h3>
+                                        </div>
 
-                                        {/* Daire Kartları */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                                        {/* Daireler - Horizontal */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: singleApt ? '1fr' : `repeat(auto-fit, minmax(200px, 1fr))`, gap: '12px', flex: 1 }}>
                                             {floorApts.map(apt => {
-                                                const isSold = apt.status === 'sold';
                                                 const isAvailable = apt.status === 'available';
+                                                const isSold = apt.status === 'sold';
 
                                                 return (
                                                     <div
@@ -123,12 +124,12 @@ const PublicProject: React.FC = () => {
                                                         onClick={() => isAvailable && setSelectedApartment(apt)}
                                                         style={{
                                                             padding: '16px',
-                                                            background: '#f8fafc',
-                                                            borderRadius: '12px',
+                                                            background: 'white',
+                                                            borderRadius: '8px',
                                                             border: '2px solid #e2e8f0',
                                                             cursor: isAvailable ? 'pointer' : 'not-allowed',
                                                             transition: 'all 0.2s',
-                                                            opacity: isSold ? 0.6 : 1,
+                                                            opacity: isSold ? 0.5 : 1,
                                                             position: 'relative'
                                                         }}
                                                         onMouseEnter={(e) => {
@@ -147,22 +148,24 @@ const PublicProject: React.FC = () => {
                                                         }}
                                                     >
                                                         {/* Badge */}
-                                                        <div style={{
-                                                            position: 'absolute',
-                                                            top: '8px',
-                                                            right: '8px',
-                                                            padding: '4px 8px',
-                                                            background: isSold ? '#94a3b8' : '#10b981',
-                                                            color: 'white',
-                                                            fontSize: '10px',
-                                                            fontWeight: 700,
-                                                            borderRadius: '4px',
-                                                            textTransform: 'uppercase'
-                                                        }}>
-                                                            {isSold ? 'SATILDI' : 'MÜSAİT'}
-                                                        </div>
+                                                        {apt.status !== 'sold' && (
+                                                            <div style={{
+                                                                position: 'absolute',
+                                                                top: '8px',
+                                                                right: '8px',
+                                                                padding: '4px 8px',
+                                                                background: apt.status === 'available' ? '#10b981' : apt.status === 'owner' ? '#64748b' : '#f59e0b',
+                                                                color: 'white',
+                                                                fontSize: '10px',
+                                                                fontWeight: 700,
+                                                                borderRadius: '4px',
+                                                                textTransform: 'uppercase'
+                                                            }}>
+                                                                {apt.status === 'available' ? 'MÜSAİT' : apt.status === 'owner' ? 'MAL SAHİBİ' : 'ORTAK ALAN'}
+                                                            </div>
+                                                        )}
 
-                                                        <div style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', marginTop: '12px' }}>
+                                                        <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px', marginTop: '12px' }}>
                                                             Daire {apt.apartment_number || '—'}
                                                         </div>
                                                         <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
@@ -171,12 +174,12 @@ const PublicProject: React.FC = () => {
                                                         <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
                                                             📐 Alan: <strong>{apt.square_meters} m²</strong>
                                                         </div>
-                                                        <div style={{ fontSize: '18px', fontWeight: 700, color: '#8b5cf6' }}>
+                                                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#8b5cf6' }}>
                                                             {formatCurrency(apt.price)}
                                                         </div>
                                                         {apt.plan_files && apt.plan_files.length > 0 && (
                                                             <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
-                                                                📄 {apt.plan_files.length} Plan Mevcut
+                                                                📄 {apt.plan_files.length} Plan
                                                             </div>
                                                         )}
                                                     </div>
@@ -288,7 +291,7 @@ const PublicProject: React.FC = () => {
                         {/* Contact Button */}
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <a
-                                href={`https://wa.me/${project.whatsapp_number || '905555555555'}?text=Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`}
+                                href={`https://wa.me/${(project as any).whatsapp_number || '905555555555'}?text=Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
