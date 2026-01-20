@@ -134,8 +134,12 @@ const ProjectDetail: React.FC = () => {
             // Otomatik public_code oluştur (yoksa)
             if (!proj.public_code) {
                 const publicCode = crypto.randomUUID();
+                console.log('🔧 public_code oluşturuluyor:', publicCode);
                 await projectService.updateProject(id, { public_code: publicCode });
                 proj.public_code = publicCode;
+                console.log('✅ public_code atandı!');
+            } else {
+                console.log('✅ public_code zaten mevcut:', proj.public_code);
             }
 
             setProject(proj);

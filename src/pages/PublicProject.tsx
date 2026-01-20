@@ -37,6 +37,12 @@ const PublicProject: React.FC = () => {
         }).format(value);
     };
 
+    const getFloorLabel = (floor: number) => {
+        if (floor === 0) return 'ZEMİN';
+        if (floor < 0) return `BODRUM ${Math.abs(floor)}`;
+        return `${floor}. KAT`;
+    };
+
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f8fafc' }}>
@@ -56,89 +62,133 @@ const PublicProject: React.FC = () => {
         );
     }
 
+    // Katları grupla
+    const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
+
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
             {/* Header */}
-            <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-                    <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>
-                        🏢 {project.name}
+                    {/* Firma Bilgileri */}
+                    <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
+                        🏢 {project.company_name || 'Firma Adı'}
                     </h1>
-                    {project.description && (
-                        <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>{project.description}</p>
+                    {project.company_address && (
+                        <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>
+                            📍 {project.company_address}
+                        </p>
+                    )}
+                    {project.company_location && (
+                        <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
+                            🌍 {project.company_location}
+                        </p>
                     )}
                     <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px' }}>
                         <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>
-                            📍 Satılık Daireler: <strong>{apartments.length} Adet</strong>
+                            📊 Toplam Daire: <strong>{apartments.length} Adet</strong>
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Apartments Grid */}
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                {apartments.length === 0 ? (
-                    <div style={{ background: 'white', borderRadius: '16px', padding: '48px', textAlign: 'center' }}>
-                        <p style={{ fontSize: '18px', color: '#64748b' }}>Şu anda satılık daire bulunmamaktadır.</p>
-                    </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-                        {apartments.map(apt => (
-                            <div
-                                key={apt.id}
-                                onClick={() => setSelectedApartment(apt)}
-                                style={{
-                                    background: 'white',
-                                    borderRadius: '12px',
-                                    padding: '20px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                                    border: '2px solid transparent'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
-                                    e.currentTarget.style.borderColor = '#667eea';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-                                    e.currentTarget.style.borderColor = 'transparent';
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                    <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#1e293b' }}>
-                                        Daire {apt.apartment_number || '—'}
-                                    </h3>
-                                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#10b981', background: '#d1fae5', padding: '4px 8px', borderRadius: '6px' }}>
-                                        MÜSAİT
-                                    </span>
-                                </div>
-                                <div style={{ marginBottom: '8px' }}>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#64748b', marginBottom: '4px' }}>
-                                        📍 Kat: <strong>{apt.floor === 0 ? 'Zemin' : apt.floor < 0 ? `Bodrum ${Math.abs(apt.floor)}` : `${apt.floor}. Kat`}</strong>
-                                    </p>
-                                    <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-                                        📐 Alan: <strong>{apt.square_meters} m²</strong>
-                                    </p>
-                                </div>
-                                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
-                                    <p style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#667eea' }}>
-                                        {formatCurrency(apt.price)}
-                                    </p>
-                                </div>
-                                {apt.plan_files && apt.plan_files.length > 0 && (
-                                    <div style={{ marginTop: '12px' }}>
-                                        <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
-                                            📄 {apt.plan_files.length} Plan Mevcut
-                                        </span>
+            {/* Floor Plan - ALL OPEN */}
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+                    <h2 style={{ margin: 0, marginBottom: '20px', fontSize: '20px', fontWeight: 800 }}>🏢 Bina Planı</h2>
+
+                    {apartments.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Henüz daire eklenmemiş.</p>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            {floors.map(floor => {
+                                const floorApts = apartments.filter(a => a.floor === floor).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+                                return (
+                                    <div key={floor}>
+                                        {/* Kat Başlığı */}
+                                        <h3 style={{ margin: 0, marginBottom: '12px', fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>
+                                            {getFloorLabel(floor)}
+                                        </h3>
+
+                                        {/* Daire Kartları */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                                            {floorApts.map(apt => {
+                                                const isSold = apt.status === 'sold';
+                                                const isAvailable = apt.status === 'available';
+
+                                                return (
+                                                    <div
+                                                        key={apt.id}
+                                                        onClick={() => isAvailable && setSelectedApartment(apt)}
+                                                        style={{
+                                                            padding: '16px',
+                                                            background: '#f8fafc',
+                                                            borderRadius: '12px',
+                                                            border: '2px solid #e2e8f0',
+                                                            cursor: isAvailable ? 'pointer' : 'not-allowed',
+                                                            transition: 'all 0.2s',
+                                                            opacity: isSold ? 0.6 : 1,
+                                                            position: 'relative'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (isAvailable) {
+                                                                e.currentTarget.style.borderColor = '#8b5cf6';
+                                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                                                            }
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            if (isAvailable) {
+                                                                e.currentTarget.style.borderColor = '#e2e8f0';
+                                                                e.currentTarget.style.transform = 'translateY(0)';
+                                                                e.currentTarget.style.boxShadow = 'none';
+                                                            }
+                                                        }}
+                                                    >
+                                                        {/* Badge */}
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            top: '8px',
+                                                            right: '8px',
+                                                            padding: '4px 8px',
+                                                            background: isSold ? '#94a3b8' : '#10b981',
+                                                            color: 'white',
+                                                            fontSize: '10px',
+                                                            fontWeight: 700,
+                                                            borderRadius: '4px',
+                                                            textTransform: 'uppercase'
+                                                        }}>
+                                                            {isSold ? 'SATILDI' : 'MÜSAİT'}
+                                                        </div>
+
+                                                        <div style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', marginTop: '12px' }}>
+                                                            Daire {apt.apartment_number || '—'}
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
+                                                            📍 Kat: <strong>{getFloorLabel(apt.floor)}</strong>
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+                                                            📐 Alan: <strong>{apt.square_meters} m²</strong>
+                                                        </div>
+                                                        <div style={{ fontSize: '18px', fontWeight: 700, color: '#8b5cf6' }}>
+                                                            {formatCurrency(apt.price)}
+                                                        </div>
+                                                        {apt.plan_files && apt.plan_files.length > 0 && (
+                                                            <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
+                                                                📄 {apt.plan_files.length} Plan Mevcut
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Apartment Detail Modal */}
@@ -177,12 +227,12 @@ const PublicProject: React.FC = () => {
                         </h2>
                         <div style={{ marginBottom: '20px' }}>
                             <p style={{ margin: '8px 0', fontSize: '14px', color: '#64748b' }}>
-                                <strong>Kat:</strong> {selectedApartment.floor === 0 ? 'Zemin' : selectedApartment.floor < 0 ? `Bodrum ${Math.abs(selectedApartment.floor)}` : `${selectedApartment.floor}. Kat`}
+                                <strong>Kat:</strong> {getFloorLabel(selectedApartment.floor)}
                             </p>
                             <p style={{ margin: '8px 0', fontSize: '14px', color: '#64748b' }}>
                                 <strong>Alan:</strong> {selectedApartment.square_meters} m²
                             </p>
-                            <p style={{ margin: '8px 0', fontSize: '18px', fontWeight: 700, color: '#667eea' }}>
+                            <p style={{ margin: '8px 0', fontSize: '18px', fontWeight: 700, color: '#8b5cf6' }}>
                                 <strong>Fiyat:</strong> {formatCurrency(selectedApartment.price)}
                             </p>
                         </div>
@@ -192,7 +242,7 @@ const PublicProject: React.FC = () => {
                             <div style={{ marginBottom: '20px' }}>
                                 <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>Daire Planları</h3>
                                 <div style={{ display: 'grid', gap: '12px' }}>
-                                    {selectedApartment.plan_files.map(file => (
+                                    {selectedApartment.plan_files.map((file: any) => (
                                         <a
                                             key={file.id}
                                             href={file.url}
@@ -212,7 +262,7 @@ const PublicProject: React.FC = () => {
                                             }}
                                             onMouseEnter={(e) => {
                                                 e.currentTarget.style.background = '#f1f5f9';
-                                                e.currentTarget.style.borderColor = '#667eea';
+                                                e.currentTarget.style.borderColor = '#8b5cf6';
                                             }}
                                             onMouseLeave={(e) => {
                                                 e.currentTarget.style.background = '#f8fafc';
@@ -238,7 +288,7 @@ const PublicProject: React.FC = () => {
                         {/* Contact Button */}
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <a
-                                href={`https://wa.me/905555555555?text=Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`}
+                                href={`https://wa.me/${project.whatsapp_number || '905555555555'}?text=Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{

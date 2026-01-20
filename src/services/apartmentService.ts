@@ -134,12 +134,11 @@ export const getApartmentsByPublicCode = async (publicCode: string): Promise<Apa
 
     if (projectError) throw projectError;
 
-    // Then get apartments for that project, only available ones
+    // Then get ALL apartments for that project (available + sold)
     const { data, error } = await supabase
         .from('apartments')
         .select('*')
         .eq('project_id', project.id)
-        .eq('status', 'available')
         .order('floor', { ascending: false })
         .order('apartment_number', { ascending: true });
 
