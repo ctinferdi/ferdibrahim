@@ -10,6 +10,8 @@ const PublicProject: React.FC = () => {
     const [project, setProject] = useState<Project | null>(null);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
+    const [hoveredApt, setHoveredApt] = useState<Apartment | null>(null);
+    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
     const [loading, setLoading] = useState(true);
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
@@ -52,7 +54,7 @@ const PublicProject: React.FC = () => {
     const getFloorLabel = (floor: number) => {
         if (floor === 0) return 'ZEMİN';
         if (floor < 0) return `BODRUM ${Math.abs(floor)}`;
-        return `${floor}. KAT`;
+        return `${floor}.KAT`;
     };
 
     if (loading) {
@@ -82,7 +84,6 @@ const PublicProject: React.FC = () => {
             {/* Header */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-                    {/* Firma Bilgileri - Önce proje özel, yoksa varsay\u0131lan */}
                     <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
                         🏢 {(project as any).company_name || userCompany?.company_name || 'Firma Adı'}
                     </h1>
@@ -115,7 +116,6 @@ const PublicProject: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {floors.map(floor => {
                                 const floorApts = apartments.filter(a => a.floor === floor).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-                                const singleApt = floorApts.length === 1;
 
                                 return (
                                     <div key={floor} style={{ display: 'flex', alignItems: 'stretch', gap: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
@@ -125,22 +125,20 @@ const PublicProject: React.FC = () => {
                                         </div>
 
                                         {/* Daireler - Horizontal */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: singleApt ? '1fr' : `repeat(auto-fit, minmax(200px, 1fr))`, gap: '12px', flex: 1 }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(200px, 1fr))`, gap: '12px', flex: 1 }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
-                                                const isSold = apt.status === 'sold';
 
                                                 return (
                                                     <div
                                                         key={apt.id}
                                                         onClick={() => setSelectedApartment(apt)}
-                                                        title={apt.customer_name ? `Müşteri: ${apt.customer_name}${apt.customer_phone ? ` - ${apt.customer_phone}` : ''}` : (apt.status === 'sold' ? 'Satıldı' : apt.status === 'owner' ? 'Mal Sahibi' : 'Müsait')}
                                                         style={{
                                                             background: 'white',
                                                             border: `1px solid ${isAvailable ? '#e2e8f0' : '#cbd5e1'}`,
                                                             borderRadius: '12px',
                                                             padding: '16px',
-                                                            cursor: isAvailable ? 'pointer' : 'default',
+                                                            cursor: 'pointer',
                                                             transition: 'all 0.2s',
                                                             position: 'relative',
                                                             display: 'flex',
@@ -148,13 +146,19 @@ const PublicProject: React.FC = () => {
                                                             opacity: isAvailable ? 1 : 0.8
                                                         }}
                                                         onMouseEnter={(e) => {
+                                                            setHoveredApt(apt);
+                                                            setTooltipPos({ x: e.clientX, y: e.clientY });
                                                             if (isAvailable) {
                                                                 e.currentTarget.style.borderColor = '#8b5cf6';
                                                                 e.currentTarget.style.transform = 'translateY(-2px)';
                                                                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                                                             }
                                                         }}
+                                                        onMouseMove={(e) => {
+                                                            setTooltipPos({ x: e.clientX, y: e.clientY });
+                                                        }}
                                                         onMouseLeave={(e) => {
+                                                            setHoveredApt(null);
                                                             if (isAvailable) {
                                                                 e.currentTarget.style.borderColor = '#e2e8f0';
                                                                 e.currentTarget.style.transform = 'translateY(0)';
@@ -196,7 +200,7 @@ const PublicProject: React.FC = () => {
                                                         )}
                                                         {apt.plan_files && apt.plan_files.length > 0 && (
                                                             <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
-                                                                📄 {apt.plan_files.length} Plan
+                                                                📄 {apt.plan_files.length} Plan Bilgisi
                                                             </div>
                                                         )}
                                                     </div>
@@ -305,19 +309,17 @@ const PublicProject: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Contact Button */}
-                        <div style={{ display: 'flex', gap: '12px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <a
                                 href={`https://wa.me/${(() => {
                                     const cleanNumber = ((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '');
-                                    // Eğer numara 90 ile başlamıyorsa, başına 90 ekle
                                     const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
                                     return formattedNumber || '905555555555';
                                 })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
-                                    flex: 1,
+                                    display: 'block',
                                     padding: '14px',
                                     background: '#25D366',
                                     color: 'white',
@@ -330,22 +332,24 @@ const PublicProject: React.FC = () => {
                             >
                                 💬 WhatsApp ile İletişime Geç
                             </a>
+
                             {/* Telefon Numarası Gösterimi */}
                             {((project as any).whatsapp_number || userCompany?.whatsapp_number) && (
                                 <div style={{
-                                    width: '100%',
                                     textAlign: 'center',
-                                    fontSize: '12px',
+                                    fontSize: '13px',
                                     color: '#64748b',
-                                    marginTop: '8px'
+                                    fontWeight: 600
                                 }}>
                                     📞 {((project as any).whatsapp_number || userCompany?.whatsapp_number)}
                                 </div>
                             )}
+
                             <button
                                 onClick={() => setSelectedApartment(null)}
                                 style={{
-                                    padding: '14px 24px',
+                                    width: '100%',
+                                    padding: '12px',
                                     background: '#f1f5f9',
                                     color: '#64748b',
                                     border: 'none',
@@ -358,6 +362,48 @@ const PublicProject: React.FC = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Floating Tooltip */}
+            {hoveredApt && (
+                <div style={{
+                    position: 'fixed',
+                    left: tooltipPos.x + 15,
+                    top: tooltipPos.y + 15,
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    color: 'white',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    zIndex: 99999,
+                    pointerEvents: 'none',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(4px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    maxWidth: '200px'
+                }}>
+                    <div style={{ fontWeight: 800, marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+                        Daire {hoveredApt.apartment_number}
+                    </div>
+                    {hoveredApt.customer_name ? (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                👤 <span style={{ fontWeight: 600 }}>{hoveredApt.customer_name}</span>
+                            </div>
+                            {hoveredApt.customer_phone && (
+                                <div style={{ fontSize: '10px', opacity: 0.9, marginTop: '2px' }}>
+                                    📞 {hoveredApt.customer_phone}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div style={{ fontStyle: 'italic', opacity: 0.8 }}>
+                            {hoveredApt.status === 'available' ? 'Müsait' :
+                                hoveredApt.status === 'sold' ? 'Satıldı' :
+                                    hoveredApt.status === 'owner' ? 'Mal Sahibi' : 'Ortak Alan'}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

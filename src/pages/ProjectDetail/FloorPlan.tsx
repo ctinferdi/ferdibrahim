@@ -7,6 +7,8 @@ interface FloorPlanProps {
 }
 
 const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) => {
+    const [hoveredApt, setHoveredApt] = React.useState<Apartment | null>(null);
+    const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
 
     if (apartments.length === 0) {
         return (
@@ -31,10 +33,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     // Katları grupla ve sırala
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a: any, b: any) => b - a);
 
-    // Her kattaki daire sayısını bul ve maksimumu al
-    const maxAptsPerFloor = Math.max(...floors.map(floor =>
-        apartments.filter(a => a.floor === floor).length
-    ));
+
 
     // Sabit daire genişliği hesapla (container genişliği - kat etiketi - boşluklar)
     // Container yaklaşık 280px, kat etiketi 50px, gap'ler için pay bırak
@@ -125,10 +124,16 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             transition: 'all 0.2s'
                                         }}
                                         onMouseEnter={(e) => {
+                                            setHoveredApt(apt);
+                                            setTooltipPos({ x: e.clientX, y: e.clientY });
                                             e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
                                             e.currentTarget.style.zIndex = '10';
                                         }}
+                                        onMouseMove={(e) => {
+                                            setTooltipPos({ x: e.clientX, y: e.clientY });
+                                        }}
                                         onMouseLeave={(e) => {
+                                            setHoveredApt(null);
                                             e.currentTarget.style.transform = 'translateY(0) scale(1)';
                                             e.currentTarget.style.zIndex = '1';
                                         }}
@@ -180,6 +185,48 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     </div>
                 </div>
             </div>
+
+            {/* Floating Tooltip */}
+            {hoveredApt && (
+                <div style={{
+                    position: 'fixed',
+                    left: tooltipPos.x + 15,
+                    top: tooltipPos.y + 15,
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    color: 'white',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    zIndex: 99999,
+                    pointerEvents: 'none',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
+                    backdropFilter: 'blur(4px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    maxWidth: '200px'
+                }}>
+                    <div style={{ fontWeight: 800, marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+                        Daire {hoveredApt.apartment_number}
+                    </div>
+                    {hoveredApt.customer_name ? (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                👤 <span style={{ fontWeight: 600 }}>{hoveredApt.customer_name}</span>
+                            </div>
+                            {hoveredApt.customer_phone && (
+                                <div style={{ fontSize: '10px', opacity: 0.9, marginTop: '2px' }}>
+                                    📞 {hoveredApt.customer_phone}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div style={{ fontStyle: 'italic', opacity: 0.8 }}>
+                            {hoveredApt.status === 'available' ? 'Müsait' :
+                                hoveredApt.status === 'sold' ? 'Satıldı' :
+                                    hoveredApt.status === 'owner' ? 'Mal Sahibi' : 'Ortak Alan'}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
