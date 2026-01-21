@@ -305,7 +305,12 @@ const PublicProject: React.FC = () => {
                         {/* Contact Button */}
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <a
-                                href={`https://wa.me/${(((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '')) || '905555555555'}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
+                                href={`https://wa.me/${(() => {
+                                    const cleanNumber = ((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '');
+                                    // Eğer numara 90 ile başlamıyorsa, başına 90 ekle
+                                    const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
+                                    return formattedNumber || '905555555555';
+                                })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
