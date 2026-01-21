@@ -9,6 +9,7 @@ import Settings from './pages/Settings';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import PublicProject from './pages/PublicProject';
+import ResetPassword from './pages/ResetPassword';
 import Checks from './pages/Checks';
 import Apartments from './pages/Apartments';
 import './index.css';
@@ -35,6 +36,7 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route
                         path="/"
                         element={
