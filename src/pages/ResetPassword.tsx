@@ -12,11 +12,25 @@ const ResetPassword: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // URL'den recovery token'ı kontrol et
-        const hash = window.location.hash;
-        if (!hash || !hash.includes('access_token')) {
-            setError('Geçersiz veya süresi dolmuş link. Lütfen yeni şifre sıfırlama linki isteyin.');
-        }
+        // Token kontrolü
+        const checkSession = async () => {
+            // 1. URL'de token var mı?
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                // Token var, Supabase bunu otomatik işler
+                return;
+            }
+
+            // 2. Token yoksa, belki Supabase zaten oturumu açmıştır (Recovery flow)
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (!session) {
+                // Hem token yok hem session yok -> Hata
+                setError('Geçersiz veya süresi dolmuş link. Lütfen yeni şifre sıfırlama linki isteyin.');
+            }
+        };
+
+        checkSession();
     }, []);
 
     const handleResetPassword = async (e: React.FormEvent) => {
