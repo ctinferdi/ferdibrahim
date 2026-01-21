@@ -23,22 +23,45 @@ const Settings: React.FC = () => {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            const { data: { users: userList }, error } = await supabase.auth.admin.listUsers();
+            // Users tablosundan kullanıcı listesi çek
+            const { data, error } = await supabase
+                .from('users')
+                .select('id, email, role, created_at')
+                .order('created_at', { ascending: true });
 
             if (error) {
                 console.error('Error fetching users:', error);
+                // Fallback: Sadece mevcut kullanıcıyı göster
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    setUsers([user]);
+                    setUsers([{
+                        id: user.id,
+                        email: user.email,
+                        created_at: user.created_at,
+                        user_metadata: { role: user.user_metadata?.role || 'editor' }
+                    }]);
                 }
             } else {
-                setUsers(userList || []);
+                // Users tablosundan gelen veriyi uygun formata çevir
+                const formattedUsers = (data || []).map(u => ({
+                    id: u.id,
+                    email: u.email,
+                    created_at: u.created_at,
+                    user_metadata: { role: u.role || 'editor' }
+                }));
+                setUsers(formattedUsers);
             }
         } catch (err) {
             console.error('Failed to fetch users:', err);
+            // Fallback: Sadece mevcut kullanıcıyı göster
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                setUsers([user]);
+                setUsers([{
+                    id: user.id,
+                    email: user.email,
+                    created_at: user.created_at,
+                    user_metadata: { role: user.user_metadata?.role || 'editor' }
+                }]);
             }
         } finally {
             setLoadingUsers(false);
