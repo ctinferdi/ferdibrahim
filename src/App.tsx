@@ -24,7 +24,10 @@ function App() {
     // her zaman ana sayfaya (Dashboard) yönlendirsin.
     React.useEffect(() => {
         const isSessionActive = sessionStorage.getItem('session_active');
-        const isPublicRoute = window.location.pathname.includes('/public') || window.location.pathname.includes('/reset-password');
+        const isPublicRoute =
+            window.location.pathname.includes('/public') ||
+            window.location.pathname.includes('/p/') ||
+            window.location.pathname.includes('/reset-password');
 
         if (!isSessionActive && !isPublicRoute) {
             // Yeni bir session başladıysa veya tarayıcı/bilgisayar yeni açıldıysa
