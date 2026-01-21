@@ -7,7 +7,6 @@ interface FloorPlanProps {
 }
 
 const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) => {
-    const [hoveredAptId, setHoveredAptId] = React.useState<string | null>(null);
 
     if (apartments.length === 0) {
         return (
@@ -39,8 +38,6 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
 
     // Sabit daire genişliği hesapla (container genişliği - kat etiketi - boşluklar)
     // Container yaklaşık 280px, kat etiketi 50px, gap'ler için pay bırak
-    const aptWidth = maxAptsPerFloor > 0 ? Math.floor((280 - 50 - (maxAptsPerFloor - 1) * 4) / maxAptsPerFloor) : 50;
-    const calculatedWidth = Math.max(aptWidth, 40); // Minimum 40px
 
     return (
         <div style={{
@@ -110,6 +107,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                     <div
                                         key={apt.id}
                                         onClick={() => onApartmentClick(apt)}
+                                        title={apt.customer_name ? `Müşteri: ${apt.customer_name}${apt.customer_phone ? ` - ${apt.customer_phone}` : ''}` : (apt.status === 'sold' ? 'Satıldı' : apt.status === 'owner' ? 'Mal Sahibi' : 'Müsait')}
                                         style={{
                                             background: bgColor,
                                             color: textColor,
@@ -127,12 +125,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             transition: 'all 0.2s'
                                         }}
                                         onMouseEnter={(e) => {
-                                            setHoveredAptId(apt.id);
                                             e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
                                             e.currentTarget.style.zIndex = '10';
                                         }}
                                         onMouseLeave={(e) => {
-                                            setHoveredAptId(null);
                                             e.currentTarget.style.transform = 'translateY(0) scale(1)';
                                             e.currentTarget.style.zIndex = '1';
                                         }}

@@ -133,16 +133,19 @@ const PublicProject: React.FC = () => {
                                                 return (
                                                     <div
                                                         key={apt.id}
-                                                        onClick={() => isAvailable && setSelectedApartment(apt)}
+                                                        onClick={() => setSelectedApartment(apt)}
+                                                        title={apt.customer_name ? `Müşteri: ${apt.customer_name}${apt.customer_phone ? ` - ${apt.customer_phone}` : ''}` : (apt.status === 'sold' ? 'Satıldı' : apt.status === 'owner' ? 'Mal Sahibi' : 'Müsait')}
                                                         style={{
-                                                            padding: '16px',
                                                             background: 'white',
-                                                            borderRadius: '8px',
-                                                            border: '2px solid #e2e8f0',
-                                                            cursor: isAvailable ? 'pointer' : 'not-allowed',
+                                                            border: `1px solid ${isAvailable ? '#e2e8f0' : '#cbd5e1'}`,
+                                                            borderRadius: '12px',
+                                                            padding: '16px',
+                                                            cursor: isAvailable ? 'pointer' : 'default',
                                                             transition: 'all 0.2s',
-                                                            opacity: isSold ? 0.5 : 1,
-                                                            position: 'relative'
+                                                            position: 'relative',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            opacity: isAvailable ? 1 : 0.8
                                                         }}
                                                         onMouseEnter={(e) => {
                                                             if (isAvailable) {
