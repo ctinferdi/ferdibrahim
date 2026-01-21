@@ -259,7 +259,7 @@ const ProjectDetail: React.FC = () => {
             if (editingCheckId) {
                 await checkService.updateCheck(editingCheckId, { ...checkFormData, project_id: id });
             } else {
-                await checkService.addCheck({ ...checkFormData, project_id: id }, '');
+                await checkService.addCheck({ ...checkFormData, project_id: id }, user?.id || '');
             }
             setShowCheckModal(false);
             setEditingCheckId(null);
@@ -414,9 +414,32 @@ const ProjectDetail: React.FC = () => {
                     {/* Right Column - Floor Plan (Fixed side) */}
                     <div style={{ width: '350px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
 
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                            <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
+                            <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
+                        </div>
+                        <FloorPlan apartments={apartments} onApartmentClick={(a) => {
+                            setEditingApartmentId(a.id);
+                            setApartmentFormData({
+                                building_name: a.building_name,
+                                apartment_number: a.apartment_number,
+                                floor: a.floor,
+                                square_meters: a.square_meters,
+                                price: a.price,
+                                sold_price: a.sold_price || 0,
+                                paid_amount: a.paid_amount || 0,
+                                status: a.status,
+                                customer_name: a.customer_name || '',
+                                customer_phone: a.customer_phone || '',
+                                sort_order: a.sort_order || 0,
+                                project_id: a.project_id || id || ''
+                            });
+                            setShowApartmentModal(true);
+                        }} />
+
                         {/* QR Code Section - Only on apartments tab */}
                         {activeTab === 'apartments' && project.public_code && (
-                            <div style={{ padding: 'var(--spacing-sm)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ padding: 'var(--spacing-sm)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: 'var(--spacing-md)' }}>
                                 <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     📱 Karekod Satış
                                 </h3>
@@ -465,29 +488,6 @@ const ProjectDetail: React.FC = () => {
                                 </div>
                             </div>
                         )}
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                            <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
-                            <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
-                        </div>
-                        <FloorPlan apartments={apartments} onApartmentClick={(a) => {
-                            setEditingApartmentId(a.id);
-                            setApartmentFormData({
-                                building_name: a.building_name,
-                                apartment_number: a.apartment_number,
-                                floor: a.floor,
-                                square_meters: a.square_meters,
-                                price: a.price,
-                                sold_price: a.sold_price || 0,
-                                paid_amount: a.paid_amount || 0,
-                                status: a.status,
-                                customer_name: a.customer_name || '',
-                                customer_phone: a.customer_phone || '',
-                                sort_order: a.sort_order || 0,
-                                project_id: a.project_id || id || ''
-                            });
-                            setShowApartmentModal(true);
-                        }} />
 
                         {/* Firma Bilgileri - Proje Özel (Ayarlar'daki varsayılan üzerine yazabilir) */}
                         {activeTab === 'apartments' && (
