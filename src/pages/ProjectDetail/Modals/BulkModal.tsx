@@ -41,7 +41,10 @@ const BulkModal: React.FC<BulkModalProps> = ({
 
             // En üst kat dubleks kontrolü
             const topFloorApts = apartments.filter(a => a.floor === maxFloor);
-            const hasDuplex = topFloorApts.some(a => a.apartment_number.includes('(DBX)'));
+            const hasDuplex = topFloorApts.some(a =>
+                (a.apartment_number && (a.apartment_number.includes('(DBX)') || a.apartment_number.includes('DUBLEKS'))) ||
+                a.square_meters === 200
+            );
 
             setBulkFormData({
                 startFloor: minFloor,
@@ -98,7 +101,7 @@ const BulkModal: React.FC<BulkModalProps> = ({
                         const isDuplex = f === bulkFormData.endFloor && bulkFormData.hasDuplex;
                         newApartments.push({
                             building_name: project?.name || 'Bina',
-                            apartment_number: '', // Boş bırak, kullanıcı manuel girecek
+                            apartment_number: isDuplex ? `${f} (DUBLEKS)` : '', // Dubleks ise otomatik isim ver
                             floor: f,
                             square_meters: isDuplex ? 200 : 100,
                             price: 0,
