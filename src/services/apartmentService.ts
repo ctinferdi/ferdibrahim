@@ -22,7 +22,8 @@ export const getApartments = async (): Promise<Apartment[]> => {
     const { data, error } = await supabase
         .from('apartments')
         .select('*')
-        .order('building_name', { ascending: true })
+        .order('floor', { ascending: false })
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
 
     if (error) throw error;
