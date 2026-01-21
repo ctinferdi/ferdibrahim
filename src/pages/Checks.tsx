@@ -39,6 +39,7 @@ const Checks = () => {
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending' as CheckStatus,
         description: '',
+        notification_email: '',
         project_id: ''
     });
 
@@ -82,6 +83,7 @@ const Checks = () => {
             due_date: new Date().toISOString().split('T')[0],
             status: 'pending',
             description: '',
+            notification_email: '',
             project_id: ''
         });
     };
@@ -99,6 +101,7 @@ const Checks = () => {
             due_date: check.due_date,
             status: check.status,
             description: check.description || '',
+            notification_email: check.notification_email || '',
             project_id: check.project_id || ''
         });
         setShowModal(true);
@@ -235,7 +238,7 @@ const Checks = () => {
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKLER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ŞİRKET</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
-                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV DURUMU</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VEREN KİŞİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>DURUM</th>
@@ -255,7 +258,25 @@ const Checks = () => {
                                         opacity: check.status === 'paid' ? 0.7 : 1,
                                         borderBottom: '1px solid #fde68a'
                                     }}>
-                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 500 }}>
+                                        <td style={{
+                                            textAlign: 'center',
+                                            borderRight: '1px solid #fef3c7',
+                                            fontWeight: 500,
+                                            color: (() => {
+                                                const dueDate = new Date(check.due_date);
+                                                const today = new Date('2026-01-22'); // Using system provided current date
+                                                const diffTime = dueDate.getTime() - today.getTime();
+                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                return (diffDays <= 10 && check.status === 'pending') ? '#dc2626' : 'inherit';
+                                            })(),
+                                            background: (() => {
+                                                const dueDate = new Date(check.due_date);
+                                                const today = new Date('2026-01-22');
+                                                const diffTime = dueDate.getTime() - today.getTime();
+                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';
+                                            })()
+                                        }}>
                                             {new Date(check.due_date).toLocaleDateString('tr-TR')}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 600 }}>
@@ -439,6 +460,18 @@ const Checks = () => {
                                             onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                                             style={{ padding: '8px 12px', fontSize: '13px' }}
                                             required
+                                        />
+                                    </div>
+
+                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '8px' }}>
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px', color: '#dc2626', fontWeight: 700 }}>BİLDİRİM GÖNDERİLECEK E-POSTA</label>
+                                        <input
+                                            type="email"
+                                            className="form-input"
+                                            value={formData.notification_email}
+                                            onChange={(e) => setFormData({ ...formData, notification_email: e.target.value })}
+                                            placeholder="Örn: ornek@mail.com (Vade yaklaştığında mail gider)"
+                                            style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
                                         />
                                     </div>
 

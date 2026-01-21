@@ -84,16 +84,16 @@ const PublicProject: React.FC = () => {
             <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
                     <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
-                        🏢 {(project as any).company_name || userCompany?.company_name || 'Firma Adı'}
+                        🏢 {userCompany?.company_name || 'Firma Adı'}
                     </h1>
-                    {((project as any).company_address || userCompany?.company_address) && (
+                    {userCompany?.company_address && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>
-                            📍 {(project as any).company_address || userCompany?.company_address}
+                            📍 {userCompany.company_address}
                         </p>
                     )}
-                    {((project as any).company_location || userCompany?.company_location) && (
+                    {userCompany?.company_location && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-                            🌍 {(project as any).company_location || userCompany?.company_location}
+                            🌍 <a href={userCompany.company_location} target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'underline' }}>Haritada Gör</a>
                         </p>
                     )}
                     <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -133,7 +133,7 @@ const PublicProject: React.FC = () => {
                                         </div>
 
                                         {/* Daireler - Horizontal */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(200px, 1fr))`, gap: '12px', flex: 1 }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${floorApts.length}, 1fr)`, gap: '12px', flex: 1 }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
                                                 const isHovered = hoveredAptId === apt.id;
@@ -141,23 +141,31 @@ const PublicProject: React.FC = () => {
                                                 return (
                                                     <div
                                                         key={apt.id}
-                                                        onClick={() => setSelectedApartment(apt)}
-                                                        onMouseEnter={() => setHoveredAptId(apt.id)}
+                                                        onClick={() => {
+                                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                                setSelectedApartment(apt);
+                                                            }
+                                                        }}
+                                                        onMouseEnter={() => {
+                                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                                setHoveredAptId(apt.id);
+                                                            }
+                                                        }}
                                                         onMouseLeave={() => setHoveredAptId(null)}
                                                         style={{
                                                             background: isHovered ? (isAvailable ? '#8b5cf6' : '#64748b') : 'white',
                                                             border: `1px solid ${isHovered ? 'transparent' : (isAvailable ? '#e2e8f0' : '#cbd5e1')}`,
                                                             borderRadius: '12px',
                                                             padding: '16px',
-                                                            cursor: 'pointer',
+                                                            cursor: (apt.status === 'sold' || apt.status === 'owner') ? 'default' : 'pointer',
                                                             transition: 'all 0.15s ease-in-out',
                                                             position: 'relative',
                                                             display: 'flex',
                                                             flexDirection: 'column',
                                                             opacity: isAvailable ? 1 : 0.8,
-                                                            transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                                                            boxShadow: isHovered ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
-                                                            color: isHovered ? 'white' : 'inherit'
+                                                            transform: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'translateY(-2px)' : 'translateY(0)',
+                                                            boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
+                                                            color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit'
                                                         }}
                                                     >
                                                         {/* Badge */}
@@ -190,7 +198,7 @@ const PublicProject: React.FC = () => {
                                                         <div style={{ fontSize: '12px', color: isHovered ? 'rgba(255,255,255,0.8)' : '#64748b', marginBottom: '12px' }}>
                                                             📐 Alan: <strong>{apt.square_meters} m²</strong>
                                                         </div>
-                                                        {apt.status === 'available' && (
+                                                        {apt.status !== 'sold' && apt.status !== 'owner' && (
                                                             <div style={{ fontSize: '16px', fontWeight: 700, color: isHovered ? 'white' : '#8b5cf6', marginTop: 'auto' }}>
                                                                 {formatCurrency(apt.price)}
                                                             </div>

@@ -5,7 +5,7 @@ class UserService {
     async getUserProfile(userId: string) {
         const { data, error } = await supabase
             .from('users')
-            .select('company_name, company_address, company_location, whatsapp_number')
+            .select('company_name, company_address, company_location, whatsapp_number, notification_emails')
             .eq('id', userId)
             .single();
 
@@ -19,6 +19,7 @@ class UserService {
         company_address?: string;
         company_location?: string;
         whatsapp_number?: string;
+        notification_emails?: string[];
     }) {
         const { data, error } = await supabase
             .from('users')

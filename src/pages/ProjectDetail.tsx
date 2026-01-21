@@ -78,6 +78,7 @@ const ProjectDetail: React.FC = () => {
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending',
         description: '',
+        notification_email: '',
         project_id: id || ''
     });
     const [editingCheckId, setEditingCheckId] = useState<string | null>(null);
@@ -102,15 +103,13 @@ const ProjectDetail: React.FC = () => {
     const [showQRSection, setShowQRSection] = useState(true);
     const [showCompanySection, setShowCompanySection] = useState(true);
 
-    // Firma Bilgileri State (Proje Bazlı - Ayarlar'daki varsayılan üzerine yazabilir)
-    const [companyFormData, setCompanyFormData] = useState({
-        company_name: '',
-        company_address: '',
-        company_location: '',
-        whatsapp_number: ''
-    });
-    const [userCompany, setUserCompany] = useState<any>(null); // Varsayılan (Ayarlar'dan)
-    const [isSavingCompany, setIsSavingCompany] = useState(false);
+    // Firma Bilgileri State (Merkezi Profil'den)
+    const [profile, setProfile] = useState<{
+        company_name?: string;
+        company_address?: string;
+        company_location?: string;
+        whatsapp_number?: string;
+    } | null>(null);
 
     const [bulkFormData, setBulkFormData] = useState({
         startFloor: -1,
@@ -153,7 +152,7 @@ const ProjectDetail: React.FC = () => {
 
             setProject(proj);
 
-            // Firma bilgilerini y\u00fckle - \u00d6nce kullan\u0131c\u0131n\u0131n varsay\u0131lan bilgilerini \u00e7ek
+            // Firma bilgilerini y\u00fckle (Profil'den)
             try {
                 const { data: { user: currentUser } } = await supabase.auth.getUser();
                 if (currentUser) {
@@ -163,15 +162,7 @@ const ProjectDetail: React.FC = () => {
                         .eq('id', currentUser.id)
                         .single();
 
-                    setUserCompany(userData);
-
-                    // Proje \u00f6zel firma bilgileri varsa kullan, yoksa varsay\u0131lan\u0131 g\u00f6ster
-                    setCompanyFormData({
-                        company_name: (proj as any).company_name || userData?.company_name || '',
-                        company_address: (proj as any).company_address || userData?.company_address || '',
-                        company_location: (proj as any).company_location || userData?.company_location || '',
-                        whatsapp_number: (proj as any).whatsapp_number || userData?.whatsapp_number || ''
-                    });
+                    setProfile(userData);
                 }
             } catch (err) {
                 console.error('Firma bilgileri y\u00fcklenemedi:', err);
@@ -197,20 +188,6 @@ const ProjectDetail: React.FC = () => {
         }
     };
 
-    const saveCompanyInfo = async () => {
-        if (!id) return;
-        setIsSavingCompany(true);
-        try {
-            await projectService.updateProject(id, companyFormData);
-            alert('✅ Firma bilgileri kaydedildi!');
-            await loadAllData();
-        } catch (error) {
-            console.error('Firma bilgileri kaydetme hatası:', error);
-            alert('❌ Kaydetme başarısız!');
-        } finally {
-            setIsSavingCompany(false);
-        }
-    };
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -391,28 +368,12 @@ const ProjectDetail: React.FC = () => {
                                 due_date: c.due_date,
                                 status: c.status,
                                 description: c.description || '',
+                                notification_email: c.notification_email || '',
                                 project_id: c.project_id || id || ''
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={apartments} formatCurrency={formatCurrency} onEdit={(a) => {
-                            setEditingApartmentId(a.id);
-                            setApartmentFormData({
-                                building_name: a.building_name,
-                                apartment_number: a.apartment_number,
-                                floor: a.floor,
-                                square_meters: a.square_meters,
-                                price: a.price,
-                                sold_price: a.sold_price || 0,
-                                paid_amount: a.paid_amount || 0,
-                                status: a.status,
-                                customer_name: a.customer_name || '',
-                                customer_phone: a.customer_phone || '',
-                                sort_order: a.sort_order || 0,
-                                project_id: a.project_id || id || ''
-                            });
-                            setShowApartmentModal(true);
-                        }} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={apartments} formatCurrency={formatCurrency} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
@@ -512,7 +473,7 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Firma Bilgileri - Proje Özel (Ayarlar'daki varsayılan üzerine yazabilir) */}
+                        {/* Firma Bilgileri (Merkezi) */}
                         {activeTab === 'apartments' && (
                             <div style={{ padding: 'var(--spacing-sm)', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24', marginTop: 'var(--spacing-sm)' }}>
                                 <div
@@ -522,7 +483,7 @@ const ProjectDetail: React.FC = () => {
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
                                         cursor: 'pointer',
-                                        marginBottom: showCompanySection ? '8px' : '0'
+                                        marginBottom: showCompanySection ? '10px' : '0'
                                     }}
                                 >
                                     <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -534,75 +495,47 @@ const ProjectDetail: React.FC = () => {
                                 </div>
 
                                 {showCompanySection && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                                Firma Adı {userCompany?.company_name && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_name})</span>}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={companyFormData.company_name}
-                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_name: e.target.value })}
-                                                placeholder={userCompany?.company_name || "Örn: İnşaat A.Ş."}
-                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                            />
+                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Firma Adı:</span>
+                                            <span style={{ color: '#1a365d' }}>{profile?.company_name || 'Ayarlanmamış'}</span>
                                         </div>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                                Adres {userCompany?.company_address && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_address})</span>}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={companyFormData.company_address}
-                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_address: e.target.value })}
-                                                placeholder={userCompany?.company_address || "Örn: Bahçelievler Mah. No:123"}
-                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                            />
+                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Adres:</span>
+                                            <span style={{ color: '#1a365d' }}>{profile?.company_address || 'Ayarlanmamış'}</span>
                                         </div>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                                Konum {userCompany?.company_location && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_location})</span>}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={companyFormData.company_location}
-                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_location: e.target.value })}
-                                                placeholder={userCompany?.company_location || "Örn: İstanbul, Türkiye"}
-                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                            />
+                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Konum:</span>
+                                            {profile?.company_location ? (
+                                                <a href={profile.company_location} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Haritada Gör</a>
+                                            ) : (
+                                                <span style={{ color: '#64748b' }}>Ayarlanmamış</span>
+                                            )}
                                         </div>
                                         <div>
-                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                                WhatsApp No {userCompany?.whatsapp_number && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.whatsapp_number})</span>}
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                value={companyFormData.whatsapp_number}
-                                                onChange={(e) => setCompanyFormData({ ...companyFormData, whatsapp_number: e.target.value })}
-                                                placeholder={userCompany?.whatsapp_number || "Örn: 905551234567"}
-                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                            />
-                                            <small style={{ fontSize: '8px', color: '#64748b' }}>Format: 905551234567 (başında 90)</small>
+                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>WhatsApp:</span>
+                                            <span style={{ color: '#1a365d' }}>{profile?.whatsapp_number || 'Ayarlanmamış'}</span>
                                         </div>
                                         <button
-                                            onClick={saveCompanyInfo}
-                                            disabled={isSavingCompany}
+                                            onClick={() => navigate('/ayarlar')}
                                             className="btn"
                                             style={{
                                                 fontSize: '10px',
-                                                padding: '8px',
-                                                background: '#8b5cf6',
-                                                color: 'white',
+                                                padding: '6px',
+                                                background: '#fef3c7',
+                                                border: '1px solid #fbbf24',
+                                                color: '#92400e',
                                                 marginTop: '4px',
-                                                opacity: isSavingCompany ? 0.6 : 1
+                                                fontWeight: 600
                                             }}
                                         >
-                                            {isSavingCompany ? '💾 Kaydediliyor...' : '💾 Kaydet'}
+                                            ⚙️ Ayarlardan Düzenle
                                         </button>
                                     </div>
                                 )}
                             </div>
-                        )}                    </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

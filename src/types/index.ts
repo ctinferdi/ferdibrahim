@@ -4,6 +4,11 @@ export interface User {
     email: string;
     displayName?: string;
     createdAt: Date;
+    company_name?: string;
+    company_address?: string;
+    company_location?: string;
+    whatsapp_number?: string;
+    notification_emails?: string[];
 }
 
 // Expense types
@@ -40,6 +45,7 @@ export interface Check {
     status: CheckStatus;
     description?: string;
     project_id?: string;
+    notification_email?: string;
     created_by_email?: string;
     user_id?: string;
     created_at?: string;

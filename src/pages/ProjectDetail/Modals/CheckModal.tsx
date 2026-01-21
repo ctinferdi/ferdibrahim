@@ -14,6 +14,7 @@ interface CheckModalProps {
         category: string;
         vat_status?: string;
         issuer: string;
+        notification_email?: string;
     };
     setCheckFormData: (data: any) => void;
     saving: boolean;
@@ -70,7 +71,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                     <form onSubmit={onSave}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
                             <div className="form-group" style={{ marginBottom: 'var(--spacing-md)', gridColumn: 'span 2' }}>
-                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.7rem' }}>ŞİRKET BİLGİSİ</label>
+                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.7rem' }}>ŞİRKET</label>
                                 <input
                                     type="text"
                                     className="form-input"
@@ -132,13 +133,24 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                 />
                             </div>
                             <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
-                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.7rem' }}>ÇEKİ VERECEK KİŞİ</label>
+                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.7rem' }}>ÇEKİ VEREN KİŞİ</label>
                                 <input
                                     type="text"
                                     className="form-input"
                                     value={checkFormData.issuer || ''}
                                     onChange={(e) => setCheckFormData({ ...checkFormData, issuer: e.target.value })}
                                     placeholder="Örn: ERHANLAR"
+                                />
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 'var(--spacing-md)', gridColumn: 'span 2' }}>
+                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.7rem', color: '#dc2626', fontWeight: 700 }}>BİLDİRİM GÖNDERİLECEK E-POSTA</label>
+                                <input
+                                    type="email"
+                                    className="form-input"
+                                    value={checkFormData.notification_email || ''}
+                                    onChange={(e) => setCheckFormData({ ...checkFormData, notification_email: e.target.value })}
+                                    placeholder="Örn: ornek@mail.com (Vade yaklaştığında mail gider)"
+                                    style={{ borderColor: '#fca5a5' }}
                                 />
                             </div>
                         </div>

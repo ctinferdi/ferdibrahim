@@ -114,7 +114,6 @@ const Apartments = () => {
     const availableCount = apartments.filter(a => a.status === 'available').length;
     const ownerCount = apartments.filter(a => a.status === 'owner').length;
     const soldCount = apartments.filter(a => a.status === 'sold').length;
-    const totalRevenue = apartments.filter(a => a.status === 'sold').reduce((sum, a) => sum + (a.price || 0), 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -224,51 +223,52 @@ const Apartments = () => {
                                         display: 'flex',
                                         flexDirection: 'column'
                                     }}>
-                                    {/* Action buttons */}
-                                    <div style={{ position: 'absolute', top: 'var(--spacing-xs)', right: 'var(--spacing-xs)', display: 'flex', gap: '4px' }}>
-                                        <button
-                                            onClick={() => handleEdit(apartment)}
-                                            style={{
-                                                background: 'rgba(255,255,255,0.2)',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                width: '24px',
-                                                height: '24px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                cursor: 'pointer',
-                                                fontSize: '0.8rem',
-                                                transition: 'all var(--transition-fast)'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                                            title="Düzenle"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(apartment.id)}
-                                            style={{
-                                                background: 'rgba(255,255,255,0.2)',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                width: '24px',
-                                                height: '24px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                cursor: 'pointer',
-                                                fontSize: '0.8rem',
-                                                transition: 'all var(--transition-fast)'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                                            title="Sil"
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
+                                    {apartment.status !== 'sold' && apartment.status !== 'owner' && (
+                                        <div style={{ position: 'absolute', top: 'var(--spacing-xs)', right: 'var(--spacing-xs)', display: 'flex', gap: '4px' }}>
+                                            <button
+                                                onClick={() => handleEdit(apartment)}
+                                                style={{
+                                                    background: 'rgba(255,255,255,0.2)',
+                                                    border: 'none',
+                                                    borderRadius: '50%',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.8rem',
+                                                    transition: 'all var(--transition-fast)'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                                title="Düzenle"
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(apartment.id)}
+                                                style={{
+                                                    background: 'rgba(255,255,255,0.2)',
+                                                    border: 'none',
+                                                    borderRadius: '50%',
+                                                    width: '24px',
+                                                    height: '24px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.8rem',
+                                                    transition: 'all var(--transition-fast)'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                                title="Sil"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    )}
 
                                     <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '8px', paddingRight: '2.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apartment.building_name}

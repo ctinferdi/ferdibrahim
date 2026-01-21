@@ -95,8 +95,16 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                 return (
                                     <div
                                         key={apt.id}
-                                        onClick={() => onApartmentClick(apt)}
-                                        onMouseEnter={() => setHoveredAptId(apt.id)}
+                                        onClick={() => {
+                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                onApartmentClick(apt);
+                                            }
+                                        }}
+                                        onMouseEnter={() => {
+                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                setHoveredAptId(apt.id);
+                                            }
+                                        }}
                                         onMouseLeave={() => setHoveredAptId(null)}
                                         style={{
                                             background: isHovered ? (apt.status === 'available' ? '#8b5cf6' : textColor) : bgColor,
@@ -104,17 +112,17 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             borderRadius: '4px',
                                             fontSize: isHovered ? '8px' : '9px',
                                             fontWeight: 800,
-                                            cursor: 'pointer',
-                                            border: `1px solid ${isHovered ? 'transparent' : borderColor}`,
+                                            cursor: (apt.status === 'sold' || apt.status === 'owner') ? 'default' : 'pointer',
+                                            border: `1px solid ${isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'transparent' : borderColor}`,
                                             height: '35px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            boxShadow: isHovered ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
+                                            boxShadow: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
                                             transition: 'all 0.15s ease-in-out',
-                                            transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                                            zIndex: isHovered ? 10 : 1,
+                                            transform: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'scale(1.1)' : 'scale(1)',
+                                            zIndex: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 10 : 1,
                                             textAlign: 'center'
                                         }}
                                     >

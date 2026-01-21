@@ -23,10 +23,10 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                 <thead>
                     <tr style={{ background: 'var(--color-bg)', borderBottom: '2px solid var(--color-border)' }}>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>VADE TARİHİ</th>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>TUTAR</th>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>FİRMA</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ÇEKLER</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ŞİRKET</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KULLANILACAK YER</th>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KDV</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KDV DURUMU</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ÇEKİ VEREN KİŞİ</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>DURUM</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>İŞLEMLER</th>
@@ -35,7 +35,25 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                 <tbody>
                     {checks.map((check) => (
                         <tr key={check.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
+                            <td style={{
+                                padding: 'var(--spacing-xs)',
+                                textAlign: 'center',
+                                fontSize: 'var(--font-size-sm)',
+                                color: (() => {
+                                    const dueDate = new Date(check.due_date);
+                                    const today = new Date('2026-01-22');
+                                    const diffTime = dueDate.getTime() - today.getTime();
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    return (diffDays <= 10 && check.status === 'pending') ? '#dc2626' : 'inherit';
+                                })(),
+                                background: (() => {
+                                    const dueDate = new Date(check.due_date);
+                                    const today = new Date('2026-01-22');
+                                    const diffTime = dueDate.getTime() - today.getTime();
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';
+                                })()
+                            }}>
                                 {new Date(check.due_date).toLocaleDateString('tr-TR')}
                             </td>
                             <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
