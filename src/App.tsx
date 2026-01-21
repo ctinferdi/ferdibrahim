@@ -19,11 +19,11 @@ function App() {
     // her zaman ana sayfaya (Dashboard) yönlendirsin.
     React.useEffect(() => {
         const isSessionActive = sessionStorage.getItem('session_active');
-        const isPublicRoute = window.location.pathname.includes('/public');
+        const isPublicRoute = window.location.pathname.includes('/public') || window.location.pathname === '/reset-password';
 
         if (!isSessionActive && !isPublicRoute) {
             // Yeni bir session başladıysa veya tarayıcı/bilgisayar yeni açıldıysa
-            if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+            if (window.location.pathname !== '/' && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
                 window.location.href = '/';
             }
             sessionStorage.setItem('session_active', 'true');
