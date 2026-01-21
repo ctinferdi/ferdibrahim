@@ -82,18 +82,18 @@ const PublicProject: React.FC = () => {
             {/* Header */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-                    {/* Firma Bilgileri */}
+                    {/* Firma Bilgileri - Önce proje özel, yoksa varsay\u0131lan */}
                     <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
-                        🏢 {(project as any).company_name || 'Firma Adı'}
+                        🏢 {(project as any).company_name || userCompany?.company_name || 'Firma Adı'}
                     </h1>
-                    {(project as any).company_address && (
+                    {((project as any).company_address || userCompany?.company_address) && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>
-                            📍 {(project as any).company_address}
+                            📍 {(project as any).company_address || userCompany?.company_address}
                         </p>
                     )}
-                    {(project as any).company_location && (
+                    {((project as any).company_location || userCompany?.company_location) && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-                            🌍 {(project as any).company_location}
+                            🌍 {(project as any).company_location || userCompany?.company_location}
                         </p>
                     )}
                     <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px' }}>
@@ -305,7 +305,7 @@ const PublicProject: React.FC = () => {
                         {/* Contact Button */}
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <a
-                                href={`https://wa.me/${((project as any).whatsapp_number || '').replace(/[^0-9]/g, '') || '905555555555'}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
+                                href={`https://wa.me/${(((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '')) || '905555555555'}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
