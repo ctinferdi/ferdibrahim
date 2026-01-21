@@ -231,13 +231,13 @@ const Checks = () => {
                     <table className="table" style={{ borderCollapse: 'collapse' }}>
                         <thead style={{ background: '#fef3c7' }}>
                             <tr>
-                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>TARİH</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>VADE TARİHİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKLER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ŞİRKET</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
-                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VERECEK KİŞİ</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VEREN KİŞİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>DURUM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center' }}>İŞLEMLER</th>
                             </tr>

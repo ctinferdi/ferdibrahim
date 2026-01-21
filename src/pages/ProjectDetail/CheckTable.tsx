@@ -22,10 +22,12 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ background: 'var(--color-bg)', borderBottom: '2px solid var(--color-border)' }}>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ÇEK NO</th>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>FİRMA</th>
-                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>VADE</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>VADE TARİHİ</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>TUTAR</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>FİRMA</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KULLANILACAK YER</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>KDV</th>
+                        <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>ÇEKİ VEREN KİŞİ</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>DURUM</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>İŞLEMLER</th>
                     </tr>
@@ -33,21 +35,24 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                 <tbody>
                     {checks.map((check) => (
                         <tr key={check.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>{check.check_number}</td>
-                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>{check.company}</td>
                             <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
                                 {new Date(check.due_date).toLocaleDateString('tr-TR')}
                             </td>
                             <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
                                 {formatCurrency(check.amount)}
                             </td>
+                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>{check.company}</td>
+                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>{check.category}</td>
+                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)' }}>{check.vat_status || ''}</td>
+                            <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)' }}>{check.issuer}</td>
                             <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center' }}>
                                 <span style={{
                                     padding: '2px 8px',
                                     borderRadius: '4px',
                                     fontSize: '10px',
                                     background: check.status === 'paid' ? '#dcfce7' : '#fef9c3',
-                                    color: check.status === 'paid' ? '#15803d' : '#854d0e'
+                                    color: check.status === 'paid' ? '#15803d' : '#854d0e',
+                                    fontWeight: 700
                                 }}>
                                     {check.status === 'paid' ? 'ÖDENDİ' : 'BEKLEMEDE'}
                                 </span>
