@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
+import { userService } from '../services/userService';
 import { Apartment, Project } from '../types';
 
 const PublicProject: React.FC = () => {
@@ -10,6 +11,7 @@ const PublicProject: React.FC = () => {
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
     const [loading, setLoading] = useState(true);
+    const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
     useEffect(() => {
         loadData();
@@ -22,6 +24,16 @@ const PublicProject: React.FC = () => {
             const apts = await apartmentService.getApartmentsByPublicCode(publicCode);
             setProject(proj);
             setApartments(apts);
+
+            // Projenin sahibinin firma bilgilerini çek
+            if (proj && proj.user_id) {
+                try {
+                    const companyInfo = await userService.getUserProfile(proj.user_id);
+                    setUserCompany(companyInfo);
+                } catch (err) {
+                    console.error('Firma bilgileri yüklenemedi:', err);
+                }
+            }
         } catch (error) {
             console.error('Proje yüklenemedi:', error);
         } finally {
