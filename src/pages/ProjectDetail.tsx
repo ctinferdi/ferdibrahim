@@ -412,7 +412,7 @@ const ProjectDetail: React.FC = () => {
                                 </p>
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                                     <a
-                                        href={`${window.location.origin}/projeler/${project.public_code}/public`}
+                                        href={`https://www.insaathesapp.com/projeler/${project.public_code}/public`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn btn-secondary"
@@ -424,7 +424,7 @@ const ProjectDetail: React.FC = () => {
                                         onClick={() => {
                                             const link = document.createElement('a');
                                             link.download = `${project.name}-qr.png`;
-                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(window.location.origin + '/projeler/' + project.public_code + '/public')}`;
+                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent('https://www.insaathesapp.com/projeler/' + project.public_code + '/public')}`;
                                             link.click();
                                         }}
                                         className="btn"
