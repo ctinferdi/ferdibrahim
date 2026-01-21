@@ -398,6 +398,7 @@ const Settings: React.FC = () => {
                                         <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', color: 'var(--color-text-light)' }}>
                                             Henüz kullanıcı bulunmuyor.
                                         </div>
+                                    )}
                                 </div>
                             )}
                         </div>
