@@ -327,6 +327,18 @@ const PublicProject: React.FC = () => {
                             >
                                 💬 WhatsApp ile İletişime Geç
                             </a>
+                            {/* Telefon Numarası Gösterimi */}
+                            {((project as any).whatsapp_number || userCompany?.whatsapp_number) && (
+                                <div style={{
+                                    width: '100%',
+                                    textAlign: 'center',
+                                    fontSize: '12px',
+                                    color: '#64748b',
+                                    marginTop: '8px'
+                                }}>
+                                    📞 {((project as any).whatsapp_number || userCompany?.whatsapp_number)}
+                                </div>
+                            )}
                             <button
                                 onClick={() => setSelectedApartment(null)}
                                 style={{
