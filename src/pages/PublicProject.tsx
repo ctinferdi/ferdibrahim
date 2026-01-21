@@ -174,9 +174,11 @@ const PublicProject: React.FC = () => {
                                                         <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
                                                             📐 Alan: <strong>{apt.square_meters} m²</strong>
                                                         </div>
-                                                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#8b5cf6' }}>
-                                                            {formatCurrency(apt.price)}
-                                                        </div>
+                                                        {apt.status === 'available' && (
+                                                            <div style={{ fontSize: '16px', fontWeight: 700, color: '#8b5cf6', marginTop: 'auto' }}>
+                                                                {formatCurrency(apt.price)}
+                                                            </div>
+                                                        )}
                                                         {apt.plan_files && apt.plan_files.length > 0 && (
                                                             <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
                                                                 📄 {apt.plan_files.length} Plan
