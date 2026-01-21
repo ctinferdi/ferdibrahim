@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../config/supabase';
-import { userService } from '../services/userService';
 
 const Settings: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -13,16 +11,6 @@ const Settings: React.FC = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
-
-    // Company settings state
-    const [companyInfo, setCompanyInfo] = useState({
-        company_name: '',
-        company_address: '',
-        company_location: '',
-        whatsapp_number: '',
-        notification_emails: [] as string[]
-    });
-    const [savingProfile, setSavingProfile] = useState(false);
 
     const { user } = useAuth();
 
@@ -114,63 +102,11 @@ const Settings: React.FC = () => {
         }
     };
 
-    const fetchProfile = async () => {
-        if (!user?.id) return;
-        try {
-            const profile = await userService.getUserProfile(user.id);
-            if (profile) {
-                setCompanyInfo({
-                    company_name: profile.company_name || '',
-                    company_address: profile.company_address || '',
-                    company_location: profile.company_location || '',
-                    whatsapp_number: profile.whatsapp_number || '',
-                    notification_emails: profile.notification_emails || []
-                });
-            }
-        } catch (err) {
-            console.error('Failed to fetch profile:', err);
-        }
-    };
 
     useEffect(() => {
         fetchUsers();
-        fetchProfile();
     }, [user]);
 
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user?.id) return;
-        setSavingProfile(true);
-        try {
-            await userService.updateUserProfile(user.id, companyInfo);
-            alert('✅ Firma ve bildirim ayarları başarıyla güncellendi.');
-        } catch (err: any) {
-            console.error('Update profile error:', err);
-            alert('❌ Ayarlar güncellenemedi: ' + err.message);
-        } finally {
-            setSavingProfile(false);
-        }
-    };
-
-    const handleEmailChange = (index: number, value: string) => {
-        const newEmails = [...companyInfo.notification_emails];
-        newEmails[index] = value;
-        setCompanyInfo({ ...companyInfo, notification_emails: newEmails });
-    };
-
-    const addEmailField = () => {
-        if (companyInfo.notification_emails.length < 3) {
-            setCompanyInfo({
-                ...companyInfo,
-                notification_emails: [...companyInfo.notification_emails, '']
-            });
-        }
-    };
-
-    const removeEmailField = (index: number) => {
-        const newEmails = companyInfo.notification_emails.filter((_, i) => i !== index);
-        setCompanyInfo({ ...companyInfo, notification_emails: newEmails });
-    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -208,124 +144,7 @@ const Settings: React.FC = () => {
             <div>
                 <h1 className="mb-lg">Ayarlar</h1>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', alignItems: 'start' }}>
-                    {/* Company Settings Section */}
-                    <div className="card" style={{ padding: '20px' }}>
-                        <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Firma ve Bildirim Ayarları</h2>
-                        <p className="mb-md" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
-                            Projelerde görünecek firma bilgilerinizi ve çek bildirimlerini yönetecek e-postaları ayarlayın.
-                        </p>
-
-                        <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600 }}>FİRMA ADI</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={companyInfo.company_name}
-                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_name: e.target.value })}
-                                    style={{ width: '100%', margin: 0 }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600 }}>FİRMA ADRESİ</label>
-                                <textarea
-                                    className="form-input"
-                                    value={companyInfo.company_address}
-                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_address: e.target.value })}
-                                    style={{ width: '100%', margin: 0, resize: 'vertical', minHeight: '60px' }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600 }}>HARİTA KONUMU (URL)</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={companyInfo.company_location}
-                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_location: e.target.value })}
-                                    placeholder="Google Maps linki"
-                                    style={{ width: '100%', margin: 0 }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600 }}>WHATSAPP NUMARASI</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    value={companyInfo.whatsapp_number}
-                                    onChange={(e) => setCompanyInfo({ ...companyInfo, whatsapp_number: e.target.value })}
-                                    placeholder="Örn: 905xx..."
-                                    style={{ width: '100%', margin: 0 }}
-                                />
-                            </div>
-
-                            <div style={{ marginTop: '10px', paddingTop: '15px', borderTop: '1px solid var(--color-border)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#dc2626' }}>BİLDİRİM E-POSTALARI (MAKS 3)</label>
-                                    {companyInfo.notification_emails.length < 3 && (
-                                        <button
-                                            type="button"
-                                            onClick={addEmailField}
-                                            style={{
-                                                padding: '4px 8px',
-                                                fontSize: '11px',
-                                                background: '#10b981',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            + Ekle
-                                        </button>
-                                    )}
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    {companyInfo.notification_emails.map((email, index) => (
-                                        <div key={index} style={{ display: 'flex', gap: '5px' }}>
-                                            <input
-                                                type="email"
-                                                className="form-input"
-                                                value={email}
-                                                onChange={(e) => handleEmailChange(index, e.target.value)}
-                                                placeholder={`E-posta ${index + 1}`}
-                                                style={{ flex: 1, margin: 0, fontSize: '13px', borderColor: '#fca5a5' }}
-                                                required
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeEmailField(index)}
-                                                style={{
-                                                    padding: '0 10px',
-                                                    background: '#fee2e2',
-                                                    color: '#ef4444',
-                                                    border: '1px solid #fecaca',
-                                                    borderRadius: 'var(--radius-sm)',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {companyInfo.notification_emails.length === 0 && (
-                                        <div style={{ fontSize: '11px', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                                            Henüz bildirim e-postası eklenmedi.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="btn btn-primary"
-                                disabled={savingProfile}
-                                style={{ marginTop: '10px', fontWeight: 700 }}
-                            >
-                                {savingProfile ? 'Kaydediliyor...' : 'Firma Bilgilerini Güncelle'}
-                            </button>
-                        </form>
-                    </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'start' }}>
 
                     <div className="card" style={{ padding: '20px' }}>
                         <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Yeni Kullanıcı Oluştur</h2>

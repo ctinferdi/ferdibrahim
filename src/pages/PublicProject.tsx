@@ -78,22 +78,28 @@ const PublicProject: React.FC = () => {
     // Katları grupla
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
 
+    // Firma bilgilerini belirle (Önce projeden, yoksa profil'den)
+    const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
+    const companyAddress = project.company_address || userCompany?.company_address;
+    const companyLocation = project.company_location || userCompany?.company_location;
+    const whatsappNum = project.whatsapp_number || userCompany?.whatsapp_number;
+
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
             {/* Header */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
                 <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
                     <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
-                        🏢 {userCompany?.company_name || 'Firma Adı'}
+                        🏢 {companyName}
                     </h1>
-                    {userCompany?.company_address && (
+                    {companyAddress && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>
-                            📍 {userCompany.company_address}
+                            📍 {companyAddress}
                         </p>
                     )}
-                    {userCompany?.company_location && (
+                    {companyLocation && (
                         <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-                            🌍 <a href={userCompany.company_location} target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'underline' }}>Haritada Gör</a>
+                            🌍 <a href={companyLocation} target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', textDecoration: 'underline' }}>Haritada Gör</a>
                         </p>
                     )}
                     <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -315,61 +321,57 @@ const PublicProject: React.FC = () => {
                         )}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {selectedApartment.status === 'available' && (
-                                <>
-                                    <a
-                                        href={`https://wa.me/${(() => {
-                                            const cleanNumber = ((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '');
-                                            const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
-                                            return formattedNumber || '905555555555';
-                                        })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            display: 'block',
-                                            padding: '14px',
-                                            background: '#25D366',
-                                            color: 'white',
-                                            textAlign: 'center',
-                                            borderRadius: '8px',
-                                            textDecoration: 'none',
-                                            fontWeight: 700,
-                                            fontSize: '14px'
-                                        }}
-                                    >
-                                        💬 WhatsApp ile İletişime Geç
-                                    </a>
-
-                                    {/* Telefon Numarası Gösterimi */}
-                                    {((project as any).whatsapp_number || userCompany?.whatsapp_number) && (
-                                        <div style={{
-                                            textAlign: 'center',
-                                            fontSize: '13px',
-                                            color: '#64748b',
-                                            fontWeight: 600
-                                        }}>
-                                            📞 {((project as any).whatsapp_number || userCompany?.whatsapp_number)}
-                                        </div>
-                                    )}
-                                </>
-                            )}
-
-                            <button
-                                onClick={() => setSelectedApartment(null)}
+                            <a
+                                href={`https://wa.me/${(() => {
+                                    const cleanNumber = (whatsappNum || '').replace(/[^0-9]/g, '');
+                                    const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
+                                    return formattedNumber || '905555555555';
+                                })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    background: '#f1f5f9',
-                                    color: '#64748b',
-                                    border: 'none',
+                                    display: 'block',
+                                    padding: '14px',
+                                    background: '#25D366',
+                                    color: 'white',
+                                    textAlign: 'center',
                                     borderRadius: '8px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
+                                    textDecoration: 'none',
+                                    fontWeight: 700,
+                                    fontSize: '14px'
                                 }}
                             >
-                                Kapat
-                            </button>
+                                💬 WhatsApp ile İletişime Geç
+                            </a>
+
+                            {whatsappNum && (
+                                <div style={{
+                                    textAlign: 'center',
+                                    fontSize: '13px',
+                                    color: '#64748b',
+                                    fontWeight: 600
+                                }}>
+                                    📞 {whatsappNum}
+                                </div>
+                            )}
                         </div>
+
+                        <button
+                            onClick={() => setSelectedApartment(null)}
+                            style={{
+                                width: '100%',
+                                marginTop: '12px',
+                                padding: '12px',
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Kapat
+                        </button>
                     </div>
                 </div>
             )}

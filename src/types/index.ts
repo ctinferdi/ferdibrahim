@@ -106,6 +106,7 @@ export interface Project {
     company_address?: string; // Firma adresi
     company_location?: string; // Firma konumu
     whatsapp_number?: string; // WhatsApp numarası
+    notification_emails?: string[]; // Bildirim e-postaları
     user_id?: string;
     created_at?: string;
     partners?: ProjectPartner[];

@@ -21,12 +21,9 @@ serve(async (req) => {
             .from('checks')
             .select(`
         *,
-        users!checks_user_id_fkey (
-          id,
-          notification_emails
-        ),
         projects (
-          name
+          name,
+          notification_emails
         )
       `)
             .eq('due_date', tenDaysStr)
@@ -47,10 +44,10 @@ serve(async (req) => {
         const notifications = []
 
         for (const check of checks) {
-            const ownerEmails = check.users?.notification_emails || []
+            const projectEmails = check.projects?.notification_emails || []
             const specificEmail = check.notification_email
 
-            const recipients = new Set<string>([...ownerEmails])
+            const recipients = new Set<string>([...projectEmails])
             if (specificEmail) recipients.add(specificEmail)
 
             if (recipients.size === 0) {

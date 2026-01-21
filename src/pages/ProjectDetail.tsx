@@ -6,7 +6,6 @@ import { projectService } from '../services/projectService';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
-import { supabase } from '../config/supabase';
 import { Project, Expense, Check, Apartment } from '../types';
 
 // Components
@@ -108,7 +107,8 @@ const ProjectDetail: React.FC = () => {
         company_name: '',
         company_address: '',
         company_location: '',
-        whatsapp_number: ''
+        whatsapp_number: '',
+        notification_emails: [] as string[]
     });
 
     const [bulkFormData, setBulkFormData] = useState({
@@ -155,7 +155,8 @@ const ProjectDetail: React.FC = () => {
                 company_name: proj.company_name || '',
                 company_address: proj.company_address || '',
                 company_location: proj.company_location || '',
-                whatsapp_number: proj.whatsapp_number || ''
+                whatsapp_number: proj.whatsapp_number || '',
+                notification_emails: proj.notification_emails || []
             });
 
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
@@ -526,6 +527,45 @@ const ProjectDetail: React.FC = () => {
                                                     placeholder="905xxxxxxxxx"
                                                     style={{ width: '100%', padding: '6px', fontSize: '11px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                                                 />
+                                            </div>
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                                    <label style={{ fontSize: '9px', fontWeight: 700, color: '#dc2626' }}>BİLDİRİM E-POSTALARI (MAKS 3):</label>
+                                                    {companyInfo.notification_emails.length < 3 && (
+                                                        <button
+                                                            onClick={() => setCompanyInfo({ ...companyInfo, notification_emails: [...companyInfo.notification_emails, ''] })}
+                                                            style={{ padding: '2px 6px', fontSize: '9px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                                        >
+                                                            + Ekle
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    {companyInfo.notification_emails.map((email, index) => (
+                                                        <div key={index} style={{ display: 'flex', gap: '4px' }}>
+                                                            <input
+                                                                type="email"
+                                                                value={email}
+                                                                onChange={(e) => {
+                                                                    const newEmails = [...companyInfo.notification_emails];
+                                                                    newEmails[index] = e.target.value;
+                                                                    setCompanyInfo({ ...companyInfo, notification_emails: newEmails });
+                                                                }}
+                                                                placeholder={`E-posta ${index + 1}`}
+                                                                style={{ flex: 1, padding: '6px', fontSize: '11px', border: '1px solid #fca5a5', borderRadius: '4px' }}
+                                                            />
+                                                            <button
+                                                                onClick={() => setCompanyInfo({ ...companyInfo, notification_emails: companyInfo.notification_emails.filter((_, i) => i !== index) })}
+                                                                style={{ padding: '0 8px', background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer' }}
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    {companyInfo.notification_emails.length === 0 && (
+                                                        <div style={{ fontSize: '9px', color: '#64748b', fontStyle: 'italic' }}>E-posta eklenmedi.</div>
+                                                    )}
+                                                </div>
                                             </div>
                                             <button
                                                 onClick={async () => {
