@@ -398,27 +398,6 @@ const Settings: React.FC = () => {
                                         <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', color: 'var(--color-text-light)' }}>
                                             Henüz kullanıcı bulunmuyor.
                                         </div>
-                                    )}
-
-                                    <div style={{
-                                        marginTop: '15px',
-                                        padding: '10px',
-                                        background: 'var(--color-primary-light)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        fontSize: '11px',
-                                        color: 'var(--color-primary)',
-                                        border: '1px solid rgba(102, 126, 234, 0.2)'
-                                    }}>
-                                        <strong>⚠️ Not:</strong> Kullanıcı silme ve şifre sıfırlama işlemleri için{' '}
-                                        <a
-                                            href="https://supabase.com/dashboard"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ color: 'var(--color-primary)', textDecoration: 'underline', fontWeight: 600 }}
-                                        >
-                                            Supabase Paneli
-                                        </a>'ni kullanın.
-                                    </div>
                                 </div>
                             )}
                         </div>
