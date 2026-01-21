@@ -129,9 +129,17 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                 <input
                                     type="number"
                                     required
+                                    disabled={!!editingApartmentId}
                                     value={apartmentFormData.floor}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, floor: parseInt(e.target.value) })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid var(--color-border)',
+                                        backgroundColor: editingApartmentId ? '#f1f5f9' : 'white',
+                                        cursor: editingApartmentId ? 'not-allowed' : 'text'
+                                    }}
                                 />
                             </div>
                         </div>
