@@ -95,16 +95,8 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                 return (
                                     <div
                                         key={apt.id}
-                                        onClick={() => {
-                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
-                                                onApartmentClick(apt);
-                                            }
-                                        }}
-                                        onMouseEnter={() => {
-                                            if (apt.status !== 'sold' && apt.status !== 'owner') {
-                                                setHoveredAptId(apt.id);
-                                            }
-                                        }}
+                                        onClick={() => onApartmentClick(apt)}
+                                        onMouseEnter={() => setHoveredAptId(apt.id)}
                                         onMouseLeave={() => setHoveredAptId(null)}
                                         style={{
                                             background: isHovered ? (apt.status === 'available' ? '#8b5cf6' : textColor) : bgColor,

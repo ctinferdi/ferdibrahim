@@ -3,11 +3,12 @@ import { Apartment } from '../../types';
 
 interface ApartmentTableProps {
     apartments: Apartment[];
+    onEdit: (apt: Apartment) => void;
     onReset: (apt: Apartment) => void;
     formatCurrency: (value: number) => string;
 }
 
-const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onReset, formatCurrency }) => {
+const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, formatCurrency }) => {
     return (
         <div style={{ flex: 1, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -72,6 +73,13 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onReset, fo
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                            <button
+                                                onClick={() => onEdit(apartment)}
+                                                style={{ padding: '4px 8px', fontSize: '12px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #e0f2fe', borderRadius: '4px', cursor: 'pointer' }}
+                                                title="Düzenle"
+                                            >
+                                                ✏️
+                                            </button>
                                             <button
                                                 onClick={() => onReset(apartment)}
                                                 style={{ padding: '4px 8px', fontSize: '12px', background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5', borderRadius: '4px', cursor: 'pointer' }}

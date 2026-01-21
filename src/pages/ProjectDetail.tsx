@@ -103,13 +103,13 @@ const ProjectDetail: React.FC = () => {
     const [showQRSection, setShowQRSection] = useState(false);
     const [showCompanySection, setShowCompanySection] = useState(false);
 
-    // Firma Bilgileri State (Merkezi Profil'den)
-    const [profile, setProfile] = useState<{
-        company_name?: string;
-        company_address?: string;
-        company_location?: string;
-        whatsapp_number?: string;
-    } | null>(null);
+    // Firma Bilgileri State (Proje Özel)
+    const [companyInfo, setCompanyInfo] = useState({
+        company_name: '',
+        company_address: '',
+        company_location: '',
+        whatsapp_number: ''
+    });
 
     const [bulkFormData, setBulkFormData] = useState({
         startFloor: -1,
@@ -151,22 +151,12 @@ const ProjectDetail: React.FC = () => {
             }
 
             setProject(proj);
-
-            // Firma bilgilerini y\u00fckle (Profil'den)
-            try {
-                const { data: { user: currentUser } } = await supabase.auth.getUser();
-                if (currentUser) {
-                    const { data: userData } = await supabase
-                        .from('users')
-                        .select('company_name, company_address, company_location, whatsapp_number')
-                        .eq('id', currentUser.id)
-                        .single();
-
-                    setProfile(userData);
-                }
-            } catch (err) {
-                console.error('Firma bilgileri y\u00fcklenemedi:', err);
-            }
+            setCompanyInfo({
+                company_name: proj.company_name || '',
+                company_address: proj.company_address || '',
+                company_location: proj.company_location || '',
+                whatsapp_number: proj.whatsapp_number || ''
+            });
 
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
                 setSelectedPartner(proj.partners[0].id);
@@ -373,7 +363,7 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={apartments} formatCurrency={formatCurrency} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={apartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
@@ -495,42 +485,78 @@ const ProjectDetail: React.FC = () => {
                                 </div>
 
                                 {showCompanySection && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
-                                        <div>
-                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Firma Adı:</span>
-                                            <span style={{ color: '#1a365d' }}>{profile?.company_name || 'Ayarlanmamış'}</span>
+                                    <div style={{ padding: '8px 0', borderTop: '1px solid #f1f5f9' }}>
+                                        <div style={{ display: 'grid', gap: '8px' }}>
+                                            <div>
+                                                <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--color-text-light)', display: 'block', marginBottom: '4px' }}>Firma Adı:</label>
+                                                <input
+                                                    type="text"
+                                                    value={companyInfo.company_name}
+                                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_name: e.target.value })}
+                                                    placeholder="Firma Adı"
+                                                    style={{ width: '100%', padding: '6px', fontSize: '11px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--color-text-light)', display: 'block', marginBottom: '4px' }}>Adres:</label>
+                                                <input
+                                                    type="text"
+                                                    value={companyInfo.company_address}
+                                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_address: e.target.value })}
+                                                    placeholder="Adres"
+                                                    style={{ width: '100%', padding: '6px', fontSize: '11px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--color-text-light)', display: 'block', marginBottom: '4px' }}>Konum (Link):</label>
+                                                <input
+                                                    type="text"
+                                                    value={companyInfo.company_location}
+                                                    onChange={(e) => setCompanyInfo({ ...companyInfo, company_location: e.target.value })}
+                                                    placeholder="Google Haritalar Linki"
+                                                    style={{ width: '100%', padding: '6px', fontSize: '11px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '9px', fontWeight: 700, color: 'var(--color-text-light)', display: 'block', marginBottom: '4px' }}>WhatsApp (905...):</label>
+                                                <input
+                                                    type="text"
+                                                    value={companyInfo.whatsapp_number}
+                                                    onChange={(e) => setCompanyInfo({ ...companyInfo, whatsapp_number: e.target.value })}
+                                                    placeholder="905xxxxxxxxx"
+                                                    style={{ width: '100%', padding: '6px', fontSize: '11px', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!id) return;
+                                                    setSaving(true);
+                                                    try {
+                                                        await projectService.updateProject(id, companyInfo);
+                                                        alert('Firma bilgileri kaydedildi!');
+                                                        loadAllData();
+                                                    } catch (err: any) {
+                                                        alert('Hata: ' + err.message);
+                                                    } finally {
+                                                        setSaving(false);
+                                                    }
+                                                }}
+                                                disabled={saving}
+                                                style={{
+                                                    marginTop: '4px',
+                                                    padding: '6px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    background: 'var(--color-primary)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: saving ? 'not-allowed' : 'pointer'
+                                                }}
+                                            >
+                                                {saving ? 'Kaydediliyor...' : 'Bilgileri Kaydet'}
+                                            </button>
                                         </div>
-                                        <div>
-                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Adres:</span>
-                                            <span style={{ color: '#1a365d' }}>{profile?.company_address || 'Ayarlanmamış'}</span>
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>Konum:</span>
-                                            {profile?.company_location ? (
-                                                <a href={profile.company_location} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>Haritada Gör</a>
-                                            ) : (
-                                                <span style={{ color: '#64748b' }}>Ayarlanmamış</span>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: 700, display: 'block', color: '#92400e' }}>WhatsApp:</span>
-                                            <span style={{ color: '#1a365d' }}>{profile?.whatsapp_number || 'Ayarlanmamış'}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => navigate('/ayarlar')}
-                                            className="btn"
-                                            style={{
-                                                fontSize: '10px',
-                                                padding: '6px',
-                                                background: '#fef3c7',
-                                                border: '1px solid #fbbf24',
-                                                color: '#92400e',
-                                                marginTop: '4px',
-                                                fontWeight: 600
-                                            }}
-                                        >
-                                            ⚙️ Ayarlardan Düzenle
-                                        </button>
                                     </div>
                                 )}
                             </div>
