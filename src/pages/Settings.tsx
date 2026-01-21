@@ -18,21 +18,73 @@ const Settings: React.FC = () => {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            // Sadece mevcut kullanıcıyı göster
-            const { data: { user } } = await supabase.auth.getUser();
+            // public.users tablosundan tüm kullanıcıları çek
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-            if (user) {
-                setUsers([{
-                    id: user.id,
-                    email: user.email,
-                    created_at: user.created_at,
-                    user_metadata: { role: 'admin' }
-                }]);
+            if (error) {
+                console.warn('Users tablosu bulunamadı, fallback yapılıyor...', error);
+                // Tablo yoksa sadece mevcut kullanıcıyı göster (Fallback)
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setUsers([{
+                        id: user.id,
+                        email: user.email,
+                        created_at: user.created_at,
+                        user_metadata: { role: 'admin' }
+                    }]);
+                }
+            } else {
+                // Veri geldiyse state'i güncelle
+                setUsers(data.map(u => ({
+                    ...u,
+                    user_metadata: { role: 'admin' } // Herkes yönetici
+                })));
             }
         } catch (err) {
-            console.error('Failed to fetch user:', err);
+            console.error('Failed to fetch users:', err);
         } finally {
             setLoadingUsers(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId: string, targetEmail: string) => {
+        if (!confirm(`${targetEmail} kullanıcısını silmek istediğinize emin misiniz?\n\nBU İŞLEM GERİ ALINAMAZ!`)) return;
+
+        try {
+            // 1. Önce mail atılacak kişileri belirle (Silinen hariç, kendisi hariç)
+            const recipients = users
+                .filter(u => u.email !== targetEmail && u.email !== user?.email)
+                .map(u => u.email);
+
+            // 2. Kullanıcıyı sil
+            const { error } = await supabase.rpc('delete_user_by_id', {
+                target_user_id: userId
+            });
+
+            if (error) throw error;
+
+            alert('✅ Kullanıcı başarıyla silindi.');
+
+            // 3. Mail uygulamasını aç (Bilgilendirme için)
+            if (recipients.length > 0) {
+                if (confirm('Diğer kullanıcılara bilgilendirme maili göndermek ister misiniz?')) {
+                    const subject = encodeURIComponent('Kullanıcı Silme Bildirimi');
+                    const body = encodeURIComponent(`Merhaba,\n\n${targetEmail} hesabı sistemden silinmiştir.\n\nBilgilerinize.`);
+                    const bcc = recipients.join(',');
+
+                    // Mailto linkini aç
+                    window.location.href = `mailto:?bcc=${bcc}&subject=${subject}&body=${body}`;
+                }
+            }
+
+            // Listeyi yenile
+            fetchUsers();
+        } catch (error: any) {
+            console.error('Silme hatası:', error);
+            alert('❌ Kullanıcı silinemedi: ' + error.message);
         }
     };
 
@@ -211,6 +263,25 @@ const Settings: React.FC = () => {
                                             >
                                                 🔑 Şifre Sıfırla
                                             </button>
+
+                                            {/* Kendi kendini silemesin */}
+                                            {user.id !== (supabase.auth.getUser() as any)?.data?.user?.id && (
+                                                <button
+                                                    onClick={() => handleDeleteUser(user.id, user.email)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        fontSize: '11px',
+                                                        background: '#ef4444', // Kırmızı
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    🗑️ Sil
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

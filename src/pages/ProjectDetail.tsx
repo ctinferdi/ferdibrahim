@@ -29,14 +29,8 @@ const ProjectDetail: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
-    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
-
+    // Rol sistemi kaldırıldı, herkes tam yetkili
     const handleAdminAction = (action: () => void) => {
-        if (!isSuperAdmin) {
-            alert(`Bu işlem için yönetici onayı gereklidir.`);
-            return;
-        }
         action();
     };
     const [project, setProject] = useState<Project | null>(null);
