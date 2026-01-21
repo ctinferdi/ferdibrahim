@@ -62,21 +62,25 @@ const Settings: React.FC = () => {
         setError('');
 
         try {
-            const { data, error } = await supabase.auth.admin.createUser({
+            // Normal signUp kullan (admin.createUser izin vermiyor)
+            const { data, error } = await supabase.auth.signUp({
                 email: newUserEmail,
                 password: newUserPassword,
-                email_confirm: true,
-                user_metadata: { role: 'admin' }
+                options: {
+                    data: {
+                        role: 'admin'
+                    }
+                }
             });
 
             if (error) throw error;
 
-            setMessage(`✅ Kullanıcı başarıyla oluşturuldu: ${newUserEmail}`);
+            setMessage(`✅ Kullanıcı başarıyla oluşturuldu: ${newUserEmail}\n\nNOT: Email doğrulama linki gönderildi.`);
             setNewUserEmail('');
             setNewUserPassword('');
             fetchUsers();
         } catch (err: any) {
-            setError(err.message || 'Kullanıcı oluş turulurken bir hata oluştu');
+            setError(err.message || 'Kullanıcı oluşturulurken bir hata oluştu');
         } finally {
             setLoading(false);
         }
