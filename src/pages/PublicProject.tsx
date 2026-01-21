@@ -10,8 +10,7 @@ const PublicProject: React.FC = () => {
     const [project, setProject] = useState<Project | null>(null);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
-    const [hoveredApt, setHoveredApt] = useState<Apartment | null>(null);
-    const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+    const [hoveredAptId, setHoveredAptId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
@@ -137,46 +136,32 @@ const PublicProject: React.FC = () => {
                                         <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(200px, 1fr))`, gap: '12px', flex: 1 }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
+                                                const isHovered = hoveredAptId === apt.id;
 
                                                 return (
                                                     <div
                                                         key={apt.id}
                                                         onClick={() => setSelectedApartment(apt)}
+                                                        onMouseEnter={() => setHoveredAptId(apt.id)}
+                                                        onMouseLeave={() => setHoveredAptId(null)}
                                                         style={{
-                                                            background: 'white',
-                                                            border: `1px solid ${isAvailable ? '#e2e8f0' : '#cbd5e1'}`,
+                                                            background: isHovered ? (isAvailable ? '#8b5cf6' : '#64748b') : 'white',
+                                                            border: `1px solid ${isHovered ? 'transparent' : (isAvailable ? '#e2e8f0' : '#cbd5e1')}`,
                                                             borderRadius: '12px',
                                                             padding: '16px',
                                                             cursor: 'pointer',
-                                                            transition: 'all 0.2s',
+                                                            transition: 'all 0.15s ease-in-out',
                                                             position: 'relative',
                                                             display: 'flex',
                                                             flexDirection: 'column',
-                                                            opacity: isAvailable ? 1 : 0.8
-                                                        }}
-                                                        onMouseEnter={(e) => {
-                                                            setHoveredApt(apt);
-                                                            setTooltipPos({ x: e.clientX, y: e.clientY });
-                                                            if (isAvailable) {
-                                                                e.currentTarget.style.borderColor = '#8b5cf6';
-                                                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                                                            }
-                                                        }}
-                                                        onMouseMove={(e) => {
-                                                            setTooltipPos({ x: e.clientX, y: e.clientY });
-                                                        }}
-                                                        onMouseLeave={(e) => {
-                                                            setHoveredApt(null);
-                                                            if (isAvailable) {
-                                                                e.currentTarget.style.borderColor = '#e2e8f0';
-                                                                e.currentTarget.style.transform = 'translateY(0)';
-                                                                e.currentTarget.style.boxShadow = 'none';
-                                                            }
+                                                            opacity: isAvailable ? 1 : 0.8,
+                                                            transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                                                            boxShadow: isHovered ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
+                                                            color: isHovered ? 'white' : 'inherit'
                                                         }}
                                                     >
                                                         {/* Badge */}
-                                                        {apt.status !== 'sold' && (
+                                                        {apt.status !== 'sold' && !isHovered && (
                                                             <div style={{
                                                                 position: 'absolute',
                                                                 top: '8px',
@@ -194,20 +179,23 @@ const PublicProject: React.FC = () => {
                                                         )}
 
                                                         <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px', marginTop: '12px' }}>
-                                                            Daire {apt.apartment_number || '—'}
+                                                            {isHovered
+                                                                ? (apt.customer_name || (apt.status === 'sold' ? 'SATILDI' : apt.status === 'owner' ? 'MAL SAHİBİ' : 'MÜSAİT'))
+                                                                : `Daire ${apt.apartment_number || '—'}`
+                                                            }
                                                         </div>
-                                                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
+                                                        <div style={{ fontSize: '12px', color: isHovered ? 'rgba(255,255,255,0.8)' : '#64748b', marginBottom: '4px' }}>
                                                             📍 Kat: <strong>{getFloorLabel(apt.floor)}</strong>
                                                         </div>
-                                                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+                                                        <div style={{ fontSize: '12px', color: isHovered ? 'rgba(255,255,255,0.8)' : '#64748b', marginBottom: '12px' }}>
                                                             📐 Alan: <strong>{apt.square_meters} m²</strong>
                                                         </div>
                                                         {apt.status === 'available' && (
-                                                            <div style={{ fontSize: '16px', fontWeight: 700, color: '#8b5cf6', marginTop: 'auto' }}>
+                                                            <div style={{ fontSize: '16px', fontWeight: 700, color: isHovered ? 'white' : '#8b5cf6', marginTop: 'auto' }}>
                                                                 {formatCurrency(apt.price)}
                                                             </div>
                                                         )}
-                                                        {apt.plan_files && apt.plan_files.length > 0 && (
+                                                        {apt.plan_files && apt.plan_files.length > 0 && !isHovered && (
                                                             <div style={{ marginTop: '8px', fontSize: '11px', color: '#10b981', fontWeight: 600 }}>
                                                                 📄 {apt.plan_files.length} Plan Bilgisi
                                                             </div>
@@ -375,48 +363,6 @@ const PublicProject: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Floating Tooltip */}
-            {hoveredApt && (
-                <div style={{
-                    position: 'fixed',
-                    left: tooltipPos.x + 15,
-                    top: tooltipPos.y + 15,
-                    background: 'rgba(30, 41, 59, 0.95)',
-                    color: 'white',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontSize: '12px',
-                    zIndex: 99999,
-                    pointerEvents: 'none',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)',
-                    backdropFilter: 'blur(4px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    maxWidth: '200px'
-                }}>
-                    <div style={{ fontWeight: 800, marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
-                        Daire {hoveredApt.apartment_number}
-                    </div>
-                    {hoveredApt.customer_name ? (
-                        <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                👤 <span style={{ fontWeight: 600 }}>{hoveredApt.customer_name}</span>
-                            </div>
-                            {hoveredApt.customer_phone && (
-                                <div style={{ fontSize: '10px', opacity: 0.9, marginTop: '2px' }}>
-                                    📞 {hoveredApt.customer_phone}
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div style={{ fontStyle: 'italic', opacity: 0.8 }}>
-                            {hoveredApt.status === 'available' ? 'Müsait' :
-                                hoveredApt.status === 'sold' ? 'Satıldı' :
-                                    hoveredApt.status === 'owner' ? 'Mal Sahibi' : 'Ortak Alan'}
-                        </div>
-                    )}
                 </div>
             )}
         </div>
