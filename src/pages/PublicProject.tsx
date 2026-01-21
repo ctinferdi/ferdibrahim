@@ -97,9 +97,12 @@ const PublicProject: React.FC = () => {
                             🌍 {(project as any).company_location || userCompany?.company_location}
                         </p>
                     )}
-                    <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px' }}>
+                    <div style={{ marginTop: '16px', padding: '12px', background: '#f1f5f9', borderRadius: '8px', display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                         <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>
                             📊 Toplam Daire: <strong>{apartments.length} Adet</strong>
+                        </p>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#10b981', fontWeight: 600 }}>
+                            🏠 Satılık Daire: <strong>{apartments.filter(a => a.status === 'available').length} Adet</strong>
                         </p>
                     </div>
                 </div>
