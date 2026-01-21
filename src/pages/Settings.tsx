@@ -316,6 +316,38 @@ const Settings: React.FC = () => {
                                                     {user.user_metadata?.role === 'admin' ? '👑 Yönetici' : '✏️ Düzenleyici'} • {new Date(user.created_at).toLocaleDateString('tr-TR')}
                                                 </div>
                                             </div>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => alert('Şifre sıfırlama özelliği yakında eklenecek!')}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        fontSize: '11px',
+                                                        background: '#f59e0b',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    🔑 Şifre Sıfırla
+                                                </button>
+                                                <button
+                                                    onClick={() => alert('Rol değiştirme özelliği  yakında eklenecek!')}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        fontSize: '11px',
+                                                        background: user.user_metadata?.role === 'admin' ? '#ef4444' : '#10b981',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
+                                                    {user.user_metadata?.role === 'admin' ? '⬇️ Düzenleyici Yap' : '⬆️ Yönetici Yap'}
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
 
