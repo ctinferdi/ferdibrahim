@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
-import CompanyInfoForm from '../components/CompanyInfoForm';
 
 type UserRole = 'admin' | 'editor';
 
 const Settings: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<'users' | 'general'>('users');
+    const [activeTab, setActiveTab] = useState<'users'>('users');
     const [loading, setLoading] = useState(false);
     const [newUserEmail, setNewUserEmail] = useState('');
     const [newUserPassword, setNewUserPassword] = useState('');
@@ -17,16 +16,6 @@ const Settings: React.FC = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
-
-    // Firma Bilgileri State
-    const [companyInfo, setCompanyInfo] = useState({
-        company_name: '',
-        company_address: '',
-        company_location: '',
-        whatsapp_number: ''
-    });
-    const [savingCompany, setSavingCompany] = useState(false);
-    const [companyMessage, setCompanyMessage] = useState('');
 
     const { user } = useAuth();
     const superAdminEmail = 'ctinferdi@gmail.com';
@@ -73,60 +62,7 @@ const Settings: React.FC = () => {
         if (activeTab === 'users') {
             fetchUsers();
         }
-        if (activeTab === 'general') {
-            loadCompanyInfo();
-        }
     }, [activeTab]);
-
-    const loadCompanyInfo = async () => {
-        try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) return;
-
-            const { data, error } = await supabase
-                .from('users')
-                .select('company_name, company_address, company_location, whatsapp_number')
-                .eq('id', currentUser.id)
-                .single();
-
-            if (error) throw error;
-            if (data) {
-                setCompanyInfo({
-                    company_name: data.company_name || '',
-                    company_address: data.company_address || '',
-                    company_location: data.company_location || '',
-                    whatsapp_number: data.whatsapp_number || ''
-                });
-            }
-        } catch (error) {
-            console.error('Firma bilgileri yüklenemedi:', error);
-        }
-    };
-
-    const saveCompanyInfo = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSavingCompany(true);
-        setCompanyMessage('');
-
-        try {
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) throw new Error('Kullanıcı bulunamadı');
-
-            const { error } = await supabase
-                .from('users')
-                .update(companyInfo)
-                .eq('id', currentUser.id);
-
-            if (error) throw error;
-
-            setCompanyMessage('✅ Firma bilgileri kaydedildi!');
-            setTimeout(() => setCompanyMessage(''), 3000);
-        } catch (error: any) {
-            setCompanyMessage('❌ Hata: ' + error.message);
-        } finally {
-            setSavingCompany(false);
-        }
-    };
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
