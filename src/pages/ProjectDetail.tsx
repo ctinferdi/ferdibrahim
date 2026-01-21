@@ -425,7 +425,7 @@ const ProjectDetail: React.FC = () => {
                                 </p>
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                                     <a
-                                        href={`https://www.insaathesapp.com/projeler/${project.public_code}/public`}
+                                        href={`https://www.insaathesapp.com/p/${project.public_code}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn btn-secondary"
@@ -437,7 +437,7 @@ const ProjectDetail: React.FC = () => {
                                         onClick={() => {
                                             const link = document.createElement('a');
                                             link.download = `${project.name}-qr.png`;
-                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent('https://www.insaathesapp.com/projeler/' + project.public_code + '/public')}`;
+                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent('https://www.insaathesapp.com/p/' + project.public_code)}`;
                                             link.click();
                                         }}
                                         className="btn"
@@ -447,18 +447,51 @@ const ProjectDetail: React.FC = () => {
                                     </button>
                                 </div>
                                 {/* QR Kod */}
-                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                                     <QRCode
-                                        value={`https://www.insaathesapp.com/projeler/${project.public_code}/public`}
+                                        value={`https://www.insaathesapp.com/p/${project.public_code}`}
                                         size={120}
                                     />
+                                    <div style={{ wordBreak: 'break-all', textAlign: 'center' }}>
+                                        <a
+                                            href={`https://www.insaathesapp.com/p/${project.public_code}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: '8px', color: 'var(--color-primary)', textDecoration: 'underline' }}
+                                        >
+                                            insaathesapp.com/p/{project.public_code}
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                            <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
+                            <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
+                        </div>
+                        <FloorPlan apartments={apartments} onApartmentClick={(a) => {
+                            setEditingApartmentId(a.id);
+                            setApartmentFormData({
+                                building_name: a.building_name,
+                                apartment_number: a.apartment_number,
+                                floor: a.floor,
+                                square_meters: a.square_meters,
+                                price: a.price,
+                                sold_price: a.sold_price || 0,
+                                paid_amount: a.paid_amount || 0,
+                                status: a.status,
+                                customer_name: a.customer_name || '',
+                                customer_phone: a.customer_phone || '',
+                                sort_order: a.sort_order || 0,
+                                project_id: a.project_id || id || ''
+                            });
+                            setShowApartmentModal(true);
+                        }} />
+
                         {/* Firma Bilgileri - Proje Özel (Ayarlar'daki varsayılan üzerine yazabilir) */}
                         {activeTab === 'apartments' && (
-                            <div style={{ padding: 'var(--spacing-sm)', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24', marginBottom: 'var(--spacing-md)' }}>
+                            <div style={{ padding: 'var(--spacing-sm)', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24', marginTop: 'var(--spacing-sm)' }}>
                                 <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     🏢 Firma Bilgileri
                                     <span style={{ fontSize: '9px', fontWeight: 400, marginLeft: '8px', opacity: 0.7 }}>
@@ -533,29 +566,6 @@ const ProjectDetail: React.FC = () => {
                                 </div>
                             </div>
                         )}
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                            <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
-                            <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
-                        </div>
-                        <FloorPlan apartments={apartments} onApartmentClick={(a) => {
-                            setEditingApartmentId(a.id);
-                            setApartmentFormData({
-                                building_name: a.building_name,
-                                apartment_number: a.apartment_number,
-                                floor: a.floor,
-                                square_meters: a.square_meters,
-                                price: a.price,
-                                sold_price: a.sold_price || 0,
-                                paid_amount: a.paid_amount || 0,
-                                status: a.status,
-                                customer_name: a.customer_name || '',
-                                customer_phone: a.customer_phone || '',
-                                sort_order: a.sort_order || 0,
-                                project_id: a.project_id || id || ''
-                            });
-                            setShowApartmentModal(true);
-                        }} />
                     </div>
                 </div>
             </div>

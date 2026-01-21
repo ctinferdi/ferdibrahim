@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
@@ -13,6 +13,11 @@ import ResetPassword from './pages/ResetPassword';
 import Checks from './pages/Checks';
 import Apartments from './pages/Apartments';
 import './index.css';
+
+const NavigateWithParam = () => {
+    const { publicCode } = useParams();
+    return <Navigate to={`/p/${publicCode}`} replace />;
+};
 
 function App() {
     // Sayfa yenilendiğinde aynı sayfada kalsın, ancak tarayıcı kapatılıp açıldığında (yeni session) 
@@ -82,8 +87,12 @@ function App() {
                             <Apartments />
                         </ProtectedRoute>
                     } />
-                    {/* Public route - no auth required */}
-                    <Route path="/projeler/:publicCode/public" element={<PublicProject />} />
+                    {/* Public route - Redirect old long URL to new short URL */}
+                    <Route
+                        path="/projeler/:publicCode/public"
+                        element={<NavigateWithParam />}
+                    />
+                    <Route path="/p/:publicCode" element={<PublicProject />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
