@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../config/supabase';
 
 const Settings: React.FC = () => {
     const [loading, setLoading] = useState(false);
