@@ -146,17 +146,31 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
 
 
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                Daire Liste Fiyatı
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={formatNumberWithDots(apartmentFormData.price)}
-                                onChange={(e) => setApartmentFormData({ ...apartmentFormData, price: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                    Daire Liste Fiyatı
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formatNumberWithDots(apartmentFormData.price)}
+                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, price: e.target.value })}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                    Daire Alanı (m²)
+                                </label>
+                                <input
+                                    type="number"
+                                    required
+                                    value={apartmentFormData.square_meters}
+                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, square_meters: parseInt(e.target.value) || 0 })}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
                         </div>
 
                         <div>
