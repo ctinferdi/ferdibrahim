@@ -100,8 +100,8 @@ const ProjectDetail: React.FC = () => {
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
 
     // Collapsible Panels State
-    const [showQRSection, setShowQRSection] = useState(true);
-    const [showCompanySection, setShowCompanySection] = useState(true);
+    const [showQRSection, setShowQRSection] = useState(false);
+    const [showCompanySection, setShowCompanySection] = useState(false);
 
     // Firma Bilgileri State (Merkezi Profil'den)
     const [profile, setProfile] = useState<{
