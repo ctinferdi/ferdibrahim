@@ -167,22 +167,6 @@ const Settings: React.FC = () => {
                     >
                         👥 Kullanıcı Yönetimi
                     </button>
-                    <button
-                        onClick={() => setActiveTab('general')}
-                        style={{
-                            padding: '8px 16px',
-                            background: activeTab === 'general' ? 'var(--color-primary)' : 'transparent',
-                            color: activeTab === 'general' ? 'white' : 'var(--color-text)',
-                            border: 'none',
-                            borderRadius: 'var(--radius-sm)',
-                            cursor: 'pointer',
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
-                            transition: 'all var(--transition-fast)'
-                        }}
-                    >
-                        ⚙️ Genel Ayarlar
-                    </button>
                 </div>
 
                 {/* Users Tab */}
