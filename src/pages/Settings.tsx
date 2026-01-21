@@ -403,40 +403,6 @@ const Settings: React.FC = () => {
                             )}
                         </div>
                     </div>
-                )}
-
-                {/* General Settings Tab */}
-                {activeTab === 'general' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {/* Firma Bilgileri */}
-                        <CompanyInfoForm
-                            companyInfo={companyInfo}
-                            setCompanyInfo={setCompanyInfo}
-                            saveCompanyInfo={saveCompanyInfo}
-                            savingCompany={savingCompany}
-                            companyMessage={companyMessage}
-                        />
-
-                        {/* Bildirim Ayarları */}
-                        <div className="card" style={{ maxWidth: '480px', padding: '20px' }}>
-                            <h2 className="mb-xs" style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                🔔 Bildirim Ayarları
-                            </h2>
-                            <p className="mb-md" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
-                                Çek vadeleri yaklaştığında uyarı maili gidecek adresler.
-                            </p>
-
-                            <NotificationEmailsManager handleAdminAction={handleAdminAction} />
-                        </div>
-
-                        <div className="card" style={{ maxWidth: '480px', padding: '20px' }}>
-                            <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Sistem Ayarları</h2>
-                            <p style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
-                                Diğer genel ayarlar yakında eklenecek...
-                            </p>
-                        </div>
-                    </div>
-                )}
             </div>
         </Layout>
     );
