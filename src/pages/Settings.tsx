@@ -68,21 +68,34 @@ const Settings: React.FC = () => {
         }
     };
 
-    const handleResetPassword = async (userEmail: string) => {
+    const handleResetPassword = async (userEmail: string, userId: string) => {
         if (!isSuperAdmin) {
             alert(`Bu işlem için ${superAdminEmail} onayına ihtiyaç var.`);
             return;
         }
 
-        if (!confirm(`${userEmail} için şifre sıfırlama linki gönderilecek. Devam edilsin mi?`)) return;
+        if (!confirm(`${userEmail} için YENİ ŞİFRE oluşturulacak. Devam edilsin mi?`)) return;
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
-                redirectTo: `${window.location.origin}/reset-password`
+            // Random şifre oluştur (8 karakter, harf + rakam + özel karakter)
+            const newPassword = Math.random().toString(36).slice(-8) + 'Aa1!';
+
+            // Admin API ile şifreyi güncelle
+            const { error } = await supabase.auth.admin.updateUserById(userId, {
+                password: newPassword
             });
 
             if (error) throw error;
-            alert('✅ Şifre sıfırlama linki email adresine gönderildi!');
+
+            // Yeni şifreyi kullanıcıya göster
+            const message = `✅ Şifre değiştirildi!\n\nYeni Şifre: ${newPassword}\n\nBu şifreyi ${userEmail} adresine EMAIL İLE GÖNDER!\n\n⚠️ Bu pencereyi kapatmadan önce şifreyi kopyala!`;
+            alert(message);
+
+            // Clipboard'a kopyala
+            navigator.clipboard.writeText(newPassword).then(() => {
+                console.log('Şifre clipboard\'a kopyalandı:', newPassword);
+            });
+
         } catch (error: any) {
             alert('❌ Hata: ' + error.message);
         }
