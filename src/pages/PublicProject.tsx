@@ -310,39 +310,43 @@ const PublicProject: React.FC = () => {
                         )}
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <a
-                                href={`https://wa.me/${(() => {
-                                    const cleanNumber = ((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '');
-                                    const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
-                                    return formattedNumber || '905555555555';
-                                })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                    display: 'block',
-                                    padding: '14px',
-                                    background: '#25D366',
-                                    color: 'white',
-                                    textAlign: 'center',
-                                    borderRadius: '8px',
-                                    textDecoration: 'none',
-                                    fontWeight: 700,
-                                    fontSize: '14px'
-                                }}
-                            >
-                                💬 WhatsApp ile İletişime Geç
-                            </a>
+                            {selectedApartment.status === 'available' && (
+                                <>
+                                    <a
+                                        href={`https://wa.me/${(() => {
+                                            const cleanNumber = ((project as any).whatsapp_number || userCompany?.whatsapp_number || '').replace(/[^0-9]/g, '');
+                                            const formattedNumber = cleanNumber.startsWith('90') ? cleanNumber : `90${cleanNumber}`;
+                                            return formattedNumber || '905555555555';
+                                        })()}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'block',
+                                            padding: '14px',
+                                            background: '#25D366',
+                                            color: 'white',
+                                            textAlign: 'center',
+                                            borderRadius: '8px',
+                                            textDecoration: 'none',
+                                            fontWeight: 700,
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        💬 WhatsApp ile İletişime Geç
+                                    </a>
 
-                            {/* Telefon Numarası Gösterimi */}
-                            {((project as any).whatsapp_number || userCompany?.whatsapp_number) && (
-                                <div style={{
-                                    textAlign: 'center',
-                                    fontSize: '13px',
-                                    color: '#64748b',
-                                    fontWeight: 600
-                                }}>
-                                    📞 {((project as any).whatsapp_number || userCompany?.whatsapp_number)}
-                                </div>
+                                    {/* Telefon Numarası Gösterimi */}
+                                    {((project as any).whatsapp_number || userCompany?.whatsapp_number) && (
+                                        <div style={{
+                                            textAlign: 'center',
+                                            fontSize: '13px',
+                                            color: '#64748b',
+                                            fontWeight: 600
+                                        }}>
+                                            📞 {((project as any).whatsapp_number || userCompany?.whatsapp_number)}
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             <button
