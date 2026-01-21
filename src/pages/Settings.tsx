@@ -58,6 +58,49 @@ const Settings: React.FC = () => {
         }
     };
 
+    const handleResetPassword = async (userEmail: string) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için ${superAdminEmail} onayına ihtiyaç var.`);
+            return;
+        }
+
+        if (!confirm(`${userEmail} için şifre sıfırlama linki gönderilecek. Devam edilsin mi?`)) return;
+
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
+                redirectTo: `${window.location.origin}/reset-password`
+            });
+
+            if (error) throw error;
+            alert('✅ Şifre sıfırlama linki email adresine gönderildi!');
+        } catch (error: any) {
+            alert('❌ Hata: ' + error.message);
+        }
+    };
+
+    const handleChangeRole = async (userId: string, currentRole: string) => {
+        if (!isSuperAdmin) {
+            alert(`Bu işlem için ${superAdminEmail} onayına ihtiyaç var.`);
+            return;
+        }
+
+        const newRole = currentRole === 'admin' ? 'editor' : 'admin';
+
+        if (!confirm(`Kullanıcı rolü "${currentRole}" → "${newRole}" olarak değiştirilecek. Devam edilsin mi?`)) return;
+
+        try {
+            const { error } = await supabase.auth.admin.updateUserById(userId, {
+                user_metadata: { role: newRole }
+            });
+
+            if (error) throw error;
+            alert(`✅ Rol başarıyla ${newRole} olarak değiştirildi!`);
+            fetchUsers(); // Listeyi yenile
+        } catch (error: any) {
+            alert('❌ Hata: ' + error.message);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'users') {
             fetchUsers();
@@ -318,7 +361,7 @@ const Settings: React.FC = () => {
                                             </div>
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <button
-                                                    onClick={() => alert('Şifre sıfırlama özelliği yakında eklenecek!')}
+                                                    onClick={() => handleResetPassword(user.email)}
                                                     style={{
                                                         padding: '6px 12px',
                                                         fontSize: '11px',
@@ -333,7 +376,7 @@ const Settings: React.FC = () => {
                                                     🔑 Şifre Sıfırla
                                                 </button>
                                                 <button
-                                                    onClick={() => alert('Rol değiştirme özelliği  yakında eklenecek!')}
+                                                    onClick={() => handleChangeRole(user.id, user.user_metadata?.role || 'editor')}
                                                     style={{
                                                         padding: '6px 12px',
                                                         fontSize: '11px',
