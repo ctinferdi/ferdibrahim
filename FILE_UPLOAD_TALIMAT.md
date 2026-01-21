@@ -31,6 +31,7 @@ Ondan ÖNCE şu kodu ekle:
     projectId={id}
 />
 
+
 {/* Müşteri bilgileri */}
 <div>
     <label>Müşteri Adı</label>

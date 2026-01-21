@@ -21,14 +21,6 @@ const Settings: React.FC = () => {
     const superAdminEmail = 'ctinferdi@gmail.com';
     const isSuperAdmin = user?.email === superAdminEmail;
 
-    const handleAdminAction = (action: () => void) => {
-        if (!isSuperAdmin) {
-            alert(`Bu işlem için ${superAdminEmail} onayına ihtiyaç var. (Şu an yetkiniz yok)`);
-            return;
-        }
-        action();
-    };
-
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
@@ -389,104 +381,6 @@ const Settings: React.FC = () => {
                     </div>
             </div>
         </Layout>
-    );
-};
-
-const NotificationEmailsManager: React.FC<{ handleAdminAction: (action: () => void) => void }> = ({ handleAdminAction }) => {
-    const [emails, setEmails] = useState<any[]>([]);
-    const [newEmail, setNewEmail] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const fetchEmails = async () => {
-        const { data, error } = await supabase
-            .from('notification_settings')
-            .select('*')
-            .order('created_at', { ascending: true });
-
-        if (error) console.error('Error fetching emails:', error);
-        else setEmails(data || []);
-    };
-
-    useEffect(() => {
-        fetchEmails();
-    }, []);
-
-    const handleAddEmail = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newEmail) return;
-        setLoading(true);
-
-        const { data: { user } } = await supabase.auth.getUser();
-        const { error } = await supabase
-            .from('notification_settings')
-            .insert([{ email: newEmail, user_id: user?.id }]);
-
-        if (error) {
-            alert('Hata: ' + error.message);
-        } else {
-            setNewEmail('');
-            fetchEmails();
-        }
-        setLoading(false);
-    };
-
-    const handleDeleteEmail = (id: string) => {
-        handleAdminAction(async () => {
-            const { error } = await supabase
-                .from('notification_settings')
-                .delete()
-                .eq('id', id);
-
-            if (error) alert('Hata: ' + error.message);
-            else fetchEmails();
-        });
-    };
-
-    return (
-        <div>
-            <form onSubmit={handleAddEmail} style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
-                <input
-                    type="email"
-                    className="form-input"
-                    placeholder="mail@örnek.com"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    required
-                    style={{ flex: 1, margin: 0 }}
-                />
-                <button type="submit" className="btn btn-primary" disabled={loading} style={{ whiteSpace: 'nowrap' }}>
-                    {loading ? '...' : 'Ekle'}
-                </button>
-            </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                {emails.map((e) => (
-                    <div key={e.id} style={{
-                        padding: '12px 15px',
-                        background: 'var(--color-bg)',
-                        borderRadius: 'var(--radius-md)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        border: '1px solid var(--color-border)'
-                    }}>
-                        <span style={{ fontWeight: 500 }}>{e.email}</span>
-                        <button
-                            onClick={() => handleDeleteEmail(e.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}
-                            title="Sil"
-                        >
-                            🗑️
-                        </button>
-                    </div>
-                ))}
-                {emails.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-light)', background: 'var(--color-bg-alt)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
-                        Henüz bildirim adresi eklenmemiş.
-                    </div>
-                )}
-            </div>
-        </div>
     );
 };
 
