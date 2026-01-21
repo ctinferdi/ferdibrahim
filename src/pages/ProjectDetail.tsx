@@ -420,7 +420,7 @@ const ProjectDetail: React.FC = () => {
                                 <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     📱 Karekod Satış
                                 </h3>
-                                <p style={{ fontSize: '9px', color: 'var(--color-text-light)', marginBottom: '8px', margin: 0, marginBottom: '8px' }}>
+                                <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: 0, marginBottom: '8px' }}>
                                     Binaya asın, müşteriler görsün
                                 </p>
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
