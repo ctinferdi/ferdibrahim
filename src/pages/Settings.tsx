@@ -23,38 +23,9 @@ const Settings: React.FC = () => {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            // Users tablosundan kullanıcı listesi çek
-            const { data, error } = await supabase
-                .from('users')
-                .select('id, email, role, created_at')
-                .order('created_at', { ascending: true });
-
-            if (error) {
-                console.error('Error fetching users:', error);
-                // Fallback: Sadece mevcut kullanıcıyı göster
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    setUsers([{
-                        id: user.id,
-                        email: user.email,
-                        created_at: user.created_at,
-                        user_metadata: { role: user.user_metadata?.role || 'editor' }
-                    }]);
-                }
-            } else {
-                // Users tablosundan gelen veriyi uygun formata çevir
-                const formattedUsers = (data || []).map(u => ({
-                    id: u.id,
-                    email: u.email,
-                    created_at: u.created_at,
-                    user_metadata: { role: u.role || 'editor' }
-                }));
-                setUsers(formattedUsers);
-            }
-        } catch (err) {
-            console.error('Failed to fetch users:', err);
-            // Fallback: Sadece mevcut kullanıcıyı göster
+            // Sadece mevcut kullanıcıyı göster (users tablosu yok)
             const { data: { user } } = await supabase.auth.getUser();
+
             if (user) {
                 setUsers([{
                     id: user.id,
@@ -63,6 +34,8 @@ const Settings: React.FC = () => {
                     user_metadata: { role: user.user_metadata?.role || 'editor' }
                 }]);
             }
+        } catch (err) {
+            console.error('Failed to fetch user:', err);
         } finally {
             setLoadingUsers(false);
         }
@@ -335,21 +308,6 @@ const Settings: React.FC = () => {
                                                 }}
                                             >
                                                 🔑 Şifre Sıfırla
-                                            </button>
-                                            <button
-                                                onClick={() => handleChangeRole(user.id, user.user_metadata?.role || 'editor')}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    fontSize: '11px',
-                                                    background: user.user_metadata?.role === 'admin' ? '#ef4444' : '#10b981',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer',
-                                                    fontWeight: 600
-                                                }}
-                                            >
-                                                {user.user_metadata?.role === 'admin' ? '⬇️ Düzenleyici Yap' : '⬆️ Yönetici Yap'}
                                             </button>
                                         </div>
                                     </div>
