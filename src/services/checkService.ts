@@ -43,8 +43,8 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
             due_date: check.due_date,
             status: check.status,
             description: check.description || '',
-            project_id: check.project_id,
-            user_id: userId
+            project_id: (check.project_id && check.project_id.trim() !== '') ? check.project_id : null,
+            user_id: (userId && userId.trim() !== '') ? userId : null
         };
 
         // Add optional fields only if they exist in the input

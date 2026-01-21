@@ -98,6 +98,10 @@ const ProjectDetail: React.FC = () => {
     });
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
 
+    // Collapsible Panels State
+    const [showQRSection, setShowQRSection] = useState(true);
+    const [showCompanySection, setShowCompanySection] = useState(true);
+
     // Firma Bilgileri State (Proje Bazlı - Ayarlar'daki varsayılan üzerine yazabilir)
     const [companyFormData, setCompanyFormData] = useState({
         company_name: '',
@@ -440,133 +444,165 @@ const ProjectDetail: React.FC = () => {
                         {/* QR Code Section - Only on apartments tab */}
                         {activeTab === 'apartments' && project.public_code && (
                             <div style={{ padding: 'var(--spacing-sm)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: 'var(--spacing-md)' }}>
-                                <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                    📱 Karekod Satış
-                                </h3>
-                                <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: 0, marginBottom: '8px' }}>
-                                    Binaya asın, müşteriler görsün
-                                </p>
-                                <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                                    <a
-                                        href={`https://www.insaathesapp.com/p/${project.public_code}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn btn-secondary"
-                                        style={{ fontSize: '9px', padding: '0.3rem 0.6rem', flex: 1 }}
-                                    >
-                                        🔗 Sayfa
-                                    </a>
-                                    <button
-                                        onClick={() => {
-                                            const link = document.createElement('a');
-                                            link.download = `${project.name}-qr.png`;
-                                            link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent('https://www.insaathesapp.com/p/' + project.public_code)}`;
-                                            link.click();
-                                        }}
-                                        className="btn"
-                                        style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#10b981', color: 'white', flex: 1 }}
-                                    >
-                                        💾 İndir
-                                    </button>
+                                <div
+                                    onClick={() => setShowQRSection(!showQRSection)}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        marginBottom: showQRSection ? '8px' : '0'
+                                    }}
+                                >
+                                    <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        📱 Karekod Satış
+                                    </h3>
+                                    <span style={{ fontSize: '10px', transition: 'transform 0.2s', transform: showQRSection ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                                        {showQRSection ? '▼' : '◀'}
+                                    </span>
                                 </div>
-                                {/* QR Kod */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                    <QRCode
-                                        value={`https://www.insaathesapp.com/p/${project.public_code}`}
-                                        size={120}
-                                    />
-                                    <div style={{ wordBreak: 'break-all', textAlign: 'center' }}>
-                                        <a
-                                            href={`https://www.insaathesapp.com/p/${project.public_code}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{ fontSize: '8px', color: 'var(--color-primary)', textDecoration: 'underline' }}
-                                        >
-                                            insaathesapp.com/p/{project.public_code}
-                                        </a>
-                                    </div>
-                                </div>
+
+                                {showQRSection && (
+                                    <>
+                                        <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: 0, marginBottom: '8px' }}>
+                                            Binaya asın, müşteriler görsün
+                                        </p>
+                                        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                                            <a
+                                                href={`https://www.insaathesapp.com/p/${project.public_code}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="btn btn-secondary"
+                                                style={{ fontSize: '9px', padding: '0.3rem 0.6rem', flex: 1 }}
+                                            >
+                                                🔗 Sayfa
+                                            </a>
+                                            <button
+                                                onClick={() => {
+                                                    const link = document.createElement('a');
+                                                    link.download = `${project.name}-qr.png`;
+                                                    link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent('https://www.insaathesapp.com/p/' + project.public_code)}`;
+                                                    link.click();
+                                                }}
+                                                className="btn"
+                                                style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#10b981', color: 'white', flex: 1 }}
+                                            >
+                                                💾 İndir
+                                            </button>
+                                        </div>
+                                        {/* QR Kod */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                            <QRCode
+                                                value={`https://www.insaathesapp.com/p/${project.public_code}`}
+                                                size={120}
+                                            />
+                                            <div style={{ wordBreak: 'break-all', textAlign: 'center' }}>
+                                                <a
+                                                    href={`https://www.insaathesapp.com/p/${project.public_code}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{ fontSize: '8px', color: 'var(--color-primary)', textDecoration: 'underline' }}
+                                                >
+                                                    insaathesapp.com/p/{project.public_code}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
 
                         {/* Firma Bilgileri - Proje Özel (Ayarlar'daki varsayılan üzerine yazabilir) */}
                         {activeTab === 'apartments' && (
                             <div style={{ padding: 'var(--spacing-sm)', background: '#fef3c7', borderRadius: '8px', border: '1px solid #fbbf24', marginTop: 'var(--spacing-sm)' }}>
-                                <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                    🏢 Firma Bilgileri
-                                    <span style={{ fontSize: '9px', fontWeight: 400, marginLeft: '8px', opacity: 0.7 }}>
-                                        (Bu proje için - Boş bırakırsan Ayarlar'daki varsayılan kullanılır)
+                                <div
+                                    onClick={() => setShowCompanySection(!showCompanySection)}
+                                    style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        marginBottom: showCompanySection ? '8px' : '0'
+                                    }}
+                                >
+                                    <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        🏢 Firma Bilgileri
+                                    </h3>
+                                    <span style={{ fontSize: '10px', transition: 'transform 0.2s', transform: showCompanySection ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
+                                        {showCompanySection ? '▼' : '◀'}
                                     </span>
-                                </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                            Firma Adı {userCompany?.company_name && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_name})</span>}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={companyFormData.company_name}
-                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_name: e.target.value })}
-                                            placeholder={userCompany?.company_name || "Örn: İnşaat A.Ş."}
-                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                            Adres {userCompany?.company_address && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_address})</span>}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={companyFormData.company_address}
-                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_address: e.target.value })}
-                                            placeholder={userCompany?.company_address || "Örn: Bahçelievler Mah. No:123"}
-                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                            Konum {userCompany?.company_location && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_location})</span>}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={companyFormData.company_location}
-                                            onChange={(e) => setCompanyFormData({ ...companyFormData, company_location: e.target.value })}
-                                            placeholder={userCompany?.company_location || "Örn: İstanbul, Türkiye"}
-                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
-                                            WhatsApp No {userCompany?.whatsapp_number && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.whatsapp_number})</span>}
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={companyFormData.whatsapp_number}
-                                            onChange={(e) => setCompanyFormData({ ...companyFormData, whatsapp_number: e.target.value })}
-                                            placeholder={userCompany?.whatsapp_number || "Örn: 905551234567"}
-                                            style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                                        />
-                                        <small style={{ fontSize: '8px', color: '#64748b' }}>Format: 905551234567 (başında 90)</small>
-                                    </div>
-                                    <button
-                                        onClick={saveCompanyInfo}
-                                        disabled={isSavingCompany}
-                                        className="btn"
-                                        style={{
-                                            fontSize: '10px',
-                                            padding: '8px',
-                                            background: '#8b5cf6',
-                                            color: 'white',
-                                            marginTop: '4px',
-                                            opacity: isSavingCompany ? 0.6 : 1
-                                        }}
-                                    >
-                                        {isSavingCompany ? '💾 Kaydediliyor...' : '💾 Kaydet'}
-                                    </button>
                                 </div>
+
+                                {showCompanySection && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
+                                                Firma Adı {userCompany?.company_name && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_name})</span>}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={companyFormData.company_name}
+                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_name: e.target.value })}
+                                                placeholder={userCompany?.company_name || "Örn: İnşaat A.Ş."}
+                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
+                                                Adres {userCompany?.company_address && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_address})</span>}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={companyFormData.company_address}
+                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_address: e.target.value })}
+                                                placeholder={userCompany?.company_address || "Örn: Bahçelievler Mah. No:123"}
+                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
+                                                Konum {userCompany?.company_location && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.company_location})</span>}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={companyFormData.company_location}
+                                                onChange={(e) => setCompanyFormData({ ...companyFormData, company_location: e.target.value })}
+                                                placeholder={userCompany?.company_location || "Örn: İstanbul, Türkiye"}
+                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '9px', fontWeight: 600, marginBottom: '4px' }}>
+                                                WhatsApp No {userCompany?.whatsapp_number && <span style={{ opacity: 0.6 }}>(Varsayılan: {userCompany.whatsapp_number})</span>}
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                value={companyFormData.whatsapp_number}
+                                                onChange={(e) => setCompanyFormData({ ...companyFormData, whatsapp_number: e.target.value })}
+                                                placeholder={userCompany?.whatsapp_number || "Örn: 905551234567"}
+                                                style={{ width: '100%', padding: '6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                            />
+                                            <small style={{ fontSize: '8px', color: '#64748b' }}>Format: 905551234567 (başında 90)</small>
+                                        </div>
+                                        <button
+                                            onClick={saveCompanyInfo}
+                                            disabled={isSavingCompany}
+                                            className="btn"
+                                            style={{
+                                                fontSize: '10px',
+                                                padding: '8px',
+                                                background: '#8b5cf6',
+                                                color: 'white',
+                                                marginTop: '4px',
+                                                opacity: isSavingCompany ? 0.6 : 1
+                                            }}
+                                        >
+                                            {isSavingCompany ? '💾 Kaydediliyor...' : '💾 Kaydet'}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        )}                    </div>
                 </div>
             </div>
 
