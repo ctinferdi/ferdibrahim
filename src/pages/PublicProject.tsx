@@ -293,7 +293,7 @@ const PublicProject: React.FC = () => {
                         {/* Contact Button */}
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <a
-                                href={`https://wa.me/${((project as any).whatsapp_number || '').replace(/[^0-9]/g, '') || '905555555555'}?text=Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`}
+                                href={`https://wa.me/${((project as any).whatsapp_number || '').replace(/[^0-9]/g, '') || '905555555555'}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 style={{
