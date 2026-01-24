@@ -300,6 +300,7 @@ const ProjectDetail: React.FC = () => {
 
                 {/* Second Row - Actions & Summaries */}
                 <div style={{
+                    // Layout: Left aligned summary cards
                     display: 'flex',
                     alignItems: 'center',
                     background: 'white',
