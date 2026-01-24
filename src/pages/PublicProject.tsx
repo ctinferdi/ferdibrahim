@@ -15,8 +15,56 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
     useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Desktop Default */
+            .apartment-grid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+                flex: 1 !important;
+                min-width: 0 !important;
+                flex-direction: row !important;
+            }
+            .floor-row {
+                overflow: hidden !important;
+            }
+
+            /* Mobile Specific */
+            @media (max-width: 768px) {
+                .floor-row {
+                    overflow-x: auto !important;
+                    padding: 8px !important;
+                }
+                .floor-label {
+                    position: sticky !important;
+                    left: 0 !important;
+                    background: #f8fafc !important;
+                    z-index: 5 !important;
+                    min-width: 70px !important;
+                }
+                .apartment-grid {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    grid-template-columns: none !important;
+                    min-width: max-content !important;
+                    gap: 12px !important;
+                }
+                .apartment-card {
+                    min-width: 160px !important;
+                    flex: 0 0 auto !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    useEffect(() => {
         loadData();
     }, [publicCode]);
+
 
 
     const loadData = async () => {
@@ -140,11 +188,9 @@ const PublicProject: React.FC = () => {
                                         background: '#f8fafc',
                                         borderRadius: '8px',
                                         border: '2px solid #e2e8f0',
-                                        flexDirection: 'row',
-                                        overflowX: 'auto',
                                         alignItems: 'stretch'
                                     }}>
-                                        {/* Kat Label - Sticky */}
+                                        {/* Kat Label */}
                                         <div className="floor-label" style={{
                                             minWidth: '80px',
                                             fontWeight: 800,
@@ -154,22 +200,14 @@ const PublicProject: React.FC = () => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             paddingRight: '12px',
-                                            borderRight: '2px solid #e2e8f0',
-                                            position: 'sticky',
-                                            left: 0,
-                                            background: '#f8fafc',
-                                            zIndex: 5
+                                            borderRight: '2px solid #e2e8f0'
                                         }}>
                                             {getFloorLabel(floor)}
                                         </div>
 
-                                        {/* Daireler - Always Horizontal List */}
+                                        {/* Daireler */}
                                         <div className="apartment-grid" style={{
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            gap: '12px',
-                                            flex: 1,
-                                            minWidth: 'max-content'
+                                            gap: '12px'
                                         }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
@@ -178,6 +216,7 @@ const PublicProject: React.FC = () => {
                                                 return (
                                                     <div
                                                         key={apt.id}
+                                                        className="apartment-card"
                                                         onClick={() => {
                                                             if (apt.status !== 'sold' && apt.status !== 'owner') {
                                                                 setSelectedApartment(apt);
@@ -202,9 +241,7 @@ const PublicProject: React.FC = () => {
                                                             opacity: isAvailable ? 1 : 0.8,
                                                             transform: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'translateY(-2px)' : 'translateY(0)',
                                                             boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
-                                                            color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit',
-                                                            minWidth: '180px', /* Increased for better desktop look */
-                                                            flex: '0 0 auto'  /* Prevent shrinking */
+                                                            color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit'
                                                         }}
 
                                                     >
