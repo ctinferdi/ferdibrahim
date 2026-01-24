@@ -301,14 +301,13 @@ const ProjectDetail: React.FC = () => {
                 {/* Second Row - Actions & Summaries */}
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
                     alignItems: 'center',
                     background: 'white',
                     padding: 'var(--spacing-xs) var(--spacing-md)',
                     borderRadius: 'var(--border-radius-lg)',
                     boxShadow: 'var(--shadow-sm)',
                     flexWrap: 'wrap',
-                    gap: 'var(--spacing-md)'
+                    gap: 'var(--spacing-2xl)' // Increased gap, removed space-between
                 }}>
                     {/* Left Side: Actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
