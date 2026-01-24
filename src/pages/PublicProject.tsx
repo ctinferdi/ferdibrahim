@@ -20,22 +20,32 @@ const PublicProject: React.FC = () => {
         style.textContent = `
             @media (max-width: 768px) {
                 .floor-row {
-                    flex-direction: column !important;
+                    flex-direction: row !important;
                     align-items: stretch !important;
+                    overflow-x: auto !important; /* Allow floor to scroll horizontally */
+                    padding: 8px !important;
                 }
                 .floor-label {
-                    border-right: none !important;
-                    border-bottom: 2px solid #e2e8f0 !important;
-                    padding-right: 0 !important;
-                    padding-bottom: 12px !important;
-                    min-width: 100% !important;
-                    justify-content: flex-start !important;
+                    border-right: 2px solid #e2e8f0 !important;
+                    border-bottom: none !important;
+                    padding-right: 12px !important;
+                    padding-bottom: 0 !important;
+                    min-width: 70px !important;
+                    position: sticky !important;
+                    left: 0 !important;
+                    background: #f8fafc !important;
+                    z-index: 5 !important;
                 }
                 .apartment-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+                    display: flex !important; /* Switch grid to flex for better horizontal flow */
+                    flex-direction: row !important;
+                    grid-template-columns: none !important;
+                    min-width: max-content !important;
+                    padding-left: 8px !important;
                 }
             }
         `;
+
         document.head.appendChild(style);
         return () => {
             document.head.removeChild(style);
@@ -223,8 +233,11 @@ const PublicProject: React.FC = () => {
                                                             opacity: isAvailable ? 1 : 0.8,
                                                             transform: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'translateY(-2px)' : 'translateY(0)',
                                                             boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
-                                                            color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit'
+                                                            color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit',
+                                                            minWidth: '160px', /* Ensure consistent width */
+                                                            flex: '0 0 auto'  /* Prevent shrinking */
                                                         }}
+
                                                     >
                                                         {/* Badge */}
                                                         {apt.status !== 'sold' && !isHovered && (

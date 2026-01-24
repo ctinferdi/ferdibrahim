@@ -14,23 +14,32 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
         style.textContent = `
             @media (max-width: 640px) {
                 .floor-plan-row {
-                    flex-direction: column !important;
+                    flex-direction: row !important;
                     align-items: stretch !important;
+                    overflow-x: auto !important;
+                    padding: 4px !important;
                 }
                 .floor-plan-label {
-                    border-right: none !important;
-                    border-bottom: 2px solid var(--color-border) !important;
-                    padding-right: 0 !important;
-                    padding-bottom: 8px !important;
-                    min-width: 100% !important;
-                    height: auto !important;
-                    justify-content: flex-start !important;
+                    border-right: 2px solid var(--color-border) !important;
+                    border-bottom: none !important;
+                    padding-right: 8px !important;
+                    padding-bottom: 0 !important;
+                    min-width: 60px !important;
+                    position: sticky !important;
+                    left: 0 !important;
+                    background: #f8fafc !important;
+                    z-index: 5 !important;
+                    height: 40px !important;
                 }
                 .floor-plan-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    grid-template-columns: none !important;
+                    min-width: max-content !important;
                 }
             }
         `;
+
         document.head.appendChild(style);
         return () => {
             document.head.removeChild(style);
@@ -152,8 +161,11 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             transition: 'all 0.15s ease-in-out',
                                             transform: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'scale(1.1)' : 'scale(1)',
                                             zIndex: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 10 : 1,
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            minWidth: '45px', /* Ensure rectangular shape and readability */
+                                            flex: '0 0 auto'
                                         }}
+
                                     >
                                         <div style={{
                                             fontWeight: 800,
