@@ -15,44 +15,6 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
     useEffect(() => {
-        // Apply responsive styles for this page
-        const style = document.createElement('style');
-        style.textContent = `
-            @media (max-width: 768px) {
-                .floor-row {
-                    flex-direction: row !important;
-                    align-items: stretch !important;
-                    overflow-x: auto !important; /* Allow floor to scroll horizontally */
-                    padding: 8px !important;
-                }
-                .floor-label {
-                    border-right: 2px solid #e2e8f0 !important;
-                    border-bottom: none !important;
-                    padding-right: 12px !important;
-                    padding-bottom: 0 !important;
-                    min-width: 70px !important;
-                    position: sticky !important;
-                    left: 0 !important;
-                    background: #f8fafc !important;
-                    z-index: 5 !important;
-                }
-                .apartment-grid {
-                    display: flex !important; /* Switch grid to flex for better horizontal flow */
-                    flex-direction: row !important;
-                    grid-template-columns: none !important;
-                    min-width: max-content !important;
-                    padding-left: 8px !important;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
-        return () => {
-            document.head.removeChild(style);
-        };
-    }, []);
-
-    useEffect(() => {
         loadData();
     }, [publicCode]);
 
@@ -178,9 +140,11 @@ const PublicProject: React.FC = () => {
                                         background: '#f8fafc',
                                         borderRadius: '8px',
                                         border: '2px solid #e2e8f0',
-                                        flexDirection: 'row' // Default for desktop
+                                        flexDirection: 'row',
+                                        overflowX: 'auto',
+                                        alignItems: 'stretch'
                                     }}>
-                                        {/* Kat Label */}
+                                        {/* Kat Label - Sticky */}
                                         <div className="floor-label" style={{
                                             minWidth: '80px',
                                             fontWeight: 800,
@@ -190,17 +154,22 @@ const PublicProject: React.FC = () => {
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             paddingRight: '12px',
-                                            borderRight: '2px solid #e2e8f0'
+                                            borderRight: '2px solid #e2e8f0',
+                                            position: 'sticky',
+                                            left: 0,
+                                            background: '#f8fafc',
+                                            zIndex: 5
                                         }}>
                                             {getFloorLabel(floor)}
                                         </div>
 
-                                        {/* Daireler - Responsive Grid */}
+                                        {/* Daireler - Always Horizontal List */}
                                         <div className="apartment-grid" style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))',
+                                            display: 'flex',
+                                            flexDirection: 'row',
                                             gap: '12px',
-                                            flex: 1
+                                            flex: 1,
+                                            minWidth: 'max-content'
                                         }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
@@ -234,7 +203,7 @@ const PublicProject: React.FC = () => {
                                                             transform: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'translateY(-2px)' : 'translateY(0)',
                                                             boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
                                                             color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit',
-                                                            minWidth: '160px', /* Ensure consistent width */
+                                                            minWidth: '180px', /* Increased for better desktop look */
                                                             flex: '0 0 auto'  /* Prevent shrinking */
                                                         }}
 

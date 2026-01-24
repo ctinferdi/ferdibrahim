@@ -9,43 +9,6 @@ interface FloorPlanProps {
 const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) => {
     const [hoveredAptId, setHoveredAptId] = React.useState<string | null>(null);
 
-    React.useEffect(() => {
-        const style = document.createElement('style');
-        style.textContent = `
-            @media (max-width: 640px) {
-                .floor-plan-row {
-                    flex-direction: row !important;
-                    align-items: stretch !important;
-                    overflow-x: auto !important;
-                    padding: 4px !important;
-                }
-                .floor-plan-label {
-                    border-right: 2px solid var(--color-border) !important;
-                    border-bottom: none !important;
-                    padding-right: 8px !important;
-                    padding-bottom: 0 !important;
-                    min-width: 60px !important;
-                    position: sticky !important;
-                    left: 0 !important;
-                    background: #f8fafc !important;
-                    z-index: 5 !important;
-                    height: 40px !important;
-                }
-                .floor-plan-grid {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    grid-template-columns: none !important;
-                    min-width: max-content !important;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
-        return () => {
-            document.head.removeChild(style);
-        };
-    }, []);
-
     if (apartments.length === 0) {
 
         return (
@@ -92,12 +55,14 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                 return (
                     <div key={floor} className="floor-plan-row" style={{
                         display: 'flex',
-                        alignItems: 'center',
+                        flexDirection: 'row',
+                        alignItems: 'stretch',
                         gap: '8px',
                         padding: '4px',
                         borderRadius: '6px',
                         background: '#f8fafc',
-                        marginBottom: '4px'
+                        marginBottom: '4px',
+                        overflowX: 'auto'
                     }}>
                         <div className="floor-plan-label" style={{
                             width: '60px',
@@ -111,16 +76,21 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                             height: '40px',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'flex-end'
+                            justifyContent: 'flex-end',
+                            position: 'sticky',
+                            left: 0,
+                            background: '#f8fafc',
+                            zIndex: 5
                         }}>
                             {Number(floor) === 0 ? 'ZEMİN' : Number(floor) < 0 ? `BODRUM ${Math.abs(Number(floor))}` : `${floor}•KAT`}
                         </div>
 
                         <div className="floor-plan-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(45px, 1fr))',
+                            display: 'flex',
+                            flexDirection: 'row',
                             gap: '6px',
-                            flex: 1
+                            flex: 1,
+                            minWidth: 'max-content'
                         }}>
                             {floorApts.map((apt) => {
                                 let bgColor = '#f8fafc';
@@ -162,11 +132,11 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             transform: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'scale(1.1)' : 'scale(1)',
                                             zIndex: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 10 : 1,
                                             textAlign: 'center',
-                                            minWidth: '45px', /* Ensure rectangular shape and readability */
+                                            minWidth: '50px',
                                             flex: '0 0 auto'
                                         }}
-
                                     >
+
                                         <div style={{
                                             fontWeight: 800,
                                             fontSize: isHovered ? '8px' : '11px',
