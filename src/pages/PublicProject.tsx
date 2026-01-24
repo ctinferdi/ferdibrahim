@@ -22,13 +22,14 @@ const PublicProject: React.FC = () => {
                 .main-container {
                     min-width: 1200px !important;
                     width: 1200px !important;
+                    display: block !important;
                 }
                 .main-container > div {
                     width: 100% !important;
                     max-width: none !important;
+                    display: block !important;
                 }
                 .apartment-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
                     width: 100% !important;
                 }
                 .apartment-card {
@@ -48,6 +49,7 @@ const PublicProject: React.FC = () => {
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
                 }
             }
+
 
 
 
@@ -124,6 +126,9 @@ const PublicProject: React.FC = () => {
     // Katları grupla
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
 
+    // En çok dairesi olan katın daire sayısını bul (Hizalama için)
+    const maxAptsOnFloor = Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length), 1);
+
     // Firma bilgilerini belirle (Önce projeden, yoksa profil'den)
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
     const companyAddress = project.company_address || userCompany?.company_address;
@@ -131,11 +136,11 @@ const PublicProject: React.FC = () => {
     const whatsappNum = project.whatsapp_number || userCompany?.whatsapp_number;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', overflowX: 'auto' }}>
-            <div className="main-container">
+        <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px', overflowX: 'auto', display: 'flex', flexDirection: 'column' }}>
+            <div className="main-container" style={{ width: '100%', minWidth: 'max-content', flex: 1 }}>
                 {/* Header */}
-                <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px' }}>
-                    <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', marginBottom: '24px', width: '100%' }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', width: '100%' }}>
                         <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
                             🏢 {companyName}
                         </h1>
@@ -167,8 +172,8 @@ const PublicProject: React.FC = () => {
                 </div>
 
                 {/* Floor Plan - Horizontal Layout */}
-                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+                    <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', width: '100%' }}>
 
 
                         <h2 style={{ margin: 0, marginBottom: '20px', fontSize: '20px', fontWeight: 800 }}>🏢 Bina Planı</h2>
@@ -176,7 +181,7 @@ const PublicProject: React.FC = () => {
                         {apartments.length === 0 ? (
                             <p style={{ textAlign: 'center', color: '#64748b', padding: '40px' }}>Henüz daire eklenmemiş.</p>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
                                 {floors.map(floor => {
                                     const floorApts = apartments.filter(a => a.floor === floor).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
@@ -188,7 +193,8 @@ const PublicProject: React.FC = () => {
                                             background: '#f8fafc',
                                             borderRadius: '8px',
                                             border: '2px solid #e2e8f0',
-                                            flexDirection: 'row' // Default for desktop
+                                            flexDirection: 'row', // Default for desktop
+                                            width: '100%'
                                         }}>
                                             {/* Kat Label */}
                                             <div className="floor-label" style={{
@@ -205,10 +211,10 @@ const PublicProject: React.FC = () => {
                                                 {getFloorLabel(floor)}
                                             </div>
 
-                                            {/* Daireler - Responsive Grid */}
+                                            {/* Daireler - Standardized Grid for perfect alignment */}
                                             <div className="apartment-grid" style={{
                                                 display: 'grid',
-                                                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))',
+                                                gridTemplateColumns: `repeat(${maxAptsOnFloor}, 1fr)`,
                                                 gap: '12px',
                                                 flex: 1
                                             }}>

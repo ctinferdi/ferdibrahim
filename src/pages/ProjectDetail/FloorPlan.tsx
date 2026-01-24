@@ -51,6 +51,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     }
 
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a: any, b: any) => b - a);
+    const maxAptsOnFloor = Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length), 1);
 
     return (
         <div style={{
@@ -60,7 +61,8 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
             paddingBottom: 'var(--spacing-sm)',
             maxHeight: '600px',
             overflowY: 'auto',
-            overflowX: 'auto'
+            overflowX: 'auto',
+            width: '100%'
         }}>
 
             {floors.map(floor => {
@@ -81,7 +83,8 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                         padding: '4px',
                         borderRadius: '6px',
                         background: '#f8fafc',
-                        marginBottom: '4px'
+                        marginBottom: '4px',
+                        width: '100%'
                     }}>
                         <div className="floor-plan-label" style={{
                             width: '60px',
@@ -102,10 +105,11 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
 
                         <div className="floor-plan-grid" style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(45px, 1fr))',
+                            gridTemplateColumns: `repeat(${maxAptsOnFloor}, 1fr)`,
                             gap: '6px',
                             flex: 1
                         }}>
+
                             {floorApts.map((apt) => {
                                 let bgColor = '#f8fafc';
                                 let textColor = '#64748b';
