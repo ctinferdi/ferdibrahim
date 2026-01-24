@@ -9,7 +9,36 @@ interface FloorPlanProps {
 const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) => {
     const [hoveredAptId, setHoveredAptId] = React.useState<string | null>(null);
 
+    React.useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 640px) {
+                .floor-plan-row {
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                }
+                .floor-plan-label {
+                    border-right: none !important;
+                    border-bottom: 2px solid var(--color-border) !important;
+                    padding-right: 0 !important;
+                    padding-bottom: 8px !important;
+                    min-width: 100% !important;
+                    height: auto !important;
+                    justify-content: flex-start !important;
+                }
+                .floor-plan-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
     if (apartments.length === 0) {
+
         return (
             <div style={{
                 textAlign: 'center',
@@ -52,17 +81,25 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     });
 
                 return (
-                    <div key={floor} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{
-                            width: '80px',
-                            minWidth: '80px',
+                    <div key={floor} className="floor-plan-row" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '4px',
+                        borderRadius: '6px',
+                        background: '#f8fafc',
+                        marginBottom: '4px'
+                    }}>
+                        <div className="floor-plan-label" style={{
+                            width: '60px',
+                            minWidth: '60px',
                             fontSize: '9px',
                             fontWeight: 700,
                             textAlign: 'right',
                             color: 'var(--color-text-light)',
                             borderRight: '2px solid var(--color-border)',
                             paddingRight: '8px',
-                            height: '35px',
+                            height: '40px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'flex-end'
@@ -70,10 +107,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                             {Number(floor) === 0 ? 'ZEMİN' : Number(floor) < 0 ? `BODRUM ${Math.abs(Number(floor))}` : `${floor}•KAT`}
                         </div>
 
-                        <div style={{
+                        <div className="floor-plan-grid" style={{
                             display: 'grid',
-                            gridTemplateColumns: `repeat(${floorApts.length}, 1fr)`,
-                            gap: '4px',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(45px, 1fr))',
+                            gap: '6px',
                             flex: 1
                         }}>
                             {floorApts.map((apt) => {
@@ -106,7 +143,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             fontWeight: 800,
                                             cursor: (apt.status === 'sold' || apt.status === 'owner') ? 'default' : 'pointer',
                                             border: `1px solid ${isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'transparent' : borderColor}`,
-                                            height: '35px',
+                                            height: '40px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
@@ -140,6 +177,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                         </div>
                     </div>
                 );
+
             })}
 
             <div style={{

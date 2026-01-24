@@ -15,8 +15,37 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
     useEffect(() => {
+        // Apply responsive styles for this page
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 768px) {
+                .floor-row {
+                    flex-direction: column !important;
+                    align-items: stretch !important;
+                }
+                .floor-label {
+                    border-right: none !important;
+                    border-bottom: 2px solid #e2e8f0 !important;
+                    padding-right: 0 !important;
+                    padding-bottom: 12px !important;
+                    min-width: 100% !important;
+                    justify-content: flex-start !important;
+                }
+                .apartment-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    useEffect(() => {
         loadData();
     }, [publicCode]);
+
 
     const loadData = async () => {
         if (!publicCode) return;
@@ -132,14 +161,37 @@ const PublicProject: React.FC = () => {
                                 const floorApts = apartments.filter(a => a.floor === floor).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
                                 return (
-                                    <div key={floor} style={{ display: 'flex', alignItems: 'stretch', gap: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '2px solid #e2e8f0' }}>
+                                    <div key={floor} className="floor-row" style={{
+                                        display: 'flex',
+                                        gap: '12px',
+                                        padding: '12px',
+                                        background: '#f8fafc',
+                                        borderRadius: '8px',
+                                        border: '2px solid #e2e8f0',
+                                        flexDirection: 'row' // Default for desktop
+                                    }}>
                                         {/* Kat Label */}
-                                        <div style={{ minWidth: '100px', fontWeight: 800, fontSize: '14px', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingRight: '12px', borderRight: '2px solid #e2e8f0' }}>
+                                        <div className="floor-label" style={{
+                                            minWidth: '80px',
+                                            fontWeight: 800,
+                                            fontSize: '14px',
+                                            color: '#1e293b',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            paddingRight: '12px',
+                                            borderRight: '2px solid #e2e8f0'
+                                        }}>
                                             {getFloorLabel(floor)}
                                         </div>
 
-                                        {/* Daireler - Horizontal */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${floorApts.length}, 1fr)`, gap: '12px', flex: 1 }}>
+                                        {/* Daireler - Responsive Grid */}
+                                        <div className="apartment-grid" style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))',
+                                            gap: '12px',
+                                            flex: 1
+                                        }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
                                                 const isHovered = hoveredAptId === apt.id;
