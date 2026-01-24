@@ -51,7 +51,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     }
 
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a: any, b: any) => b - a);
-    const maxAptsOnFloor = Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length), 1);
+
 
     return (
         <div style={{
@@ -143,27 +143,29 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
 
                                         onMouseLeave={() => setHoveredAptId(null)}
                                         style={{
-                                            background: isHovered ? (apt.status === 'available' ? '#8b5cf6' : textColor) : bgColor,
+                                            background: isHovered ? '#8b5cf6' : bgColor,
                                             color: isHovered ? 'white' : textColor,
                                             borderRadius: '4px',
                                             fontSize: isHovered ? '8px' : '9px',
                                             fontWeight: 800,
-                                            cursor: (apt.status === 'common') ? 'default' : 'pointer',
-                                            border: `1px solid ${isHovered && apt.status === 'available' ? 'transparent' : borderColor}`,
+                                            cursor: (apt.status === 'available') ? 'pointer' : 'default',
+                                            border: `1px solid ${isHovered ? 'transparent' : borderColor}`,
                                             height: '40px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            boxShadow: isHovered && apt.status === 'available' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
-                                            transition: 'all 0.15s ease-in-out',
-                                            transform: isHovered && apt.status === 'available' ? 'scale(1.1)' : 'scale(1)',
-                                            zIndex: isHovered && apt.status === 'available' ? 10 : 1,
+                                            boxShadow: isHovered ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
+                                            transition: 'all 0.1s ease-in-out',
+                                            transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                                            zIndex: isHovered ? 10 : 1,
                                             textAlign: 'center',
-                                            flex: 1, // Automatic stretching
+                                            flex: '1 1 0%', // Stronger auto-stretch
                                             minWidth: '45px',
-                                            opacity: apt.status === 'common' ? 0.6 : 1
+                                            opacity: (apt.status === 'available') ? 1 : (apt.status === 'common' ? 0.5 : 0.8)
                                         }}
+
+
 
                                     >
                                         <div style={{

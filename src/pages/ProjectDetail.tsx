@@ -572,14 +572,19 @@ const ProjectDetail: React.FC = () => {
                                                     if (!id) return;
                                                     setSaving(true);
                                                     try {
-                                                        await projectService.updateProject(id, companyInfo);
+                                                        const cleanCompanyInfo = {
+                                                            ...companyInfo,
+                                                            notification_emails: companyInfo.notification_emails.filter(e => e && e.includes('@') && e.trim() !== '')
+                                                        };
+                                                        await projectService.updateProject(id, cleanCompanyInfo);
                                                         alert('Firma bilgileri kaydedildi!');
                                                         loadAllData();
                                                     } catch (err: any) {
-                                                        alert('Hata: ' + err.message);
+                                                        alert('Hata: ' + (err.message || 'Bir sorun oluştu. Lütfen sütunların veri tabanında mevcut olduğundan emin olun.'));
                                                     } finally {
                                                         setSaving(false);
                                                     }
+
                                                 }}
                                                 disabled={saving}
                                                 style={{

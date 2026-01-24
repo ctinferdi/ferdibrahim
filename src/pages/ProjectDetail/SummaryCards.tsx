@@ -49,7 +49,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         </div>
                     </div>
 
-                    {project.partners?.map((partner) => (
+                    {activeTab === 'expenses' && project.partners?.map((partner) => (
                         <div key={partner.id} className="card" style={{
                             padding: 'var(--spacing-xs) var(--spacing-md)',
                             background: 'white',
@@ -66,6 +66,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                             </div>
                         </div>
                     ))}
+
                 </>
             ) : (
                 <>

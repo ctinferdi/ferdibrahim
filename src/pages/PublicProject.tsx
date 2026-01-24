@@ -47,8 +47,10 @@ const PublicProject: React.FC = () => {
                     width: max-content !important;
                     min-width: 100% !important;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                    margin: 0 !important;
                 }
             }
+
 
 
 
@@ -126,8 +128,6 @@ const PublicProject: React.FC = () => {
     // Katları grupla
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
 
-    // En çok dairesi olan katın daire sayısını bul (Hizalama için)
-    const maxAptsOnFloor = Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length), 1);
 
     // Firma bilgilerini belirle (Önce projeden, yoksa profil'den)
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
@@ -221,38 +221,38 @@ const PublicProject: React.FC = () => {
 
                                                 {floorApts.map(apt => {
                                                     const isAvailable = apt.status === 'available';
-                                                    const isHovered = hoveredAptId === apt.id;
+                                                    const isHovered = hoveredAptId === apt.id && isAvailable; // Only hover if available
 
                                                     return (
                                                         <div
                                                             key={apt.id}
                                                             onClick={() => {
-                                                                if (apt.status === 'available') {
+                                                                if (isAvailable) { // Only clickable if available
                                                                     setSelectedApartment(apt);
                                                                 }
                                                             }}
                                                             onMouseEnter={() => {
-                                                                if (apt.status === 'available') {
+                                                                if (isAvailable) { // Only hoverable if available
                                                                     setHoveredAptId(apt.id);
                                                                 }
                                                             }}
                                                             onMouseLeave={() => setHoveredAptId(null)}
                                                             style={{
-                                                                background: isHovered ? (isAvailable ? '#8b5cf6' : '#64748b') : 'white',
+                                                                background: isHovered ? '#8b5cf6' : 'white',
                                                                 border: `1px solid ${isHovered ? 'transparent' : (isAvailable ? '#e2e8f0' : '#cbd5e1')}`,
                                                                 borderRadius: '12px',
                                                                 padding: '16px',
-                                                                cursor: (apt.status === 'sold' || apt.status === 'owner' || apt.status === 'common') ? 'default' : 'pointer',
-                                                                transition: 'all 0.15s ease-in-out',
+                                                                cursor: isAvailable ? 'pointer' : 'default', // Cursor only pointer if available
+                                                                transition: 'all 0.1s ease-in-out',
                                                                 position: 'relative',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
-                                                                opacity: isAvailable ? 1 : (apt.status === 'common' ? 0.6 : 0.8),
-                                                                transform: (isHovered && apt.status === 'available') ? 'translateY(-2px)' : 'translateY(0)',
-                                                                boxShadow: (isHovered && apt.status === 'available') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
-                                                                color: (isHovered && apt.status === 'available') ? 'white' : 'inherit',
-                                                                flex: 1, // Automatic stretching
-                                                                minWidth: '120px'
+                                                                opacity: isAvailable ? 1 : (apt.status === 'common' ? 0.3 : 0.8), // Common area opacity
+                                                                transform: isHovered ? 'translateY(-2px)' : 'translateY(0)', // Transform only on hover
+                                                                boxShadow: isHovered ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none', // Shadow only on hover
+                                                                color: isHovered ? 'white' : 'inherit', // Color change only on hover
+                                                                flex: '1 1 0%', // Stronger auto-stretch
+                                                                minWidth: '150px'
                                                             }}
 
                                                         >
