@@ -370,7 +370,37 @@ const ProjectDetail: React.FC = () => {
                     {/* Right Column - Floor Plan (Fixed side) */}
                     <div style={{ width: '350px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
 
+                        {activeTab === 'apartments' && (
+                            <div className="card" style={{
+                                padding: 'var(--spacing-xs) var(--spacing-md)',
+                                background: 'white',
+                                border: '1px solid var(--color-border)',
+                                color: 'var(--color-text)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                marginBottom: '4px'
+                            }}>
+                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600 }}>DAİRE DURUMU</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                                    <div>
+                                        <div style={{ fontSize: '11px', fontWeight: 700 }}>{aptStats.total}</div>
+                                        <div style={{ fontSize: '8px', opacity: 0.6 }}>TOPLAM</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#10b981' }}>{aptStats.soldCount}</div>
+                                        <div style={{ fontSize: '8px', opacity: 0.6 }}>SATILDI</div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>{aptStats.ownerCount}</div>
+                                        <div style={{ fontSize: '8px', opacity: 0.6 }}>M.SAHİBİ</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+
                             <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
                             <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
                         </div>

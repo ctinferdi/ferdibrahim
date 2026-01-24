@@ -61,9 +61,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
             flexDirection: 'column',
             gap: '6px',
             paddingBottom: 'var(--spacing-sm)',
+            padding: '4px', // Space for hover effects
             maxHeight: '600px',
             overflowY: 'auto',
-            overflowX: 'auto',
+            overflowX: 'hidden', // Prevent scrollbar on hover
             width: '100%'
         }}>
 
@@ -107,10 +108,12 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
 
                         <div className="floor-plan-grid" style={{
                             display: 'flex',
+                            flexWrap: 'wrap', // Allow wrapping
                             gap: '6px',
                             flex: 1,
                             width: '100%'
                         }}>
+
 
 
                             {floorApts.map((apt) => {

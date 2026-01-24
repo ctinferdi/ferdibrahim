@@ -106,31 +106,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
                         <div style={{ fontSize: '9px', opacity: 0.8 }}>Bekleyen Alacak</div>
                     </div>
-                    <div className="card" style={{
-                        padding: 'var(--spacing-xs) var(--spacing-md)',
-                        background: 'white',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-text)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
-                    }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600 }}>DAİRE DURUMU</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                            <div>
-                                <div style={{ fontSize: '11px', fontWeight: 700 }}>{aptStats.total}</div>
-                                <div style={{ fontSize: '8px', opacity: 0.6 }}>TOPLAM</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#10b981' }}>{aptStats.soldCount}</div>
-                                <div style={{ fontSize: '8px', opacity: 0.6 }}>SATILDI</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#f59e0b' }}>{aptStats.ownerCount}</div>
-                                <div style={{ fontSize: '8px', opacity: 0.6 }}>M.SAHİBİ</div>
-                            </div>
-                        </div>
-                    </div>
+
                 </>
             )}
         </div>
