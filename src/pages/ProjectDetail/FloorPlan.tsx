@@ -133,15 +133,13 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                     <div
                                         key={apt.id}
                                         onClick={() => {
-                                            if (apt.status !== 'common') {
-                                                onApartmentClick(apt);
-                                            }
+                                            onApartmentClick(apt);
                                         }}
+
                                         onMouseEnter={() => {
-                                            if (apt.status !== 'common') {
-                                                setHoveredAptId(apt.id);
-                                            }
+                                            setHoveredAptId(apt.id);
                                         }}
+
 
                                         onMouseLeave={() => setHoveredAptId(null)}
                                         style={{
@@ -150,8 +148,9 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             borderRadius: '4px',
                                             fontSize: isHovered ? '8px' : '9px',
                                             fontWeight: 800,
-                                            cursor: (apt.status === 'available') ? 'pointer' : 'default',
+                                            cursor: 'pointer',
                                             border: `1px solid ${isHovered ? 'transparent' : borderColor}`,
+
                                             height: '40px',
                                             display: 'flex',
                                             flexDirection: 'column',
@@ -164,9 +163,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             textAlign: 'center',
                                             flex: '1 1 0%', // Stronger auto-stretch
                                             minWidth: '45px',
-                                            opacity: (apt.status === 'available') ? 1 : (apt.status === 'common' ? 0.5 : 0.8),
-                                            pointerEvents: apt.status === 'common' ? 'none' : 'auto'
+                                            opacity: (apt.status === 'available') ? 1 : (apt.status === 'common' ? 0.8 : 0.8),
+                                            pointerEvents: 'auto'
                                         }}
+
 
 
 

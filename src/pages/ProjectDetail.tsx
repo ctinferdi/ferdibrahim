@@ -569,77 +569,78 @@ const ProjectDetail: React.FC = () => {
                                             </div>
                                             <button
                                                 onClick={async () => {
-                                                    if (!id) return;
+                                                    if (!id || !project) return;
                                                     setSaving(true);
-                                                    const updates = {
-                                                        company_name: companyInfo.company_name,
-                                                        company_address: companyInfo.company_address,
-                                                        company_location: companyInfo.company_location,
-                                                        whatsapp_number: companyInfo.whatsapp_number,
-                                                        notification_emails: companyInfo.notification_emails.filter(e => e && e.includes('@') && e.trim() !== '')
-                                                    };
-                                                    await projectService.updateProject(project.id, updates);
-                                                    alert('Firma bilgileri kaydedildi!');
-                                                    loadAllData();
-                                                } catch (err: any) {
-                                                console.error('❌ Kaydetme Hatası Detayı:', err);
-                                            alert('Hata: ' + (err.message || 'Bir sorun oluştu. Detay konsolda.'));
+                                                    try {
+                                                        const updates = {
+                                                            company_name: companyInfo.company_name,
+                                                            company_address: companyInfo.company_address,
+                                                            company_location: companyInfo.company_location,
+                                                            whatsapp_number: companyInfo.whatsapp_number,
+                                                            notification_emails: companyInfo.notification_emails.filter(e => e && e.includes('@') && e.trim() !== '')
+                                                        };
+                                                        await projectService.updateProject(project.id, updates);
+                                                        alert('Firma bilgileri kaydedildi!');
+                                                        loadAllData();
+                                                    } catch (err: any) {
+                                                        console.error('❌ Kaydetme Hatası Detayı:', err);
+                                                        alert('Hata: ' + (err instanceof Error ? err.message : 'Bir sorun oluştu.'));
                                                     } finally {
-                                                setSaving(false);
+                                                        setSaving(false);
                                                     }
-
-
                                                 }}
-                                            disabled={saving}
-                                            style={{
-                                                marginTop: '4px',
-                                                padding: '6px',
-                                                fontSize: '11px',
-                                                fontWeight: 700,
-                                                background: 'var(--color-primary)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: saving ? 'not-allowed' : 'pointer'
-                                            }}
+                                                disabled={saving}
+                                                style={{
+                                                    marginTop: '4px',
+                                                    padding: '6px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    background: 'var(--color-primary)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: saving ? 'not-allowed' : 'pointer'
+                                                }}
                                             >
-                                            {saving ? 'Kaydediliyor...' : 'Bilgileri Kaydet'}
-                                        </button>
+                                                {saving ? 'Kaydediliyor...' : 'Bilgileri Kaydet'}
+                                            </button>
+
+                                        </div>
                                     </div>
-                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
-                        )}
                 </div>
             </div>
-        </div>
 
-            {/* Modals */ }
+
+            {/* Modals */}
             <ExpenseModal isOpen={showExpenseModal} onClose={() => setShowExpenseModal(false)} onSave={handleSaveExpense} project={project} editingExpenseId={editingExpenseId} expenseDate={expenseDate} setExpenseDate={setExpenseDate} selectedPartner={selectedPartner} setSelectedPartner={setSelectedPartner} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} recipient={recipient} setRecipient={setRecipient} category={category} setCategory={setCategory} description={description} setDescription={setDescription} amount={amount} setAmount={setAmount} saving={saving} errorMsg={errorMsg} />
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={loadAllData} />
 
-    {/* Delete Confirmation Modal */ }
-    {
-        showDeleteModal && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--spacing-md)' }}>
-                <div className="card" style={{ maxWidth: '400px', width: '100%', padding: 'var(--spacing-lg)' }}>
-                    <h2 className="mb-md">{activeTab === 'expenses' ? 'Gideri Sil' : 'Çeki Sil'}</h2>
-                    <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}><strong>{deletingExpense?.name}</strong> kaydını silmek için: <strong style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>{generatedSecurityCode}</strong></p>
-                    <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '10px' }}>GÜVENLİK KODU</label>
-                        <input type="tel" className="form-input" value={deleteConfirmCode} onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="4 haneli kodu girin" autoFocus />
+            {/* Delete Confirmation Modal */}
+            {
+                showDeleteModal && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--spacing-md)' }}>
+                        <div className="card" style={{ maxWidth: '400px', width: '100%', padding: 'var(--spacing-lg)' }}>
+                            <h2 className="mb-md">{activeTab === 'expenses' ? 'Gideri Sil' : 'Çeki Sil'}</h2>
+                            <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}><strong>{deletingExpense?.name}</strong> kaydını silmek için: <strong style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>{generatedSecurityCode}</strong></p>
+                            <div className="form-group">
+                                <label className="form-label" style={{ fontSize: '10px' }}>GÜVENLİK KODU</label>
+                                <input type="tel" className="form-input" value={deleteConfirmCode} onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="4 haneli kodu girin" autoFocus />
+                            </div>
+                            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+                                <button onClick={handleDeleteConfirm} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#f5576c' }}>SİL</button>
+                                <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); }} style={{ flex: 1 }}>İPTAL</button>
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-                        <button onClick={handleDeleteConfirm} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#f5576c' }}>SİL</button>
-                        <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); }} style={{ flex: 1 }}>İPTAL</button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-        </Layout >
+                )
+            }
+        </Layout>
     );
 };
 
