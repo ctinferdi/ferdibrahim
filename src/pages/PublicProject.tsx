@@ -15,45 +15,24 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<any>(null); // Firma bilgileri
 
     useEffect(() => {
+        // Apply responsive styles for this page
         const style = document.createElement('style');
         style.textContent = `
-            /* Desktop Default */
-            .apartment-grid {
-                display: grid !important;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
-                flex: 1 !important;
-                min-width: 0 !important;
-                flex-direction: row !important;
-            }
-            .floor-row {
-                overflow: hidden !important;
-            }
-
-            /* Mobile Specific */
             @media (max-width: 768px) {
                 .floor-row {
-                    overflow-x: auto !important;
-                    padding: 8px !important;
+                    min-width: 1000px !important; /* Force desktop-like width */
+                    flex-direction: row !important;
                 }
                 .floor-label {
-                    position: sticky !important;
-                    left: 0 !important;
-                    background: #f8fafc !important;
-                    z-index: 5 !important;
-                    min-width: 70px !important;
+                    min-width: 80px !important;
+                    border-right: 2px solid #e2e8f0 !important;
+                    border-bottom: none !important;
                 }
                 .apartment-grid {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    grid-template-columns: none !important;
-                    min-width: max-content !important;
-                    gap: 12px !important;
-                }
-                .apartment-card {
-                    min-width: 160px !important;
-                    flex: 0 0 auto !important;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
                 }
             }
+
         `;
         document.head.appendChild(style);
         return () => {
@@ -64,7 +43,6 @@ const PublicProject: React.FC = () => {
     useEffect(() => {
         loadData();
     }, [publicCode]);
-
 
 
     const loadData = async () => {
@@ -170,7 +148,8 @@ const PublicProject: React.FC = () => {
 
             {/* Floor Plan - Horizontal Layout */}
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
+                <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
+
                     <h2 style={{ margin: 0, marginBottom: '20px', fontSize: '20px', fontWeight: 800 }}>🏢 Bina Planı</h2>
 
                     {apartments.length === 0 ? (
@@ -188,7 +167,7 @@ const PublicProject: React.FC = () => {
                                         background: '#f8fafc',
                                         borderRadius: '8px',
                                         border: '2px solid #e2e8f0',
-                                        alignItems: 'stretch'
+                                        flexDirection: 'row' // Default for desktop
                                     }}>
                                         {/* Kat Label */}
                                         <div className="floor-label" style={{
@@ -205,9 +184,12 @@ const PublicProject: React.FC = () => {
                                             {getFloorLabel(floor)}
                                         </div>
 
-                                        {/* Daireler */}
+                                        {/* Daireler - Responsive Grid */}
                                         <div className="apartment-grid" style={{
-                                            gap: '12px'
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))',
+                                            gap: '12px',
+                                            flex: 1
                                         }}>
                                             {floorApts.map(apt => {
                                                 const isAvailable = apt.status === 'available';
@@ -216,7 +198,6 @@ const PublicProject: React.FC = () => {
                                                 return (
                                                     <div
                                                         key={apt.id}
-                                                        className="apartment-card"
                                                         onClick={() => {
                                                             if (apt.status !== 'sold' && apt.status !== 'owner') {
                                                                 setSelectedApartment(apt);
@@ -243,7 +224,6 @@ const PublicProject: React.FC = () => {
                                                             boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
                                                             color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit'
                                                         }}
-
                                                     >
                                                         {/* Badge */}
                                                         {apt.status !== 'sold' && !isHovered && (

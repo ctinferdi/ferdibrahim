@@ -12,43 +12,21 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     React.useEffect(() => {
         const style = document.createElement('style');
         style.textContent = `
-            /* Desktop Default */
-            .floor-plan-grid {
-                display: grid !important;
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
-                flex: 1 !important;
-                min-width: 0 !important;
-                flex-direction: row !important;
-            }
-            .floor-plan-row {
-                overflow: hidden !important;
-            }
-
-            /* Mobile Specific */
             @media (max-width: 640px) {
                 .floor-plan-row {
-                    overflow-x: auto !important;
-                    padding: 4px !important;
+                    min-width: 600px !important; /* Force building width for admins */
+                    flex-direction: row !important;
                 }
                 .floor-plan-label {
-                    position: sticky !important;
-                    left: 0 !important;
-                    background: #f8fafc !important;
-                    z-index: 5 !important;
-                    min-width: 50px !important;
+                    min-width: 60px !important;
+                    border-right: 2px solid var(--color-border) !important;
+                    border-bottom: none !important;
                 }
                 .floor-plan-grid {
-                    display: flex !important;
-                    flex-direction: row !important;
-                    grid-template-columns: none !important;
-                    min-width: max-content !important;
-                    gap: 6px !important;
-                }
-                .floor-plan-card {
-                    min-width: 45px !important;
-                    flex: 0 0 auto !important;
+                    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)) !important;
                 }
             }
+
         `;
         document.head.appendChild(style);
         return () => {
@@ -57,7 +35,6 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     }, []);
 
     if (apartments.length === 0) {
-
 
         return (
             <div style={{
@@ -88,8 +65,9 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
             paddingBottom: 'var(--spacing-sm)',
             maxHeight: '600px',
             overflowY: 'auto',
-            overflowX: 'hidden'
+            overflowX: 'auto'
         }}>
+
             {floors.map(floor => {
                 const floorApts = apartments
                     .filter(a => a.floor === floor)
@@ -103,7 +81,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                 return (
                     <div key={floor} className="floor-plan-row" style={{
                         display: 'flex',
-                        alignItems: 'stretch',
+                        alignItems: 'center',
                         gap: '8px',
                         padding: '4px',
                         borderRadius: '6px',
@@ -128,7 +106,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                         </div>
 
                         <div className="floor-plan-grid" style={{
-                            gap: '6px'
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(45px, 1fr))',
+                            gap: '6px',
+                            flex: 1
                         }}>
                             {floorApts.map((apt) => {
                                 let bgColor = '#f8fafc';
@@ -149,7 +130,6 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                 return (
                                     <div
                                         key={apt.id}
-                                        className="floor-plan-card"
                                         onClick={() => onApartmentClick(apt)}
                                         onMouseEnter={() => setHoveredAptId(apt.id)}
                                         onMouseLeave={() => setHoveredAptId(null)}
@@ -172,9 +152,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             zIndex: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 10 : 1,
                                             textAlign: 'center'
                                         }}
-
                                     >
-
                                         <div style={{
                                             fontWeight: 800,
                                             fontSize: isHovered ? '8px' : '11px',
