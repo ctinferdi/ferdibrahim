@@ -14,18 +14,13 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
         style.textContent = `
             @media (max-width: 640px) {
                 .floor-plan-row {
-                    min-width: 600px !important; /* Force building width for admins */
-                    flex-direction: row !important;
-                }
-                .floor-plan-label {
-                    min-width: 60px !important;
-                    border-right: 2px solid var(--color-border) !important;
-                    border-bottom: none !important;
+                    min-width: 600px !important;
                 }
                 .floor-plan-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)) !important;
+                    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
                 }
             }
+
 
         `;
         document.head.appendChild(style);
