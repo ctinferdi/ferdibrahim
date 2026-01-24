@@ -21,13 +21,22 @@ const PublicProject: React.FC = () => {
             @media (max-width: 768px) {
                 .main-container {
                     min-width: 1200px !important;
+                    width: 1200px !important;
+                }
+                .main-container > div {
+                    width: 100% !important;
+                    max-width: none !important;
                 }
                 .apartment-grid {
                     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+                    width: 100% !important;
                 }
                 .apartment-card {
                     padding: 8px !important;
                     min-height: 120px !important;
+                }
+                .floor-row {
+                    width: 100% !important;
                 }
                 .floor-label {
                     min-width: 60px !important;
@@ -36,8 +45,10 @@ const PublicProject: React.FC = () => {
                 body, #root {
                     width: max-content !important;
                     min-width: 100% !important;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
                 }
             }
+
 
 
 
