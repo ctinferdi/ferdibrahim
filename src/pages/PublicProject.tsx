@@ -211,13 +211,14 @@ const PublicProject: React.FC = () => {
                                                 {getFloorLabel(floor)}
                                             </div>
 
-                                            {/* Daireler - Standardized Grid for perfect alignment */}
+                                            {/* Daireler - Flex layout for automatic stretching */}
                                             <div className="apartment-grid" style={{
-                                                display: 'grid',
-                                                gridTemplateColumns: `repeat(${maxAptsOnFloor}, 1fr)`,
+                                                display: 'flex',
                                                 gap: '12px',
-                                                flex: 1
+                                                flex: 1,
+                                                width: '100%'
                                             }}>
+
                                                 {floorApts.map(apt => {
                                                     const isAvailable = apt.status === 'available';
                                                     const isHovered = hoveredAptId === apt.id;
@@ -226,12 +227,12 @@ const PublicProject: React.FC = () => {
                                                         <div
                                                             key={apt.id}
                                                             onClick={() => {
-                                                                if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                                if (apt.status === 'available') {
                                                                     setSelectedApartment(apt);
                                                                 }
                                                             }}
                                                             onMouseEnter={() => {
-                                                                if (apt.status !== 'sold' && apt.status !== 'owner') {
+                                                                if (apt.status === 'available') {
                                                                     setHoveredAptId(apt.id);
                                                                 }
                                                             }}
@@ -241,16 +242,19 @@ const PublicProject: React.FC = () => {
                                                                 border: `1px solid ${isHovered ? 'transparent' : (isAvailable ? '#e2e8f0' : '#cbd5e1')}`,
                                                                 borderRadius: '12px',
                                                                 padding: '16px',
-                                                                cursor: (apt.status === 'sold' || apt.status === 'owner') ? 'default' : 'pointer',
+                                                                cursor: (apt.status === 'sold' || apt.status === 'owner' || apt.status === 'common') ? 'default' : 'pointer',
                                                                 transition: 'all 0.15s ease-in-out',
                                                                 position: 'relative',
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
-                                                                opacity: isAvailable ? 1 : 0.8,
-                                                                transform: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'translateY(-2px)' : 'translateY(0)',
-                                                                boxShadow: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
-                                                                color: (isHovered && apt.status !== 'sold' && apt.status !== 'owner') ? 'white' : 'inherit'
+                                                                opacity: isAvailable ? 1 : (apt.status === 'common' ? 0.6 : 0.8),
+                                                                transform: (isHovered && apt.status === 'available') ? 'translateY(-2px)' : 'translateY(0)',
+                                                                boxShadow: (isHovered && apt.status === 'available') ? '0 10px 15px -3px rgba(0, 0, 0, 0.1)' : 'none',
+                                                                color: (isHovered && apt.status === 'available') ? 'white' : 'inherit',
+                                                                flex: 1, // Automatic stretching
+                                                                minWidth: '120px'
                                                             }}
+
                                                         >
                                                             {/* Badge */}
                                                             {apt.status !== 'sold' && !isHovered && (

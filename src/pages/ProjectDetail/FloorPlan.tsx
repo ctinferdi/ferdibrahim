@@ -104,11 +104,12 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                         </div>
 
                         <div className="floor-plan-grid" style={{
-                            display: 'grid',
-                            gridTemplateColumns: `repeat(${maxAptsOnFloor}, 1fr)`,
+                            display: 'flex',
                             gap: '6px',
-                            flex: 1
+                            flex: 1,
+                            width: '100%'
                         }}>
+
 
                             {floorApts.map((apt) => {
                                 let bgColor = '#f8fafc';
@@ -129,8 +130,17 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                 return (
                                     <div
                                         key={apt.id}
-                                        onClick={() => onApartmentClick(apt)}
-                                        onMouseEnter={() => setHoveredAptId(apt.id)}
+                                        onClick={() => {
+                                            if (apt.status !== 'common') {
+                                                onApartmentClick(apt);
+                                            }
+                                        }}
+                                        onMouseEnter={() => {
+                                            if (apt.status !== 'common') {
+                                                setHoveredAptId(apt.id);
+                                            }
+                                        }}
+
                                         onMouseLeave={() => setHoveredAptId(null)}
                                         style={{
                                             background: isHovered ? (apt.status === 'available' ? '#8b5cf6' : textColor) : bgColor,
@@ -138,19 +148,23 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             borderRadius: '4px',
                                             fontSize: isHovered ? '8px' : '9px',
                                             fontWeight: 800,
-                                            cursor: (apt.status === 'sold' || apt.status === 'owner') ? 'default' : 'pointer',
-                                            border: `1px solid ${isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'transparent' : borderColor}`,
+                                            cursor: (apt.status === 'common') ? 'default' : 'pointer',
+                                            border: `1px solid ${isHovered && apt.status === 'available' ? 'transparent' : borderColor}`,
                                             height: '40px',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            boxShadow: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
+                                            boxShadow: isHovered && apt.status === 'available' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
                                             transition: 'all 0.15s ease-in-out',
-                                            transform: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 'scale(1.1)' : 'scale(1)',
-                                            zIndex: isHovered && apt.status !== 'sold' && apt.status !== 'owner' ? 10 : 1,
-                                            textAlign: 'center'
+                                            transform: isHovered && apt.status === 'available' ? 'scale(1.1)' : 'scale(1)',
+                                            zIndex: isHovered && apt.status === 'available' ? 10 : 1,
+                                            textAlign: 'center',
+                                            flex: 1, // Automatic stretching
+                                            minWidth: '45px',
+                                            opacity: apt.status === 'common' ? 0.6 : 1
                                         }}
+
                                     >
                                         <div style={{
                                             fontWeight: 800,
