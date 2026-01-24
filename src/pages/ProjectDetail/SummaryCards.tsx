@@ -76,10 +76,14 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 <>
                     {/* Apartments View - 3 Columns for stats */}
                     <div className="card" style={{
+                        gridColumn: '1 / -1', // Span full width force
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                         color: 'white',
-                        gridColumn: 'span 2' // Make this big too? Or keep as grid
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        minHeight: '60px'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM SATIŞ</div>
                         <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
