@@ -29,23 +29,21 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     return (
         <div style={{
             display: 'grid',
-            gridTemplateColumns: activeTab === 'apartments' ? 'repeat(3, 1fr)' : 'repeat(2, minmax(140px, 1fr))',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 'var(--spacing-sm)',
             marginBottom: 'var(--spacing-xs)',
             width: '100%',
-            maxWidth: activeTab === 'apartments' ? '800px' : '500px'
+            maxWidth: '800px'
         }}>
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
                     <div className="card" style={{
-                        gridColumn: '1 / -1', // Span full width
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'center',
-                        minHeight: '60px'
+                        justifyContent: 'center'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>GENEL TOPLAM</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
