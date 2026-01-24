@@ -285,7 +285,31 @@ const ProjectDetail: React.FC = () => {
     return (
         <Layout>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                {/* Header Section */}
+                {/* Header Section - Title Row */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'white',
+                    padding: 'var(--spacing-sm) var(--spacing-md)',
+                    borderRadius: 'var(--border-radius-lg)',
+                    boxShadow: 'var(--shadow-sm)',
+                    position: 'relative' // For absolute centering if needed
+                }}>
+                    <div style={{ width: '100px' }}>
+                        <button onClick={() => navigate('/projeler')} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '11px' }}>← Dön</button>
+                    </div>
+
+                    <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)', textAlign: 'center', flex: 1 }}>
+                        {project.name.toUpperCase()}
+                    </h1>
+
+                    <div style={{ width: '100px', display: 'flex', justifyContent: 'flex-end' }}>
+                        {/* Spacer for centering or future settings icon */}
+                    </div>
+                </div>
+
+                {/* Second Row - Actions & Summaries */}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -293,14 +317,19 @@ const ProjectDetail: React.FC = () => {
                     background: 'white',
                     padding: 'var(--spacing-xs) var(--spacing-md)',
                     borderRadius: 'var(--border-radius-lg)',
-                    boxShadow: 'var(--shadow-sm)'
+                    boxShadow: 'var(--shadow-sm)',
+                    flexWrap: 'wrap',
+                    gap: 'var(--spacing-md)'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <button onClick={() => navigate('/projeler')} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '11px' }}>← Dön</button>
-                    </div>
-
+                    {/* Left Side: Actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)', marginRight: 'var(--spacing-md)' }}>{project.name.toUpperCase()}</h1>
+                        <button className="btn btn-primary" onClick={() => {
+                            if (activeTab === 'expenses') setShowExpenseModal(true);
+                            else if (activeTab === 'checks') setShowCheckModal(true);
+                            else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold' }); setShowApartmentModal(true); }
+                        }} style={{ padding: '0.4rem 1.2rem', fontSize: '11px', fontWeight: 700 }}>
+                            + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
+                        </button>
 
                         {/* Tabs */}
                         <div style={{ display: 'flex', gap: '2px', background: '#f1f5f9', padding: '2px', borderRadius: '8px' }}>
@@ -309,8 +338,6 @@ const ProjectDetail: React.FC = () => {
                             <button className={`btn`} onClick={() => setActiveTab('apartments')} style={{ padding: '0.35rem 0.9rem', fontSize: '11px', background: activeTab === 'apartments' ? 'white' : 'transparent', color: activeTab === 'apartments' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'apartments' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Daireler</button>
                         </div>
 
-
-                        {/* Action Buttons */}
                         {activeTab === 'apartments' && (
                             <>
                                 <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ padding: '0.4rem 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -325,18 +352,12 @@ const ProjectDetail: React.FC = () => {
                                 })} style={{ padding: '0.4rem 1rem', fontSize: '11px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>🗑️ Temizle</button>
                             </>
                         )}
-                        <button className="btn btn-primary" onClick={() => {
-                            if (activeTab === 'expenses') setShowExpenseModal(true);
-                            else if (activeTab === 'checks') setShowCheckModal(true);
-                            else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold' }); setShowApartmentModal(true); }
-                        }} style={{ padding: '0.4rem 1.2rem', fontSize: '11px', fontWeight: 700 }}>
-                            + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
-                        </button>
                     </div>
+
+                    {/* Right Side: Summaries */}
+                    <SummaryCards activeTab={activeTab} generalTotal={generalTotal} project={project} getPartnerTotal={getPartnerTotal} aptStats={aptStats} formatCurrency={formatCurrency} />
                 </div>
 
-                {/* Summaries */}
-                <SummaryCards activeTab={activeTab} generalTotal={generalTotal} project={project} getPartnerTotal={getPartnerTotal} aptStats={aptStats} formatCurrency={formatCurrency} />
 
                 {/* Main Content Area */}
                 <div className="card" style={{ padding: 'var(--spacing-md)', display: 'flex', gap: 'var(--spacing-lg)', minHeight: '500px' }}>
