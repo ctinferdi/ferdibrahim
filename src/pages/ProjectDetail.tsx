@@ -301,23 +301,20 @@ const ProjectDetail: React.FC = () => {
                 {/* Second Row - Actions & Summaries */}
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
                     alignItems: 'center',
+                    justifyContent: 'space-between', // Push to edges
                     background: 'white',
                     padding: 'var(--spacing-xs) var(--spacing-md)',
                     borderRadius: 'var(--border-radius-lg)',
                     boxShadow: 'var(--shadow-sm)',
                     flexWrap: 'wrap',
-                    gap: 'var(--spacing-2xl)' // Increased gap, removed space-between
+                    gap: 'var(--spacing-md)'
                 }}>
                     {/* Left Side: Actions */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 'var(--spacing-md)',
-                        borderRight: '2px solid #e2e8f0', // The requested divider line
-                        paddingRight: 'var(--spacing-xl)',
-                        marginRight: 'auto' // Pulls summary cards to the right but keeps the line attached to buttons
+                        gap: 'var(--spacing-md)'
                     }}>
                         <button className="btn btn-primary" onClick={() => {
                             if (activeTab === 'expenses') setShowExpenseModal(true);

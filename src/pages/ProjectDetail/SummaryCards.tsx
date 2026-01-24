@@ -75,21 +75,6 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 </>
             ) : (
                 <>
-                    {/* Collection (Green) */}
-                    <div className="card" style={{
-                        height: '60px',
-                        padding: '0 var(--spacing-md)',
-                        background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
-                        color: 'white',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
-                    }}>
-                        <div style={{ fontSize: '11px', opacity: 0.9, fontWeight: 600 }}>TOPLAM TAHSİLAT</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(aptStats.totalPaidAmount)}</div>
-                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Kasaya Giren</div>
-                    </div>
-
                     {/* Remaining (Red) */}
                     <div className="card" style={{
                         height: '60px',
