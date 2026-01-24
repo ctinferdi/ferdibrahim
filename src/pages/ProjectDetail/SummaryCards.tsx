@@ -29,11 +29,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     return (
         <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(140px, 1fr))',
+            gridTemplateColumns: activeTab === 'apartments' ? 'repeat(3, 1fr)' : 'repeat(2, minmax(140px, 1fr))',
             gap: 'var(--spacing-sm)',
             marginBottom: 'var(--spacing-xs)',
             width: '100%',
-            maxWidth: '500px' // Constrain styling on the right
+            maxWidth: activeTab === 'apartments' ? '800px' : '500px'
         }}>
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
@@ -74,38 +74,47 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 </>
             ) : (
                 <>
-                    {/* Apartments View - 3 Columns for stats */}
+                    {/* Collection (Green) */}
                     <div className="card" style={{
-                        gridColumn: '1 / -1', // Span full width force
+                        padding: 'var(--spacing-xs) var(--spacing-md)',
+                        background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM TAHSİLAT</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(aptStats.totalPaidAmount)}</div>
+                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Kasaya Giren</div>
+                    </div>
+
+                    {/* Remaining (Red) */}
+                    <div className="card" style={{
+                        padding: 'var(--spacing-xs) var(--spacing-md)',
+                        background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM KALAN</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
+                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Bekleyen Alacak</div>
+                    </div>
+
+                    {/* Sales (Blue) */}
+                    <div className="card" style={{
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'center',
-                        minHeight: '60px'
+                        justifyContent: 'center'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM SATIŞ</div>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
                         <div style={{ fontSize: '9px', opacity: 0.8 }}>{aptStats.soldCount} Daire Satıldı</div>
                     </div>
-                    <div className="card" style={{
-                        padding: 'var(--spacing-xs) var(--spacing-md)',
-                        background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
-                        color: 'white'
-                    }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM TAHSİLAT</div>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(aptStats.totalPaidAmount)}</div>
-                    </div>
-                    <div className="card" style={{
-                        padding: 'var(--spacing-xs) var(--spacing-md)',
-                        background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
-                        color: 'white'
-                    }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM KALAN</div>
-                        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
-                    </div>
-
                 </>
             )}
         </div>
