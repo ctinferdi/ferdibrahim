@@ -201,13 +201,15 @@ const PublicProject: React.FC = () => {
                                                 minWidth: '80px',
                                                 fontWeight: 800,
                                                 fontSize: '14px',
-                                                color: '#1e293b',
+                                                color: 'white',
+                                                background: '#6366f1', // Indigo color to pop
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                paddingRight: '12px',
-                                                borderRight: '2px solid #e2e8f0'
+                                                borderRadius: '6px',
+                                                boxShadow: '0 2px 4px rgba(99, 102, 241, 0.2)'
                                             }}>
+
                                                 {getFloorLabel(floor)}
                                             </div>
 
