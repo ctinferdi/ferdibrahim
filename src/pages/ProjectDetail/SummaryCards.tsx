@@ -28,17 +28,16 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
     return (
         <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            display: 'flex',
             gap: 'var(--spacing-sm)',
-            marginBottom: 'var(--spacing-xs)',
-            width: '100%',
-            maxWidth: '1200px', // Allow more width for more cards
-            justifyContent: 'end' // try to keep them to the right? No, grid doesn't use justify-content for items unless tracks are smaller.
+            alignItems: 'center',
+            width: 'auto', // Don't take full width
+            flexWrap: 'nowrap' // Stay on same line
         }}>
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
                     <div className="card" style={{
+                        width: '240px', // Fixed width for flex
                         height: '60px', // Uniform height
                         padding: '0 var(--spacing-md)', // Adjust padding for vertical centering
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -55,6 +54,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                     {activeTab === 'expenses' && project.partners?.map((partner) => (
                         <div key={partner.id} className="card" style={{
+                            width: '240px',
                             height: '60px',
                             padding: '0 var(--spacing-md)',
                             background: 'white',
@@ -77,6 +77,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 <>
                     {/* Remaining (Red) */}
                     <div className="card" style={{
+                        width: '240px',
                         height: '60px',
                         padding: '0 var(--spacing-md)',
                         background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
@@ -92,6 +93,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                     {/* Sales (Blue) */}
                     <div className="card" style={{
+                        width: '240px',
                         height: '60px',
                         padding: '0 var(--spacing-md)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
