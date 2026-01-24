@@ -289,8 +289,8 @@ const ProjectDetail: React.FC = () => {
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 'var(--spacing-xs) 0',
+                    justifyContent: 'flex-start', // Align to left
+                    padding: 'var(--spacing-xs) var(--spacing-md)', // Add horizontal padding
                 }}>
                     <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--color-dark)', textAlign: 'center' }}>
                         {project.name.toUpperCase()}
