@@ -17,9 +17,11 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     min-width: 600px !important;
                 }
                 .floor-plan-grid {
-                    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
                 }
             }
+
 
 
         `;
@@ -162,8 +164,10 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                                             textAlign: 'center',
                                             flex: '1 1 0%', // Stronger auto-stretch
                                             minWidth: '45px',
-                                            opacity: (apt.status === 'available') ? 1 : (apt.status === 'common' ? 0.5 : 0.8)
+                                            opacity: (apt.status === 'available') ? 1 : (apt.status === 'common' ? 0.5 : 0.8),
+                                            pointerEvents: apt.status === 'common' ? 'none' : 'auto'
                                         }}
+
 
 
 
