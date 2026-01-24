@@ -285,29 +285,18 @@ const ProjectDetail: React.FC = () => {
     return (
         <Layout>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                {/* Header Section - Title Row */}
+                {/* Header Section - Title Only */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: 'white',
-                    padding: 'var(--spacing-sm) var(--spacing-md)',
-                    borderRadius: 'var(--border-radius-lg)',
-                    boxShadow: 'var(--shadow-sm)',
-                    position: 'relative' // For absolute centering if needed
+                    justifyContent: 'center',
+                    padding: 'var(--spacing-xs) 0',
                 }}>
-                    <div style={{ width: '100px' }}>
-                        <button onClick={() => navigate('/projeler')} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '11px' }}>← Dön</button>
-                    </div>
-
-                    <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)', textAlign: 'center', flex: 1 }}>
+                    <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--color-dark)', textAlign: 'center' }}>
                         {project.name.toUpperCase()}
                     </h1>
-
-                    <div style={{ width: '100px', display: 'flex', justifyContent: 'flex-end' }}>
-                        {/* Spacer for centering or future settings icon */}
-                    </div>
                 </div>
+
 
                 {/* Second Row - Actions & Summaries */}
                 <div style={{

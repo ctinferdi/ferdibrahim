@@ -29,23 +29,27 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     return (
         <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gridTemplateColumns: 'repeat(2, minmax(140px, 1fr))',
             gap: 'var(--spacing-sm)',
-            marginBottom: 'var(--spacing-xs)'
+            marginBottom: 'var(--spacing-xs)',
+            width: '100%',
+            maxWidth: '500px' // Constrain styling on the right
         }}>
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
                     <div className="card" style={{
+                        gridColumn: '1 / -1', // Span full width
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        minHeight: '60px'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>GENEL TOPLAM</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(generalTotal)}</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{formatCurrency(generalTotal)}</div>
                         </div>
                     </div>
 
@@ -59,10 +63,10 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                             flexDirection: 'column',
                             justifyContent: 'center'
                         }}>
-                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600 }}>{partner.name.toUpperCase()} HARCAMA</div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-primary)' }}>{formatCurrency(getPartnerTotal(partner.id))}</div>
-                                <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.7 }}>%{partner.share_percentage}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--color-text-light)', fontWeight: 700, textTransform: 'uppercase' }}>{partner.name} HARCAMA</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '2px' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>{formatCurrency(getPartnerTotal(partner.id))}</div>
+                                <div style={{ fontSize: '10px', opacity: 0.7 }}>Hisse: %{partner.share_percentage}</div>
                             </div>
                         </div>
                     ))}
@@ -70,13 +74,12 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 </>
             ) : (
                 <>
+                    {/* Apartments View - 3 Columns for stats */}
                     <div className="card" style={{
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                         color: 'white',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
+                        gridColumn: 'span 2' // Make this big too? Or keep as grid
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM SATIŞ</div>
                         <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
@@ -85,31 +88,24 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                     <div className="card" style={{
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
-                        color: 'white',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
+                        color: 'white'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM TAHSİLAT</div>
                         <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(aptStats.totalPaidAmount)}</div>
-                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Kasaya Giren</div>
                     </div>
                     <div className="card" style={{
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
-                        color: 'white',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
+                        color: 'white'
                     }}>
                         <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.9, fontWeight: 600 }}>TOPLAM KALAN</div>
                         <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
-                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Bekleyen Alacak</div>
                     </div>
 
                 </>
             )}
         </div>
+
     );
 };
 
