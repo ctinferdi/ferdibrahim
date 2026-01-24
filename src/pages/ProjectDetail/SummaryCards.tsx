@@ -38,6 +38,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
                     <div className="card" style={{
+                        height: '70px', // Fixed height
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
@@ -53,6 +54,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                     {activeTab === 'expenses' && project.partners?.map((partner) => (
                         <div key={partner.id} className="card" style={{
+                            height: '70px', // Fixed height
                             padding: 'var(--spacing-xs) var(--spacing-md)',
                             background: 'white',
                             border: '1px solid var(--color-border)',
@@ -74,6 +76,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 <>
                     {/* Collection (Green) */}
                     <div className="card" style={{
+                        height: '70px', // Fixed height
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
                         color: 'white',
@@ -88,6 +91,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                     {/* Remaining (Red) */}
                     <div className="card" style={{
+                        height: '70px', // Fixed height
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
                         color: 'white',
@@ -102,6 +106,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
 
                     {/* Sales (Blue) */}
                     <div className="card" style={{
+                        height: '70px', // Fixed height
                         padding: 'var(--spacing-xs) var(--spacing-md)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                         color: 'white',
