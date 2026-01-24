@@ -311,7 +311,14 @@ const ProjectDetail: React.FC = () => {
                     gap: 'var(--spacing-2xl)' // Increased gap, removed space-between
                 }}>
                     {/* Left Side: Actions */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--spacing-md)',
+                        borderRight: '2px solid #e2e8f0', // The requested divider line
+                        paddingRight: 'var(--spacing-xl)',
+                        marginRight: 'auto' // Pulls summary cards to the right but keeps the line attached to buttons
+                    }}>
                         <button className="btn btn-primary" onClick={() => {
                             if (activeTab === 'expenses') setShowExpenseModal(true);
                             else if (activeTab === 'checks') setShowCheckModal(true);

@@ -29,11 +29,12 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     return (
         <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
             gap: 'var(--spacing-sm)',
             marginBottom: 'var(--spacing-xs)',
             width: '100%',
-            maxWidth: '900px' // Slightly wider
+            maxWidth: '1200px', // Allow more width for more cards
+            justifyContent: 'end' // try to keep them to the right? No, grid doesn't use justify-content for items unless tracks are smaller.
         }}>
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
