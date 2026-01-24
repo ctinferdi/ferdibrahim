@@ -285,17 +285,6 @@ const ProjectDetail: React.FC = () => {
     return (
         <Layout>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                {/* Header Section - Title Only */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start', // Align to left
-                    padding: 'var(--spacing-xs) var(--spacing-md)', // Add horizontal padding
-                }}>
-                    <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 900, color: 'var(--color-dark)', textAlign: 'center' }}>
-                        {project.name.toUpperCase()}
-                    </h1>
-                </div>
 
 
                 {/* Second Row - Actions & Summaries */}
@@ -409,8 +398,10 @@ const ProjectDetail: React.FC = () => {
                         )}
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-
-                            <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--color-primary)', fontWeight: 800, letterSpacing: '0.5px', marginBottom: '2px' }}>{project.name.toUpperCase()}</div>
+                                <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
+                            </div>
                             <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
                         </div>
                         <FloorPlan apartments={apartments} onApartmentClick={(a) => {
