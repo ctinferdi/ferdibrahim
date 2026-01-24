@@ -295,18 +295,20 @@ const ProjectDetail: React.FC = () => {
                     borderRadius: 'var(--border-radius-lg)',
                     boxShadow: 'var(--shadow-sm)'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                         <button onClick={() => navigate('/projeler')} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '11px' }}>← Dön</button>
-                        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)' }}>{project.name.toUpperCase()}</h1>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-dark)', marginRight: 'var(--spacing-md)' }}>{project.name.toUpperCase()}</h1>
+
                         {/* Tabs */}
-                        <div style={{ display: 'flex', gap: '2px', background: '#f1f5f9', padding: '2px', borderRadius: '8px', marginRight: 'var(--spacing-md)' }}>
+                        <div style={{ display: 'flex', gap: '2px', background: '#f1f5f9', padding: '2px', borderRadius: '8px' }}>
                             <button className={`btn`} onClick={() => setActiveTab('expenses')} style={{ padding: '0.35rem 0.9rem', fontSize: '11px', background: activeTab === 'expenses' ? 'white' : 'transparent', color: activeTab === 'expenses' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'expenses' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Giderler</button>
                             <button className={`btn`} onClick={() => setActiveTab('checks')} style={{ padding: '0.35rem 0.9rem', fontSize: '11px', background: activeTab === 'checks' ? 'white' : 'transparent', color: activeTab === 'checks' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'checks' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Çekler</button>
                             <button className={`btn`} onClick={() => setActiveTab('apartments')} style={{ padding: '0.35rem 0.9rem', fontSize: '11px', background: activeTab === 'apartments' ? 'white' : 'transparent', color: activeTab === 'apartments' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'apartments' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Daireler</button>
                         </div>
+
 
                         {/* Action Buttons */}
                         {activeTab === 'apartments' && (
