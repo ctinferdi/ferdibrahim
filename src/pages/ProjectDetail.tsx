@@ -332,13 +332,6 @@ const ProjectDetail: React.FC = () => {
                                 <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ padding: '0.4rem 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     🗺️ {apartments.length === 0 ? 'Kat Planı Oluştur' : 'Kat Planı Güncelle'}
                                 </button>
-                                <button className="btn" onClick={() => handleAdminAction(async () => {
-                                    if (confirm('TÜM MÜSAİT DAİRELERİ SİL?')) {
-                                        setLoading(true);
-                                        for (const a of apartments.filter(a => a.status === 'available')) await apartmentService.deleteApartment(a.id);
-                                        loadAllData();
-                                    }
-                                })} style={{ padding: '0.4rem 1rem', fontSize: '11px', background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>🗑️ Temizle</button>
                             </>
                         )}
                     </div>
