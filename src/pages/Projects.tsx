@@ -96,8 +96,9 @@ const Projects: React.FC = () => {
             setPartners([{ name: '', share: 100 }]);
             setShowModal(false);
 
-            // Kullanıcının isteği üzerine sayfayı yenile
-            window.location.reload();
+            // Update projects list without reload
+            const updatedProjects = await projectService.getProjects();
+            setProjects(updatedProjects);
         } catch (error: any) {
             console.error('Error creating project:', error);
             setErrorMsg(error.message || 'Proje oluşturulamadı.');
@@ -105,8 +106,6 @@ const Projects: React.FC = () => {
             setSaving(false);
         }
     };
-
-
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingProject, setDeletingProject] = useState<{ id: string, name: string } | null>(null);
@@ -120,8 +119,6 @@ const Projects: React.FC = () => {
                     await projectService.deleteProject(deletingProject.id);
                     const updatedProjects = await projectService.getProjects();
                     setProjects(updatedProjects);
-                    // alert('Proje başarıyla silindi!');
-                    window.location.reload();
                 }
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
@@ -134,6 +131,7 @@ const Projects: React.FC = () => {
             alert('Kod yanlış. Silme işlemi iptal edildi.');
         }
     };
+
 
     if (loading) {
         return (

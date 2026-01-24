@@ -14,9 +14,11 @@ const Layout = ({ children }: LayoutProps) => {
     const menuItems = [
         { path: '/', label: '🏠 Ana Sayfa', icon: '🏠' },
         { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' },
+        { path: '/giderler', label: '💰 Giderler', icon: '💰' },
         { path: '/cekler', label: '💳 Çekler', icon: '💳' },
         { path: '/daireler', label: '🏢 Daireler', icon: '🏢' }
     ];
+
 
     const handleLogout = async () => {
         try {

@@ -12,6 +12,7 @@ import PublicProject from './pages/PublicProject';
 import ResetPassword from './pages/ResetPassword';
 import Checks from './pages/Checks';
 import Apartments from './pages/Apartments';
+import Expenses from './pages/Expenses';
 import './index.css';
 
 const NavigateWithParam = () => {
@@ -20,24 +21,6 @@ const NavigateWithParam = () => {
 };
 
 function App() {
-    // Sayfa yenilendiğinde aynı sayfada kalsın, ancak tarayıcı kapatılıp açıldığında (yeni session) 
-    // her zaman ana sayfaya (Dashboard) yönlendirsin.
-    React.useEffect(() => {
-        const isSessionActive = sessionStorage.getItem('session_active');
-        const isPublicRoute =
-            window.location.pathname.includes('/public') ||
-            window.location.pathname.includes('/p/') ||
-            window.location.pathname.includes('/reset-password');
-
-        if (!isSessionActive && !isPublicRoute) {
-            // Yeni bir session başladıysa veya tarayıcı/bilgisayar yeni açıldıysa
-            if (window.location.pathname !== '/' && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
-                window.location.href = '/';
-            }
-            sessionStorage.setItem('session_active', 'true');
-        }
-    }, []);
-
     return (
         <AuthProvider>
             <BrowserRouter>
@@ -85,6 +68,14 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/giderler"
+                        element={
+                            <ProtectedRoute>
+                                <Expenses />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route path="/daireler" element={
                         <ProtectedRoute>
                             <Apartments />
@@ -104,3 +95,4 @@ function App() {
 }
 
 export default App;
+
