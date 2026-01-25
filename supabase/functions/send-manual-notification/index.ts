@@ -31,6 +31,7 @@ serve(async (req) => {
         )
 
         // 1. Get check details
+        console.log(`Fetching check details for ID: ${checkId}`)
         const { data: check, error: checkError } = await supabase
             .from('checks')
             .select(`
@@ -38,15 +39,16 @@ serve(async (req) => {
                 projects (
                   name,
                   notification_emails
-                ),
-                user:users (
-                  notification_emails
                 )
             `)
             .eq('id', checkId)
             .single()
 
-        if (checkError || !check) {
+        if (checkError) {
+            console.error('Database error:', checkError)
+            throw new Error(`Database error: ${checkError.message}`)
+        }
+        if (!check) {
             throw new Error('Check not found')
         }
 
