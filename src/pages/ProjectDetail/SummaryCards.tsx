@@ -37,26 +37,26 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
             {activeTab === 'expenses' || activeTab === 'checks' ? (
                 <>
                     <div className="card" style={{
-                        width: '240px', // Fixed width for flex
-                        height: '60px', // Uniform height
-                        padding: '0 var(--spacing-md)', // Adjust padding for vertical centering
+                        width: '200px', // Reduced width
+                        height: '40px', // Reduced height
+                        padding: '0 var(--spacing-sm)',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center'
                     }}>
-                        <div style={{ fontSize: '11px', opacity: 0.9, fontWeight: 600 }}>GENEL TOPLAM</div>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>GENEL TOPLAM</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                            <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>{formatCurrency(generalTotal)}</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{formatCurrency(generalTotal)}</div>
                         </div>
                     </div>
 
                     {activeTab === 'expenses' && project.partners?.map((partner) => (
                         <div key={partner.id} className="card" style={{
-                            width: '240px',
-                            height: '60px',
-                            padding: '0 var(--spacing-md)',
+                            width: '200px',
+                            height: '40px',
+                            padding: '0 var(--spacing-sm)',
                             background: 'white',
                             border: '1px solid var(--color-border)',
                             color: 'var(--color-text)',
@@ -64,10 +64,10 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                             flexDirection: 'column',
                             justifyContent: 'center'
                         }}>
-                            <div style={{ fontSize: '10px', color: 'var(--color-text-light)', fontWeight: 700, textTransform: 'uppercase' }}>{partner.name} HARCAMA</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '2px' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>{formatCurrency(getPartnerTotal(partner.id))}</div>
-                                <div style={{ fontSize: '10px', opacity: 0.7 }}>Hisse: %{partner.share_percentage}</div>
+                            <div style={{ fontSize: '9px', color: 'var(--color-text-light)', fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{partner.name}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-primary)' }}>{formatCurrency(getPartnerTotal(partner.id))}</div>
+                                <div style={{ fontSize: '8px', opacity: 0.7 }}>%{partner.share_percentage}</div>
                             </div>
                         </div>
                     ))}
@@ -77,34 +77,38 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                 <>
                     {/* Remaining (Red) */}
                     <div className="card" style={{
-                        width: '240px',
-                        height: '60px',
-                        padding: '0 var(--spacing-md)',
+                        width: '200px',
+                        height: '40px',
+                        padding: '0 var(--spacing-sm)',
                         background: 'linear-gradient(135deg, #991b1b 0%, #ef4444 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center'
                     }}>
-                        <div style={{ fontSize: '11px', opacity: 0.9, fontWeight: 600 }}>TOPLAM KALAN</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
-                        <div style={{ fontSize: '9px', opacity: 0.8 }}>Bekleyen Alacak</div>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>TOPLAM KALAN</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatCurrency(totalRemaining)}</div>
+                            <div style={{ fontSize: '8px', opacity: 0.8 }}>Alacak</div>
+                        </div>
                     </div>
 
                     {/* Sales (Blue) */}
                     <div className="card" style={{
-                        width: '240px',
-                        height: '60px',
-                        padding: '0 var(--spacing-md)',
+                        width: '200px',
+                        height: '40px',
+                        padding: '0 var(--spacing-sm)',
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'center'
                     }}>
-                        <div style={{ fontSize: '11px', opacity: 0.9, fontWeight: 600 }}>TOPLAM SATIŞ</div>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
-                        <div style={{ fontSize: '9px', opacity: 0.8 }}>{aptStats.soldCount} Daire Satıldı</div>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>TOPLAM SATIŞ</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatCurrency(aptStats.totalSoldPrice)}</div>
+                            <div style={{ fontSize: '8px', opacity: 0.8 }}>{aptStats.soldCount} Satış</div>
+                        </div>
                     </div>
                 </>
             )}

@@ -350,20 +350,20 @@ const ProjectDetail: React.FC = () => {
                             if (activeTab === 'expenses') setShowExpenseModal(true);
                             else if (activeTab === 'checks') setShowCheckModal(true);
                             else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold' }); setShowApartmentModal(true); }
-                        }} style={{ height: '60px', padding: '0 1.5rem', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                        }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
                             + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
                         </button>
 
                         {/* Tabs */}
-                        <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', height: '60px', alignItems: 'center' }}>
-                            <button className={`btn`} onClick={() => setActiveTab('expenses')} style={{ height: '100%', padding: '0 1.2rem', fontSize: '12px', background: activeTab === 'expenses' ? 'white' : 'transparent', color: activeTab === 'expenses' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'expenses' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Giderler</button>
-                            <button className={`btn`} onClick={() => setActiveTab('checks')} style={{ height: '100%', padding: '0 1.2rem', fontSize: '12px', background: activeTab === 'checks' ? 'white' : 'transparent', color: activeTab === 'checks' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'checks' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Çekler</button>
-                            <button className={`btn`} onClick={() => setActiveTab('apartments')} style={{ height: '100%', padding: '0 1.2rem', fontSize: '12px', background: activeTab === 'apartments' ? 'white' : 'transparent', color: activeTab === 'apartments' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'apartments' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Daireler</button>
+                        <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '8px', height: '40px', alignItems: 'center' }}>
+                            <button className={`btn`} onClick={() => setActiveTab('expenses')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'expenses' ? 'white' : 'transparent', color: activeTab === 'expenses' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'expenses' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Giderler</button>
+                            <button className={`btn`} onClick={() => setActiveTab('checks')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'checks' ? 'white' : 'transparent', color: activeTab === 'checks' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'checks' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Çekler</button>
+                            <button className={`btn`} onClick={() => setActiveTab('apartments')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'apartments' ? 'white' : 'transparent', color: activeTab === 'apartments' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'apartments' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Daireler</button>
                         </div>
 
                         {activeTab === 'apartments' && (
                             <>
-                                <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ height: '60px', padding: '0 1.2rem', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     🗺️ {apartments.length === 0 ? 'Kat Planı Oluştur' : 'Kat Planı Güncelle'}
                                 </button>
                             </>
