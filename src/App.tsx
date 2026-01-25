@@ -93,6 +93,8 @@ function App() {
                         path="/projeler/:publicCode/public"
                         element={<NavigateWithParam />}
                     />
+                    {/* Public route - Branded URL (e.g. /vadi-konutlari/p/xyz123) */}
+                    <Route path="/:slug/p/:publicCode" element={<PublicProject />} />
                     <Route path="/p/:publicCode" element={<PublicProject />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
