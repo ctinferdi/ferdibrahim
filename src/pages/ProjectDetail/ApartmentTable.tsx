@@ -14,15 +14,15 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
         <div style={{ flex: 1, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
-                    <tr style={{ background: 'var(--color-bg)', borderBottom: '2px solid var(--color-border)' }}>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '80px' }}>DAİRE NO</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '15%' }}>LİSTE FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '15%' }}>SATIŞ FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '15%' }}>ALINAN ÖDEME</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '15%' }}>KALAN ALACAK</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', whiteSpace: 'nowrap', width: '100px' }}>DURUM</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b' }}>MÜŞTERİ BİLGİSİ</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 800, color: '#64748b', width: '100px' }}>İŞLEM</th>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--color-border)' }}>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>DAİRE NO</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>LİSTE FİYATI</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>SATIŞ FİYATI</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>ALINAN ÖDEME</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>KALAN ALACAK</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '100px' }}>DURUM</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)' }}>MÜŞTERİ BİLGİSİ</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', width: '100px' }}>İŞLEM</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,19 +41,19 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                             const remaining = soldPrice - paidAmount;
                             return (
                                 <tr key={apartment.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
                                         {apartment.apartment_number}
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {formatCurrency(apartment.price)}
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, textAlign: 'center', color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {formatCurrency(soldPrice)}
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, textAlign: 'center', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {formatCurrency(paidAmount)}
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 600, textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {formatCurrency(remaining)}
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
@@ -68,8 +68,8 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                             SATILDI
                                         </span>
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 500, textAlign: 'center' }}>
-                                        <div style={{ fontWeight: 700 }}>{apartment.customer_name || '-'}</div>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center' }}>
+                                        <div>{apartment.customer_name || '-'}</div>
                                         {apartment.customer_phone && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>{apartment.customer_phone}</div>}
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
