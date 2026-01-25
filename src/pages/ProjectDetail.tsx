@@ -655,7 +655,7 @@ const ProjectDetail: React.FC = () => {
                                         </p>
                                         <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                                             <a
-                                                href={`https://www.insaathesapp.com/${project.slug || 'p'}/p/${project.public_code}`}
+                                                href={`https://www.insaathesapp.com/${project.slug ? project.slug + '-projesi/p/' : 'p/'}${project.public_code}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="btn btn-secondary"
@@ -667,8 +667,8 @@ const ProjectDetail: React.FC = () => {
                                                 onClick={() => {
                                                     const link = document.createElement('a');
                                                     link.download = `${project.name}-qr.png`;
-                                                    // Construct branded URL: domain.com/project-slug/p/code
-                                                    const url = `https://www.insaathesapp.com/${project.slug ? project.slug + '/p/' : 'p/'}${project.public_code}`;
+                                                    // Construct branded URL: domain.com/project-slug-projesi/p/code
+                                                    const url = `https://www.insaathesapp.com/${project.slug ? project.slug + '-projesi/p/' : 'p/'}${project.public_code}`;
                                                     link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
                                                     link.click();
                                                 }}
@@ -681,17 +681,17 @@ const ProjectDetail: React.FC = () => {
                                         {/* QR Kod */}
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                                             <QRCode
-                                                value={`https://www.insaathesapp.com/${project.slug ? project.slug + '/p/' : 'p/'}${project.public_code}`}
+                                                value={`https://www.insaathesapp.com/${project.slug ? project.slug + '-projesi/p/' : 'p/'}${project.public_code}`}
                                                 size={120}
                                             />
                                             <div style={{ wordBreak: 'break-all', textAlign: 'center' }}>
                                                 <a
-                                                    href={`https://www.insaathesapp.com/${project.slug ? project.slug + '/p/' : 'p/'}${project.public_code}`}
+                                                    href={`https://www.insaathesapp.com/${project.slug ? project.slug + '-projesi/p/' : 'p/'}${project.public_code}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     style={{ fontSize: '8px', color: 'var(--color-primary)', textDecoration: 'underline' }}
                                                 >
-                                                    insaathesapp.com/{project.slug ? project.slug + '/p/' : 'p/'}{project.public_code}
+                                                    insaathesapp.com/{project.slug ? project.slug + '-projesi/p/' : 'p/'}{project.public_code}
                                                 </a>
                                             </div>
                                         </div>
