@@ -45,8 +45,9 @@ const Projects: React.FC = () => {
 
         // Migration trigger
         // Migration trigger
-        projectService.ensureProjectSlugs()
-            .then(() => console.log('Slugs ensured'))
+        // Migration trigger - Force regenerate to fix duplicates
+        projectService.regenerateAllSlugs()
+            .then(() => console.log('Slugs regenerated'))
             .catch(err => console.error('Slug migration failed:', err));
 
         window.addEventListener('system-refresh', handleRefresh);

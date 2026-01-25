@@ -208,13 +208,32 @@ class ProjectService {
         };
     }
 
-    // MIGRATION: Ensure all projects have slugs
-    async ensureProjectSlugs() {
-        const { data: projects } = await supabase.from('projects').select('*').is('slug', null);
-        if (projects) {
-            for (const p of projects) {
-                const slug = slugify(p.name);
-                await supabase.from('projects').update({ slug }).eq('id', p.id);
+    // MIGRATION: Force regenerate all slugs to ensure uniqueness
+    async regenerateAllSlugs() {
+        // 1. Fetch all projects
+        const { data: projects } = await supabase.from('projects').select('*');
+        if (!projects || projects.length === 0) return;
+
+        // 2. Track used slugs to handle duplicates in-memory
+        const usedSlugs = new Set<string>();
+
+        for (const p of projects) {
+            let baseSlug = slugify(p.name);
+            let candidate = baseSlug;
+            let counter = 1;
+
+            // 3. Ensure uniqueness within this batch
+            while (usedSlugs.has(candidate)) {
+                counter++;
+                candidate = `${baseSlug}-${counter}`;
+            }
+
+            usedSlugs.add(candidate);
+
+            // 4. Update if different (or if currently null)
+            if (p.slug !== candidate) {
+                // Try update, ignore error if it clashes with existing DB logic (should be rare if we do this logic)
+                await supabase.from('projects').update({ slug: candidate }).eq('id', p.id);
             }
         }
     }
