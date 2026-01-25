@@ -53,32 +53,33 @@ class ProjectService {
     }
 
     // Get project by slug (or ID fallback)
+    // Get project by slug (or ID fallback)
     async getProjectBySlug(slugOrId: string): Promise<Project | null> {
-        // Try to fetch by slug first
-        let { data, error } = await supabase
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
+
+        let query = supabase
             .from('projects')
             .select(`
                 *,
                 partners:project_partners(*)
-            `)
-            .eq('slug', slugOrId)
-            .single();
+            `);
 
-        // If not found or error, try fetching by ID (if it looks like a uuid)
-        if (!data && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId)) {
-            const result = await supabase
-                .from('projects')
-                .select(`
-                *,
-                partners:project_partners(*)
-            `)
-                .eq('id', slugOrId)
-                .single();
-            data = result.data;
-            error = result.error;
+        if (isUUID) {
+            // It's a UUID, so it could be an ID OR a slug (rare but possible)
+            query = query.or(`id.eq.${slugOrId},slug.eq.${slugOrId}`);
+        } else {
+            // Not a UUID, so it MUST be a slug
+            query = query.eq('slug', slugOrId);
         }
 
-        if (error && error.code !== 'PGRST116') throw error; // Ignore "not found" error for first attempt
+        const { data, error } = await query.single();
+
+        if (error) {
+            // Postgres returns code PGRST116 when no rows are found with .single()
+            if (error.code === 'PGRST116') return null;
+            throw error;
+        }
+
         return data;
     }
 
