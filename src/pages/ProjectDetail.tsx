@@ -190,7 +190,11 @@ const ProjectDetail: React.FC = () => {
 
     const loadAllData = async (showSpinner = true) => {
         if (!id) return;
-        if (showSpinner) setLoading(true);
+
+        // Phase 1: Critical Data (Project Info)
+        // Only show spinner if we don't have project data yet
+        if (showSpinner && !project) setLoading(true);
+
         try {
             const proj = await projectService.getProject(id);
             if (!proj) throw new Error('Proje bulunamadı');
@@ -208,7 +212,10 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            // Parallel Data Fetching
+            // Unblock UI immediately after project data is ready
+            setLoading(false);
+
+            // Phase 2: Secondary Data (Tables) - Fetched in background
             const [allExp, allChecks, allApts] = await Promise.all([
                 expenseService.getExpenses(id),
                 checkService.getChecks(id),
@@ -223,7 +230,7 @@ const ProjectDetail: React.FC = () => {
             console.error(err);
             if (showSpinner) navigate('/projeler');
         } finally {
-            if (showSpinner) setLoading(false);
+            setLoading(false);
         }
     };
 

@@ -27,7 +27,6 @@ const Settings: React.FC = () => {
             if (error) {
                 console.warn('Users tablosu bulunamadı, fallback yapılıyor...', error);
                 // Tablo yoksa sadece mevcut kullanıcıyı göster (Fallback)
-                const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     setUsers([{
                         id: user.id,
@@ -126,8 +125,10 @@ const Settings: React.FC = () => {
 
 
     useEffect(() => {
-        fetchUsers();
-    }, [user]);
+        if (user?.id) {
+            fetchUsers();
+        }
+    }, [user?.id]);
 
 
     const handleCreateUser = async (e: React.FormEvent) => {
