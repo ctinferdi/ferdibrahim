@@ -210,19 +210,19 @@ const ProjectDetail: React.FC = () => {
             expenseService.getExpenses(id)
                 .then(data => setExpenses(data))
                 .catch(console.error)
-                .finally(() => setLoadingExpenses(false));
+                .finally(() => { if (showSpinner) setLoadingExpenses(false); });
 
             if (showSpinner) setLoadingChecks(true);
             checkService.getChecks(id)
                 .then(data => setChecks(data))
                 .catch(console.error)
-                .finally(() => setLoadingChecks(false));
+                .finally(() => { if (showSpinner) setLoadingChecks(false); });
 
             if (showSpinner) setLoadingApartments(true);
             apartmentService.getApartments(id)
                 .then(data => setApartments(data))
                 .catch(console.error)
-                .finally(() => setLoadingApartments(false));
+                .finally(() => { if (showSpinner) setLoadingApartments(false); });
 
         } catch (err) {
             console.error(err);
