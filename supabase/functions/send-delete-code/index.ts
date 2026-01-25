@@ -33,7 +33,7 @@ serve(async (req) => {
                 'Authorization': `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-                from: 'InsaatHesapp <noreply@insaathesapp.com>',
+                from: 'InsaatHesapp <onboarding@resend.dev>',
                 to: [NOTIFICATION_EMAIL],
                 subject: `GÜVENLİK KODU: ${actionType} İşlemi`,
                 html: `

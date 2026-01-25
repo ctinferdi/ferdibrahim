@@ -74,7 +74,9 @@ const Settings: React.FC = () => {
                 setShowDeleteModal(true);
             }
         } catch (error: any) {
-            alert('Güvenlik kodu gönderilemedi: ' + error.message);
+            console.error('Full Error:', error);
+            const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
+            alert('Güvenlik kodu gönderilemedi: ' + errorMsg);
         } finally {
             setSendingCode(false);
         }
