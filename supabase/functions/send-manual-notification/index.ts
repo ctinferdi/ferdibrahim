@@ -68,7 +68,7 @@ serve(async (req) => {
             </div>
             <p style="color: #64748b; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
               Not: Şu an deneme modunda olduğumuz için tüm bildirimler ctinferdi@gmail.com adresine yönlendirilmektedir. <br/>
-              Tanımladığın diğer mail adresleri: ${check.notification_email || 'Seçilmedi'}
+              Tanımladığın mail adresleri: ${[check.notification_email, check.notification_email_2, check.notification_email_3].filter(e => e).join(', ') || 'Seçilmedi'}
             </p>
           </div>
         `,

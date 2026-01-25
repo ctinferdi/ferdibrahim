@@ -346,9 +346,9 @@ const Checks = () => {
                                                 onClick={() => handleManualNotify(check)}
                                                 style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1 }}
                                                 className="hover-scale"
-                                                title={(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Şimdi bildirim gönder" : "E-posta tanımlamak için tıkla"}
+                                                title={(check.notification_email || check.notification_email_2 || check.notification_email_3 || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Şimdi bildirim gönder" : "E-posta tanımlamak için tıkla"}
                                             >
-                                                {(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? '🔔' : '🔕'}
+                                                {(check.notification_email || check.notification_email_2 || check.notification_email_3 || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? '🔔' : '🔕'}
                                             </div>
                                         </td>
                                         <td style={{
