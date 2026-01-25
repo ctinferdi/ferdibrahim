@@ -98,6 +98,47 @@ const ProjectDetail: React.FC = () => {
     });
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
 
+    // Search Logic
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredExpenses = expenses.filter(e => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        const partnerName = project?.partners?.find(p => p.id === e.partner_id)?.name?.toLowerCase() || '';
+        return (
+            e.description?.toLowerCase().includes(term) ||
+            e.category?.toLowerCase().includes(term) ||
+            e.recipient?.toLowerCase().includes(term) ||
+            e.payment_method?.toLowerCase().includes(term) ||
+            partnerName.includes(term) ||
+            e.amount.toString().includes(term)
+        );
+    });
+
+    const filteredChecks = checks.filter(c => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        return (
+            c.check_number.toLowerCase().includes(term) ||
+            c.company.toLowerCase().includes(term) ||
+            c.issuer.toLowerCase().includes(term) ||
+            c.description?.toLowerCase().includes(term) ||
+            c.amount.toString().includes(term)
+        );
+    });
+
+    const filteredApartments = apartments.filter(a => {
+        if (!searchTerm) return true;
+        const term = searchTerm.toLowerCase();
+        return (
+            a.apartment_number.toString().includes(term) ||
+            a.building_name.toLowerCase().includes(term) ||
+            a.customer_name?.toLowerCase().includes(term) ||
+            a.customer_phone?.toLowerCase().includes(term) ||
+            a.price.toString().includes(term)
+        );
+    });
+
     // Collapsible Panels State
     const [showQRSection, setShowQRSection] = useState(false);
     const [showCompanySection, setShowCompanySection] = useState(false);
@@ -339,12 +380,35 @@ const ProjectDetail: React.FC = () => {
 
                     {/* Left Column - Main Table */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, marginBottom: 'var(--spacing-md)', color: 'var(--color-dark)' }}>
-                            {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
-                        </h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+                            <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, margin: 0, color: 'var(--color-dark)' }}>
+                                {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
+                            </h2>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Ara..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    style={{
+                                        padding: '8px 12px 8px 32px',
+                                        borderRadius: '20px',
+                                        border: '1px solid #e2e8f0',
+                                        fontSize: '13px',
+                                        width: '200px',
+                                        outline: 'none',
+                                        transition: 'all 0.2s',
+                                        background: '#f8fafc'
+                                    }}
+                                    onFocus={(e) => { e.target.style.background = 'white'; e.target.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.1)'; }}
+                                    onBlur={(e) => { e.target.style.background = '#f8fafc'; e.target.style.boxShadow = 'none'; }}
+                                />
+                                <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', opacity: 0.5 }}>🔍</span>
+                            </div>
+                        </div>
 
-                        {activeTab === 'expenses' && <ExpenseTable expenses={expenses} project={project} formatCurrency={formatCurrency} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} />}
-                        {activeTab === 'checks' && <CheckTable checks={checks} formatCurrency={formatCurrency} onEdit={(c) => {
+                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} />}
+                        {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} onEdit={(c) => {
                             setEditingCheckId(c.id);
                             setCheckFormData({
                                 check_number: c.check_number,
@@ -362,7 +426,7 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={apartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
