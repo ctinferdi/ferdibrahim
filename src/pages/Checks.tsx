@@ -155,15 +155,20 @@ const Checks = () => {
 
         setSendingCode(true);
         try {
-            const { error } = await supabase.functions.invoke('send-manual-notification', {
+            const { data, error } = await supabase.functions.invoke('send-manual-notification', {
                 body: { checkId: check.id }
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Manual notify function error:', error);
+                throw error;
+            }
             alert('✅ Bildirim e-postası başarıyla gönderildi.');
         } catch (error: any) {
-            console.error('Manual notify error:', error);
-            alert('❌ Bildirim gönderilemedi: ' + error.message);
+            console.error('Manual notify error details:', error);
+            // Try to extract a meaningful message from the error object
+            const errorMsg = error.context?.message || error.message || 'Bilinmeyen bir hata oluştu.';
+            alert('❌ Bildirim gönderilemedi: ' + errorMsg);
         } finally {
             setSendingCode(false);
         }
