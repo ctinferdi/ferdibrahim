@@ -205,19 +205,12 @@ const Projects: React.FC = () => {
     };
 
 
-    if (loading) {
-        return (
-            <Layout>
-                <div className="loading-container">
-                    <div className="spinner"></div>
-                </div>
-            </Layout>
-        );
-    }
+
 
     return (
         <Layout>
-            <div className="animate-fadeIn">
+            {loading && <div style={{ textAlign: 'center', padding: '10px', background: '#e0f2fe', color: '#0369a1', borderRadius: '8px', marginBottom: '10px' }}>Veriler yükleniyor...</div>}
+            <div className="animate-fadeIn" style={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                     <h1 className="mb-0">Projeler</h1>
                     <button className="btn btn-primary" onClick={() => {
