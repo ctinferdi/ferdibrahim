@@ -23,7 +23,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
         <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--color-border)' }}>
+                    <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>TARİH</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>KİM İÇİN</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>ÖDEME ŞEKLİ</th>

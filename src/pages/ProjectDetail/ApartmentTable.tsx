@@ -14,7 +14,7 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
         <div style={{ flex: 1, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--color-border)' }}>
+                    <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>DAİRE NO</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>LİSTE FİYATI</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>SATIŞ FİYATI</th>

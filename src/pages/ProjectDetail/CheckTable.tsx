@@ -22,7 +22,7 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
         <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid var(--color-border)' }}>
+                    <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>VADE TARİHİ</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>ÇEKLER</th>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>ŞİRKET</th>
