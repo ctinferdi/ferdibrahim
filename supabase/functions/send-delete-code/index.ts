@@ -61,7 +61,13 @@ serve(async (req) => {
         if (!emailRes.ok) {
             const errorText = await emailRes.text()
             console.error('Resend API Error:', errorText)
-            throw new Error('Email gönderilemedi')
+            return new Response(
+                JSON.stringify({ error: `Resend API Error: ${errorText}` }),
+                {
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                    status: 400
+                }
+            )
         }
 
         return new Response(
@@ -75,7 +81,7 @@ serve(async (req) => {
     } catch (error: any) {
         console.error('Function Error:', error.message)
         return new Response(
-            JSON.stringify({ error: error.message }),
+            JSON.stringify({ error: `Function Error: ${error.message}` }),
             {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 500
