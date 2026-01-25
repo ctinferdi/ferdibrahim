@@ -27,7 +27,6 @@ const Projects: React.FC = () => {
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isOptimizing, setIsOptimizing] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
     // Form states
@@ -40,19 +39,8 @@ const Projects: React.FC = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // Safeguard: Timeout after 5 seconds to prevent white screen if network hangs
-                const optimizationPromise = Promise.all([
-                    projectService.regenerateAllSlugs(),
-                    projectService.regeneratePublicCodes()
-                ]);
-
-                const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 5000));
-
-                // Race: If optimization takes > 5s, we skip waiting for it and just load data
-                await Promise.race([optimizationPromise, timeoutPromise]);
-                console.log('Optimization step completed or timed out');
-
-                // 2. Fetch fresh data
+                console.log('Fetching projects...');
+                // 1. Fetch fresh data IMMEDIATELY (Critical Path)
                 const [projs, chks, apts] = await Promise.all([
                     projectService.getProjects(),
                     checkService.getChecks(),
@@ -62,11 +50,22 @@ const Projects: React.FC = () => {
                 setProjects(projs);
                 setChecks(chks);
                 setApartments(apts);
+                setLoading(false); // Show UI as soon as data is ready
+
+                // 2. Run optimization in BACKGROUND (Non-critical)
+                // We don't await this for the UI. It runs silently.
+                Promise.all([
+                    projectService.regenerateAllSlugs(),
+                    projectService.regeneratePublicCodes()
+                ]).then(() => {
+                    console.log('Background optimization complete');
+                }).catch(err => {
+                    console.error('Background optimization failed:', err);
+                });
+
             } catch (err) {
                 console.error('Initialization error:', err);
-            } finally {
-                setLoading(false);
-                setIsOptimizing(false);
+                setLoading(false); // Ensure we unblock even on error
             }
         };
 
@@ -206,12 +205,11 @@ const Projects: React.FC = () => {
     };
 
 
-    if (loading || isOptimizing) {
+    if (loading) {
         return (
             <Layout>
-                <div className="loading-container" style={{ flexDirection: 'column', gap: '20px' }}>
+                <div className="loading-container">
                     <div className="spinner"></div>
-                    {isOptimizing && <div style={{ color: '#666', fontWeight: 500 }}>Veritabanı ve linkler iyileştiriliyor, lütfen bekleyin...</div>}
                 </div>
             </Layout>
         );
