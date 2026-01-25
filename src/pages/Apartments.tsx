@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { subscribeToApartments, addApartment, updateApartment, deleteApartment } from '../services/apartmentService';
+import { subscribeToApartments, addApartment, updateApartment } from '../services/apartmentService';
 import { Apartment, ApartmentInput, ApartmentStatus } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -14,16 +14,7 @@ const Apartments = () => {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const { user } = useAuth();
-    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
-    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
 
-    const handleAdminAction = (action: () => void) => {
-        if (!isSuperAdmin) {
-            alert(`Bu işlem için yönetici onayına ihtiyaç var.`);
-            return;
-        }
-        action();
-    };
 
     const [formData, setFormData] = useState<ApartmentInput>({
         building_name: '',
@@ -101,17 +92,6 @@ const Apartments = () => {
         setShowModal(true);
     };
 
-    const handleDelete = (id: string) => {
-        handleAdminAction(async () => {
-            if (window.confirm('Bu daireyi silmek istediğinizden emin misiniz?')) {
-                try {
-                    await deleteApartment(id);
-                } catch (error: any) {
-                    console.error('Error deleting apartment:', error);
-                }
-            }
-        });
-    };
 
     const filteredApartments = apartments.filter(apt => {
         const matchesSearch =
@@ -234,17 +214,6 @@ const Apartments = () => {
                                         display: 'flex',
                                         flexDirection: 'column'
                                     }}>
-                                    {isSuperAdmin && (
-                                        <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', zIndex: 10 }}>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleDelete(apartment.id); }}
-                                                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '10px', color: 'white' }}
-                                                title="Sil"
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    )}
 
                                     <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '8px', paddingRight: '2.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apartment.building_name}
