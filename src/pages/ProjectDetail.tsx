@@ -679,22 +679,11 @@ const ProjectDetail: React.FC = () => {
                                                 💾 İndir
                                             </button>
                                         </div>
-                                        {/* QR Kod */}
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                                             <QRCode
                                                 value={`https://www.insaathesapp.com/${project.slug ? project.slug.replace(/-/g, '') + 'proje/p/' : 'p/'}${project.public_code}`}
                                                 size={120}
                                             />
-                                            <div style={{ wordBreak: 'break-all', textAlign: 'center' }}>
-                                                <a
-                                                    href={`https://www.insaathesapp.com/${project.slug ? project.slug.replace(/-/g, '') + 'proje/p/' : 'p/'}${project.public_code}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    style={{ fontSize: '8px', color: 'var(--color-primary)', textDecoration: 'underline' }}
-                                                >
-                                                    insaathesapp.com/{project.slug ? project.slug.replace(/-/g, '') + 'proje/p/' : 'p/'}{project.public_code}
-                                                </a>
-                                            </div>
                                         </div>
                                     </>
                                 )}
