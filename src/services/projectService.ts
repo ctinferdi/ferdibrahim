@@ -237,6 +237,20 @@ class ProjectService {
             }
         }
     }
+
+    // MIGRATION: Fix long public codes (replace UUIDs with 8-char codes)
+    async regeneratePublicCodes() {
+        const { data: projects } = await supabase.from('projects').select('*');
+        if (!projects || projects.length === 0) return;
+
+        for (const p of projects) {
+            // If public_code is missing or looks like a UUID (long)
+            if (!p.public_code || p.public_code.length > 12) {
+                const newCode = Math.random().toString(36).substring(2, 10);
+                await supabase.from('projects').update({ public_code: newCode }).eq('id', p.id);
+            }
+        }
+    }
 }
 
 export const projectService = new ProjectService();

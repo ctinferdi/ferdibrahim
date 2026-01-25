@@ -40,9 +40,12 @@ const Projects: React.FC = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // 1. Force regenerate slugs to ensure uniqueness
-                await projectService.regenerateAllSlugs();
-                console.log('Slugs regenerated/verified');
+                // 1. Force regenerate slugs & public codes to ensure data integrity
+                await Promise.all([
+                    projectService.regenerateAllSlugs(),
+                    projectService.regeneratePublicCodes()
+                ]);
+                console.log('Slugs & Codes verified');
 
                 // 2. Fetch fresh data
                 const [projs, chks, apts] = await Promise.all([
