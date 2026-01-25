@@ -186,6 +186,17 @@ class ProjectService {
             subscription.unsubscribe();
         };
     }
+
+    // MIGRATION: Ensure all projects have slugs
+    async ensureProjectSlugs() {
+        const { data: projects } = await supabase.from('projects').select('*').is('slug', null);
+        if (projects) {
+            for (const p of projects) {
+                const slug = slugify(p.name);
+                await supabase.from('projects').update({ slug }).eq('id', p.id);
+            }
+        }
+    }
 }
 
 export const projectService = new ProjectService();
