@@ -267,6 +267,9 @@ const Checks = () => {
                     borderBottom: 'none'
                 }}>
                     <h2 style={{ margin: 0, color: '#92400e', letterSpacing: '2px', fontWeight: 800 }}>YAPILACAK ÇEK ÖDEMELERİ</h2>
+                    <p style={{ margin: '5px 0 0 0', color: '#b45309', fontSize: '11px', fontWeight: 600 }}>
+                        🔔 Bildirim simgesi olan çekler için vadeye 10 gün kala otomatik e-posta gönderilir.
+                    </p>
                 </div>
 
                 {/* Table */}
@@ -280,6 +283,7 @@ const Checks = () => {
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV DURUMU</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>BİLDİRİM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VEREN KİŞİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>DURUM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center' }}>İŞLEMLER</th>
@@ -333,6 +337,11 @@ const Checks = () => {
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {projects.find(p => p.id === check.project_id)?.name || '-'}
+                                        </td>
+                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7' }}>
+                                            {(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? (
+                                                <span title="Bu çek için bildirim kuruludur (Vadeye 10 gün kala)" style={{ cursor: 'help' }}>🔔</span>
+                                            ) : '-'}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {check.issuer}
