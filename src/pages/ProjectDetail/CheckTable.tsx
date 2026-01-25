@@ -7,9 +7,37 @@ interface CheckTableProps {
     onDelete: (id: string, name: string) => void;
     formatCurrency: (value: number) => string;
     sendingCode?: boolean;
+    loading?: boolean;
 }
 
-const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, formatCurrency, sendingCode }) => {
+const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, formatCurrency, sendingCode, loading }) => {
+    if (loading) {
+        return (
+            <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
+                            {['VADE TARİHİ', 'ÇEKLER', 'ŞİRKET', 'KULLANILACAK YER', 'KDV DURUMU', 'ÇEKİ VEREN KİŞİ', 'DURUM', 'İŞLEMLER'].map(h => (
+                                <th key={h} style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>{h}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
+                                    <td key={j} style={{ padding: 'var(--spacing-md)' }}>
+                                        <div style={{ height: '20px', background: '#f1f5f9', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+
     if (checks.length === 0) {
         return (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>

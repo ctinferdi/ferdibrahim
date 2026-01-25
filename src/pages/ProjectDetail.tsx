@@ -169,18 +169,28 @@ const ProjectDetail: React.FC = () => {
     const [actionType, setActionType] = useState<'expense' | 'check' | 'apartment_reset'>('expense');
     const [saving, setSaving] = useState(false);
 
+    // Loading States for individual sections
+    const [loadingExpenses, setLoadingExpenses] = useState(false);
+    const [loadingChecks, setLoadingChecks] = useState(false);
+    const [loadingApartments, setLoadingApartments] = useState(false);
+
     const loadAllData = React.useCallback(async (showSpinner = true) => {
         if (!id) return;
 
         // Phase 1: Critical Data (Project Info)
-        // Only show spinner if we don't have project data yet
         if (showSpinner && !project) setLoading(true);
 
         try {
-            const proj = await projectService.getProject(id);
+            // First fetch project details only (ID param can be slug or UUID)
+            const proj = await projectService.getProjectBySlug(id);
             if (!proj) throw new Error('Proje bulunamadı');
 
             setProject(proj);
+            // If the URL is using slug but state has ID, that's fine.
+            // If we want to force URL to slug, we could do it here but let's keep it simple.
+
+            setProject(proj);
+            // ... (keep companyInfo logic same) ...
             setCompanyInfo({
                 company_name: proj.company_name || '',
                 company_address: proj.company_address || '',
@@ -193,24 +203,30 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            // Unblock UI immediately after project data is ready
-            setLoading(false);
+            setLoading(false); // Unblock main UI
 
-            // Phase 2: Secondary Data (Tables) - Fetched in background
-            const [allExp, allChecks, allApts] = await Promise.all([
-                expenseService.getExpenses(id),
-                checkService.getChecks(id),
-                apartmentService.getApartments(id)
-            ]);
+            // Phase 2: Independent Parallel Fetching
+            setLoadingExpenses(true);
+            expenseService.getExpenses(id)
+                .then(data => setExpenses(data))
+                .catch(console.error)
+                .finally(() => setLoadingExpenses(false));
 
-            setExpenses(allExp);
-            setChecks(allChecks);
-            setApartments(allApts);
+            setLoadingChecks(true);
+            checkService.getChecks(id)
+                .then(data => setChecks(data))
+                .catch(console.error)
+                .finally(() => setLoadingChecks(false));
+
+            setLoadingApartments(true);
+            apartmentService.getApartments(id)
+                .then(data => setApartments(data))
+                .catch(console.error)
+                .finally(() => setLoadingApartments(false));
 
         } catch (err) {
             console.error(err);
             if (showSpinner) navigate('/projeler');
-        } finally {
             setLoading(false);
         }
     }, [id, navigate, selectedPartner, project]);
@@ -491,8 +507,8 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
-                        {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} onEdit={(c) => {
+                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} loading={loadingExpenses} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
+                        {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} loading={loadingChecks} onEdit={(c) => {
                             setEditingCheckId(c.id);
                             setCheckFormData({
                                 check_number: c.check_number,
@@ -512,7 +528,7 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}

@@ -104,6 +104,7 @@ export interface Project {
     name: string;
     description?: string;
     status: ProjectStatus;
+    slug?: string; // URL dostu kısa isim
     public_code?: string; // Karekod için benzersiz kod
     company_name?: string; // Firma adı
     company_address?: string; // Firma adresi

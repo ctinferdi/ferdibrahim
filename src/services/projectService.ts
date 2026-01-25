@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput } from '../types';
+import { slugify } from '../utils/slugify';
 
 class ProjectService {
     // Get all projects for current user
@@ -31,6 +32,36 @@ class ProjectService {
         return data;
     }
 
+    // Get project by slug (or ID fallback)
+    async getProjectBySlug(slugOrId: string): Promise<Project | null> {
+        // Try to fetch by slug first
+        let { data, error } = await supabase
+            .from('projects')
+            .select(`
+                *,
+                partners:project_partners(*)
+            `)
+            .eq('slug', slugOrId)
+            .single();
+
+        // If not found or error, try fetching by ID (if it looks like a uuid)
+        if (!data && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId)) {
+            const result = await supabase
+                .from('projects')
+                .select(`
+                *,
+                partners:project_partners(*)
+            `)
+                .eq('id', slugOrId)
+                .single();
+            data = result.data;
+            error = result.error;
+        }
+
+        if (error && error.code !== 'PGRST116') throw error; // Ignore "not found" error for first attempt
+        return data;
+    }
+
     // Get project by public code (for public viewing)
     async getProjectByPublicCode(publicCode: string): Promise<Project | null> {
         const { data, error } = await supabase
@@ -51,12 +82,19 @@ class ProjectService {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        // Generate unique public code for QR
-        const publicCode = crypto.randomUUID();
+        // Generate unique public code (8 chars)
+        const publicCode = Math.random().toString(36).substring(2, 10);
+        // Generate slug
+        let slug = slugify(project.name);
+        // Ensure slug uniqueness (simple append for now, real prod needs db check loop)
+        const checkSlug = await this.getProjectBySlug(slug);
+        if (checkSlug) {
+            slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
+        }
 
         const { data, error } = await supabase
             .from('projects')
-            .insert([{ ...project, user_id: user.id, public_code: publicCode }])
+            .insert([{ ...project, user_id: user.id, public_code: publicCode, slug }])
             .select()
             .single();
 

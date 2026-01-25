@@ -43,6 +43,9 @@ const Projects: React.FC = () => {
             apartmentService.getApartments().then(setApartments);
         };
 
+        // Migration trigger
+        projectService.ensureProjectSlugs().then(() => console.log('Slugs ensured'));
+
         window.addEventListener('system-refresh', handleRefresh);
 
         const unsubscribeProjects = projectService.subscribeToProjects(setProjects);
@@ -212,7 +215,7 @@ const Projects: React.FC = () => {
                                 {/* Proje Kartı */}
                                 <div
                                     className="card"
-                                    onClick={() => navigate(`/projeler/${project.id}`)}
+                                    onClick={() => navigate(`/projeler/${project.slug || project.id}`)}
                                     style={{
                                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         color: 'white',
@@ -301,7 +304,7 @@ const Projects: React.FC = () => {
                                 <div
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        navigate(`/projeler/${project.id}`);
+                                        navigate(`/projeler/${project.slug || project.id}?tab=apartments`);
                                     }}
                                     style={{
                                         background: 'rgba(67, 233, 123, 0.15)',
