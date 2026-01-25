@@ -185,18 +185,25 @@ const ProjectDetail: React.FC = () => {
             const proj = await projectService.getProjectBySlug(id);
             if (!proj) throw new Error('Proje bulunamadı');
 
-            setProject(proj);
+            setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
+
+            // Auto-redirect to slug if accessing via ID
+            if (proj.slug && id !== proj.slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+                navigate(`/projeler/${proj.slug}?${searchParams.toString()}`, { replace: true });
+                return;
+            }
             // If the URL is using slug but state has ID, that's fine.
             // If we want to force URL to slug, we could do it here but let's keep it simple.
 
             // ... (keep companyInfo logic same) ...
-            setCompanyInfo({
+            const newCompanyInfo = {
                 company_name: proj.company_name || '',
                 company_address: proj.company_address || '',
                 company_location: proj.company_location || '',
                 whatsapp_number: proj.whatsapp_number || '',
                 notification_emails: proj.notification_emails || []
-            });
+            };
+            setCompanyInfo(prev => JSON.stringify(prev) !== JSON.stringify(newCompanyInfo) ? newCompanyInfo : prev);
 
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
                 setSelectedPartner(proj.partners[0].id);

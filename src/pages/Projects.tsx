@@ -44,9 +44,10 @@ const Projects: React.FC = () => {
         };
 
         // Migration trigger
-        // projectService.ensureProjectSlugs()
-        //    .then(() => console.log('Slugs ensured'))
-        //    .catch(err => console.error('Slug migration failed:', err));
+        // Migration trigger
+        projectService.ensureProjectSlugs()
+            .then(() => console.log('Slugs ensured'))
+            .catch(err => console.error('Slug migration failed:', err));
 
         window.addEventListener('system-refresh', handleRefresh);
 
