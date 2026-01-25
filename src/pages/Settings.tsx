@@ -50,37 +50,56 @@ const Settings: React.FC = () => {
         }
     };
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletingUser, setDeletingUser] = useState<{ id: string, email: string } | null>(null);
+    const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
+    const [receivedCode, setReceivedCode] = useState('');
+    const [sendingCode, setSendingCode] = useState(false);
+
     const handleDeleteUser = async (userId: string, targetEmail: string) => {
-        if (!confirm(`${targetEmail} kullanıcısını silmek istediğinize emin misiniz?\n\nBU İŞLEM GERİ ALINAMAZ!`)) return;
+        setSendingCode(true);
+        setDeletingUser({ id: userId, email: targetEmail });
+        try {
+            const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                body: {
+                    targetName: targetEmail,
+                    actionType: 'user',
+                    userEmail: user?.email
+                }
+            });
+
+            if (error) throw error;
+            if (data?.code) {
+                setReceivedCode(data.code);
+                setShowDeleteModal(true);
+            }
+        } catch (error: any) {
+            alert('Güvenlik kodu gönderilemedi: ' + error.message);
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
+    const confirmDeleteUser = async () => {
+        if (deleteConfirmCode !== receivedCode) {
+            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+            return;
+        }
 
         try {
-            // 1. Önce mail atılacak kişileri belirle (Silinen hariç, kendisi hariç)
-            const recipients = users
-                .filter(u => u.email !== targetEmail && u.email !== user?.email)
-                .map(u => u.email);
+            if (!deletingUser) return;
 
-            // 2. Kullanıcıyı sil
             const { error } = await supabase.rpc('delete_user_by_id', {
-                target_user_id: userId
+                target_user_id: deletingUser.id
             });
 
             if (error) throw error;
 
             alert('✅ Kullanıcı başarıyla silindi.');
-
-            // 3. Mail uygulamasını aç (Bilgilendirme için)
-            if (recipients.length > 0) {
-                if (confirm('Diğer kullanıcılara bilgilendirme maili göndermek ister misiniz?')) {
-                    const subject = encodeURIComponent('Kullanıcı Silme Bildirimi');
-                    const body = encodeURIComponent(`Merhaba,\n\n${targetEmail} hesabı sistemden silinmiştir.\n\nBilgilerinize.`);
-                    const bcc = recipients.join(',');
-
-                    // Mailto linkini aç
-                    window.location.href = `mailto:?bcc=${bcc}&subject=${subject}&body=${body}`;
-                }
-            }
-
-            // Listeyi yenile
+            setShowDeleteModal(false);
+            setDeleteConfirmCode('');
+            setReceivedCode('');
+            setDeletingUser(null);
             fetchUsers();
         } catch (error: any) {
             console.error('Silme hatası:', error);
@@ -233,8 +252,8 @@ const Settings: React.FC = () => {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    {users.map((user: any) => (
-                                        <div key={user.id} style={{
+                                    {users.map((u: any) => (
+                                        <div key={u.id} style={{
                                             padding: '10px 15px',
                                             background: 'var(--color-bg)',
                                             borderRadius: 'var(--radius-sm)',
@@ -245,15 +264,15 @@ const Settings: React.FC = () => {
                                         }}>
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: 600, fontSize: '13px' }}>
-                                                    {user.email}
+                                                    {u.email}
                                                 </div>
                                                 <div style={{ fontSize: '10px', color: 'var(--color-text-light)', marginTop: '2px' }}>
-                                                    👑 Yönetici • {new Date(user.created_at).toLocaleDateString('tr-TR')}
+                                                    👑 Yönetici • {new Date(u.created_at).toLocaleDateString('tr-TR')}
                                                 </div>
                                             </div>
                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                 <button
-                                                    onClick={() => handleResetPassword(user.email)}
+                                                    onClick={() => handleResetPassword(u.email)}
                                                     style={{
                                                         padding: '6px 12px',
                                                         fontSize: '11px',
@@ -269,9 +288,10 @@ const Settings: React.FC = () => {
                                                 </button>
 
                                                 {/* Kendi kendini silemesin */}
-                                                {user.id !== (supabase.auth.getUser() as any)?.data?.user?.id && (
+                                                {user?.id !== u.id && (
                                                     <button
-                                                        onClick={() => handleDeleteUser(user.id, user.email)}
+                                                        onClick={() => handleDeleteUser(u.id, u.email)}
+                                                        disabled={sendingCode}
                                                         style={{
                                                             padding: '6px 12px',
                                                             fontSize: '11px',
@@ -279,11 +299,12 @@ const Settings: React.FC = () => {
                                                             color: 'white',
                                                             border: 'none',
                                                             borderRadius: '4px',
-                                                            cursor: 'pointer',
-                                                            fontWeight: 600
+                                                            cursor: sendingCode ? 'wait' : 'pointer',
+                                                            fontWeight: 600,
+                                                            opacity: sendingCode ? 0.5 : 1
                                                         }}
                                                     >
-                                                        🗑️ Sil
+                                                        {sendingCode ? '...' : '🗑️ Sil'}
                                                     </button>
                                                 )}
                                             </div>
@@ -299,6 +320,65 @@ const Settings: React.FC = () => {
                             )}
                         </div>
                     </div>
+                    {/* Delete Confirmation Modal */}
+                    {showDeleteModal && (
+                        <div style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(0,0,0,0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 1000,
+                            padding: 'var(--spacing-md)'
+                        }}>
+                            <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                                <h2 className="mb-md">Kullanıcıyı Sil</h2>
+                                <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
+                                    <strong>{deletingUser?.email}</strong> kullanıcısını silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                                </p>
+
+                                <div className="form-group">
+                                    <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>
+                                    <input
+                                        type="tel"
+                                        className="form-input"
+                                        value={deleteConfirmCode}
+                                        onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                        placeholder="4 haneli kodu girin"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        autoFocus
+                                        style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px', fontWeight: 800 }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+                                    <button
+                                        onClick={confirmDeleteUser}
+                                        className="btn btn-primary"
+                                        style={{ flex: 1, backgroundColor: '#f5576c' }}
+                                    >
+                                        Sil
+                                    </button>
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            setShowDeleteModal(false);
+                                            setDeleteConfirmCode('');
+                                            setDeletingUser(null);
+                                        }}
+                                        style={{ flex: 1 }}
+                                    >
+                                        İptal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </Layout>

@@ -6,6 +6,7 @@ import { projectService } from '../services/projectService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
 import { Project, ProjectInput, ProjectPartnerInput, Check, Apartment } from '../types';
+import { supabase } from '../config/supabase';
 
 const Projects: React.FC = () => {
     const navigate = useNavigate();
@@ -110,10 +111,35 @@ const Projects: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingProject, setDeletingProject] = useState<{ id: string, name: string } | null>(null);
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
-    const [generatedSecurityCode, setGeneratedSecurityCode] = useState('');
+    const [receivedCode, setReceivedCode] = useState(''); // Code received from Edge Function
+    const [sendingCode, setSendingCode] = useState(false);
+
+    const triggerDeleteCode = async (project: { id: string, name: string }) => {
+        setSendingCode(true);
+        setDeletingProject(project);
+        try {
+            const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                body: {
+                    targetName: project.name,
+                    actionType: 'project',
+                    userEmail: user?.email
+                }
+            });
+
+            if (error) throw error;
+            if (data?.code) {
+                setReceivedCode(data.code);
+                setShowDeleteModal(true);
+            }
+        } catch (error: any) {
+            alert('Güvenlik kodu gönderilemedi: ' + error.message);
+        } finally {
+            setSendingCode(false);
+        }
+    };
 
     const handleDeleteProject = async () => {
-        if (deleteConfirmCode === generatedSecurityCode) {
+        if (deleteConfirmCode === receivedCode) {
             try {
                 if (deletingProject) {
                     await projectService.deleteProject(deletingProject.id);
@@ -122,13 +148,13 @@ const Projects: React.FC = () => {
                 }
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
-                setGeneratedSecurityCode('');
+                setReceivedCode('');
                 setDeletingProject(null);
             } catch (error: any) {
                 alert('Hata: ' + error.message);
             }
         } else {
-            alert('Kod yanlış. Silme işlemi iptal edildi.');
+            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
         }
     };
 
@@ -190,12 +216,10 @@ const Projects: React.FC = () => {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleAdminAction(() => {
-                                                const code = Math.floor(1000 + Math.random() * 9000).toString();
-                                                setGeneratedSecurityCode(code);
-                                                setDeletingProject({ id: project.id, name: project.name });
-                                                setShowDeleteModal(true);
+                                                triggerDeleteCode({ id: project.id, name: project.name });
                                             });
                                         }}
+                                        disabled={sendingCode}
                                         style={{
                                             position: 'absolute',
                                             top: 'var(--spacing-xs)',
@@ -208,15 +232,16 @@ const Projects: React.FC = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            cursor: 'pointer',
+                                            cursor: sendingCode ? 'wait' : 'pointer',
                                             fontSize: '0.8rem',
-                                            transition: 'all var(--transition-fast)'
+                                            transition: 'all var(--transition-fast)',
+                                            opacity: sendingCode ? 0.5 : 1
                                         }}
-                                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,0,0,0.6)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                        onMouseEnter={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,0,0,0.6)')}
+                                        onMouseLeave={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
                                         title="Projeyi Sil"
                                     >
-                                        🗑️
+                                        {sendingCode ? '...' : '🗑️'}
                                     </button>
 
                                     <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '2rem' }}>{project.name}</h3>
@@ -455,12 +480,12 @@ const Projects: React.FC = () => {
                     }}>
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Projeyi Sil</h2>
-                            <p className="mb-lg" style={{ color: 'var(--color-text-light)' }}>
-                                <strong>{deletingProject?.name}</strong> projesini silmek için şu kodu girin: <strong style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>{generatedSecurityCode}</strong>
+                            <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
+                                <strong>{deletingProject?.name}</strong> projesini silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
                             </p>
 
                             <div className="form-group">
-                                <label className="form-label">GÜVENLİK KODU</label>
+                                <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>
                                 <input
                                     type="tel"
                                     className="form-input"
@@ -470,6 +495,7 @@ const Projects: React.FC = () => {
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     autoFocus
+                                    style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px', fontWeight: 800 }}
                                 />
                             </div>
 
