@@ -189,7 +189,6 @@ const ProjectDetail: React.FC = () => {
             // If the URL is using slug but state has ID, that's fine.
             // If we want to force URL to slug, we could do it here but let's keep it simple.
 
-            setProject(proj);
             // ... (keep companyInfo logic same) ...
             setCompanyInfo({
                 company_name: proj.company_name || '',
@@ -229,7 +228,7 @@ const ProjectDetail: React.FC = () => {
             if (showSpinner) navigate('/projeler');
             setLoading(false);
         }
-    }, [id, navigate, selectedPartner, project]);
+    }, [id, navigate, selectedPartner]);
 
     useEffect(() => {
         const handleRefresh = () => {
