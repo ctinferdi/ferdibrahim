@@ -58,19 +58,25 @@ serve(async (req) => {
         // 3. Prepare recipients
         const recipients = new Set<string>()
 
-        // Add project emails
-        if (project?.notification_emails && Array.isArray(project.notification_emails)) {
-            project.notification_emails.forEach(e => { if (e) recipients.add(e.trim()) })
+        // Add project emails (Handle both array and legacy comma-string)
+        const pEmails = project?.notification_emails
+        if (pEmails) {
+            if (Array.isArray(pEmails)) {
+                pEmails.forEach(e => { if (typeof e === 'string') recipients.add(e.trim()) })
+            } else if (typeof pEmails === 'string') {
+                pEmails.split(',').forEach(e => recipients.add(e.trim()))
+            }
         }
 
-        // Add specific check notification email
+        // Add specific check notification emails
         if (check.notification_email) {
-            const extraEmails = check.notification_email.split(',').map((e: string) => e?.trim()).filter((e: string) => e)
-            extraEmails.forEach((e: string) => recipients.add(e))
+            check.notification_email.split(',').forEach((e: string) => recipients.add(e.trim()))
+        }
+        // Also check if they are in the hidden notification_emails field
+        if (check.notification_emails && Array.isArray(check.notification_emails)) {
+            check.notification_emails.forEach((e: any) => recipients.add(String(e).trim()))
         }
 
-        // Add user notification emails if we have them (check has user_id, but joining users table is extra work now)
-        // Fallback to defaults
         if (recipients.size === 0) {
             recipients.add("ctinferdi@gmail.com")
         }
@@ -110,7 +116,7 @@ serve(async (req) => {
             </div>
             <p style="color: #64748b; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
               Bu e-posta sistem üzerinden manuel olarak tetiklenmiştir. <br/><br/>
-              <strong>📌 Not:</strong> Şu an deneme modunda olduğumuz için e-postalar ulaşmıyorsa, alıcı adresin doğrulanmış olması gerekebilir.
+              <strong>📌 Not:</strong> Şu an deneme modunda olduğumuz için e-postalar ulaşmıyorsa, alıcı adresin doğrulanmış olması gerekebilir. Alıcı Listesi: ${recipientList.join(', ')}
             </p>
           </div>
         `,
@@ -122,26 +128,27 @@ serve(async (req) => {
         console.log('Resend Response Body:', resBody)
 
         if (!emailRes.ok) {
-            // Return the specific Resend error instead of a generic 500
+            // Return 200 but with error info so we can see it in the UI alert
             return new Response(JSON.stringify({
+                success: false,
                 error: `Resend API Error (Status ${emailRes.status}): ${resBody}`,
                 details: resBody
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 400, // Return 400 so client knows it's a "known" failure
+                status: 200,
             })
         }
 
-        return new Response(JSON.stringify({ message: 'Email sent successfully', recipients: recipientList }), {
+        return new Response(JSON.stringify({ success: true, message: 'Email sent successfully', recipients: recipientList }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
         })
 
     } catch (error: any) {
         console.error('Final Catch Error:', error.message)
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 500,
+            status: 200, // Return 200 to see the custom error message
         })
     }
 })

@@ -163,7 +163,12 @@ const Checks = () => {
                 console.error('Manual notify function error:', error);
                 throw error;
             }
-            alert('✅ Bildirim e-postası başarıyla gönderildi.');
+
+            if (data?.success === false) {
+                alert('❌ Bildirim gönderilemedi: ' + (data.error || 'Bilinmeyen hata'));
+            } else {
+                alert('✅ Bildirim e-postası başarıyla gönderildi.');
+            }
         } catch (error: any) {
             console.error('Manual notify error details:', error);
             // Try to extract a meaningful message from the error object
