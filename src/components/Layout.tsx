@@ -29,9 +29,9 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
     };
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)', overflowX: 'hidden' }}>
-            {/* Sidebar */}
-            <aside style={{
+        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-bg)', overflowX: 'hidden', flexDirection: 'column' }}>
+            {/* Sidebar - Desktop Only */}
+            <aside className="sidebar-desktop" style={{
                 width: '100px',
                 background: 'var(--color-white)',
                 boxShadow: 'var(--shadow-lg)',
@@ -74,13 +74,53 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                 </nav>
             </aside>
 
-            {/* Main Area */}
-            <div style={{ flex: 1, marginLeft: '100px', display: 'flex', flexDirection: 'column' }}>
+            {/* Bottom Bar - Mobile Only */}
+            <nav className="bottom-nav-mobile" style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '60px',
+                background: 'var(--color-white)',
+                display: 'none',
+                justifyContent: 'space-around',
+                alignItems: 'center',
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+                zIndex: 1000,
+                padding: '0 10px'
+            }}>
+                {menuItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isActive ? 'var(--color-primary)' : 'var(--color-text-light)',
+                                textDecoration: 'none',
+                                flex: 1
+                            }}
+                        >
+                            <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
+                            <span style={{ fontSize: '10px', marginTop: '2px', fontWeight: isActive ? 700 : 500 }}>
+                                {item.label.split(' ')[1]}
+                            </span>
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Main Wrapper */}
+            <div className="main-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {/* Top Header */}
                 <header style={{
-                    height: '50px',
+                    height: '60px',
                     background: 'var(--color-white)',
-                    padding: '0 var(--spacing-xl)',
+                    padding: '0 var(--spacing-lg)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',

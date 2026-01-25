@@ -75,6 +75,8 @@ const ProjectDetail: React.FC = () => {
         status: 'pending',
         description: '',
         notification_email: '',
+        notification_email_2: '',
+        notification_email_3: '',
         project_id: id || ''
     });
     const [editingCheckId, setEditingCheckId] = useState<string | null>(null);
@@ -168,28 +170,30 @@ const ProjectDetail: React.FC = () => {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
+        const handleRefresh = () => {
+            if (id) {
+                // Background refresh shouldn't show global spinner
+                loadAllData(false);
+            }
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         if (id) {
-            loadAllData();
+            loadAllData(true);
         }
+
+        return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
+        };
     }, [id]);
 
-    const loadAllData = async () => {
+    const loadAllData = async (showSpinner = true) => {
         if (!id) return;
-        setLoading(true);
+        if (showSpinner) setLoading(true);
         try {
             const proj = await projectService.getProject(id);
             if (!proj) throw new Error('Proje bulunamadı');
-
-            // Otomatik public_code oluştur (yoksa)
-            if (!proj.public_code) {
-                const publicCode = crypto.randomUUID();
-                console.log('🔧 public_code oluşturuluyor:', publicCode);
-                await projectService.updateProject(id, { public_code: publicCode });
-                proj.public_code = publicCode;
-                console.log('✅ public_code atandı!');
-            } else {
-                console.log('✅ public_code zaten mevcut:', proj.public_code);
-            }
 
             setProject(proj);
             setCompanyInfo({
@@ -214,9 +218,9 @@ const ProjectDetail: React.FC = () => {
             setApartments(allApts.filter(a => a.project_id === id));
         } catch (err) {
             console.error(err);
-            navigate('/projeler');
+            if (showSpinner) navigate('/projeler');
         } finally {
-            setLoading(false);
+            if (showSpinner) setLoading(false);
         }
     };
 
@@ -440,10 +444,15 @@ const ProjectDetail: React.FC = () => {
 
 
                 {/* Main Content Area */}
-                <div className="card" style={{ padding: 'var(--spacing-md)', display: 'flex', gap: 'var(--spacing-lg)', minHeight: '500px' }}>
+                <div className="project-detail-main" style={{
+                    padding: 'var(--spacing-md)',
+                    display: 'flex',
+                    gap: 'var(--spacing-lg)',
+                    minHeight: '500px'
+                }}>
 
                     {/* Left Column - Main Table */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div className="table-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                             <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, margin: 0, color: 'var(--color-dark)' }}>
                                 {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
@@ -486,6 +495,8 @@ const ProjectDetail: React.FC = () => {
                                 status: c.status,
                                 description: c.description || '',
                                 notification_email: c.notification_email || '',
+                                notification_email_2: (c as any).notification_email_2 || '',
+                                notification_email_3: (c as any).notification_email_3 || '',
                                 project_id: c.project_id || id || ''
                             });
                             setShowCheckModal(true);
@@ -494,7 +505,7 @@ const ProjectDetail: React.FC = () => {
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
-                    <div style={{ width: '350px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                    <div className="floor-plan-column" style={{ width: '350px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
 
                         {activeTab === 'apartments' && (
                             <div className="card" style={{

@@ -50,6 +50,8 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
         // Add optional fields only if they exist in the input
         if (check.vat_status) checkData.vat_status = check.vat_status;
         if (check.notification_email) checkData.notification_email = check.notification_email;
+        if (check.notification_email_2) checkData.notification_email_2 = check.notification_email_2;
+        if (check.notification_email_3) checkData.notification_email_3 = check.notification_email_3;
         if (user?.email) checkData.created_by_email = user.email;
 
         const { error } = await supabase

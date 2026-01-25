@@ -43,9 +43,19 @@ const Expenses = () => {
 
 
     useEffect(() => {
+        const handleRefresh = () => {
+            expenseService.getExpenses().then(setExpenses);
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         const unsubscribe = expenseService.subscribeToExpenses(setExpenses);
         setLoading(false);
-        return unsubscribe;
+
+        return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
+            unsubscribe();
+        };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {

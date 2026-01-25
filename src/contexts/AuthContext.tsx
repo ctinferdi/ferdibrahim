@@ -27,11 +27,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
-    }, []);
+        // --- SESSION TIMEOUT (1 HOUR) ---
+        let lastActivity = Date.now();
+        const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
+
+        const resetTimer = () => {
+            lastActivity = Date.now();
+        };
+
+        activityEvents.forEach(event => {
+            window.addEventListener(event, resetTimer);
+        });
+
+        const timeoutInterval = setInterval(() => {
+            const now = Date.now();
+            const oneHourInMs = 60 * 60 * 1000;
+            if (user && (now - lastActivity > oneHourInMs)) {
+                console.log('Session timed out due to inactivity');
+                signOut();
+            }
+        }, 60000); // Check every minute
+
+        return () => {
+            subscription.unsubscribe();
+            activityEvents.forEach(event => {
+                window.removeEventListener(event, resetTimer);
+            });
+            clearInterval(timeoutInterval);
+        };
+    }, [user]);
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        setUser(null);
     };
 
     const value = {

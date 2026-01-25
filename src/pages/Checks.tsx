@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { subscribeToChecks, addCheck, updateCheck, deleteCheck } from '../services/checkService';
+import { subscribeToChecks, getChecks, addCheck, updateCheck, deleteCheck } from '../services/checkService';
 import { projectService } from '../services/projectService';
 import { supabase } from '../config/supabase';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
+import CheckModal from './ProjectDetail/Modals/CheckModal';
 
 const Checks = () => {
     const [checks, setChecks] = useState<Check[]>([]);
@@ -55,10 +55,21 @@ const Checks = () => {
 
 
     useEffect(() => {
+        const handleRefresh = () => {
+            getChecks().then(setChecks);
+            projectService.getProjects().then(setProjects);
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         const unsubscribe = subscribeToChecks(setChecks);
         projectService.getProjects().then(setProjects);
         setLoading(false);
-        return unsubscribe;
+
+        return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
+            unsubscribe();
+        };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -67,20 +78,12 @@ const Checks = () => {
         try {
             setErrorMsg(null);
 
-            // Merge emails
-            const emails = [
-                formData.notification_email,
-                formData.notification_email_2,
-                formData.notification_email_3
-            ].map(e => e?.trim()).filter(e => e);
-
             const submitData = {
                 ...formData,
-                notification_email: emails.join(', ')
+                notification_email: formData.notification_email?.trim() || '',
+                notification_email_2: formData.notification_email_2?.trim() || '',
+                notification_email_3: formData.notification_email_3?.trim() || ''
             };
-
-            delete submitData.notification_email_2;
-            delete submitData.notification_email_3;
 
             if (editingCheck) {
                 await updateCheck(editingCheck.id, submitData as CheckInput);
@@ -118,7 +121,6 @@ const Checks = () => {
 
     const handleEdit = (check: Check) => {
         setEditingCheck(check);
-        const emails = (check.notification_email || '').split(',').map(e => e.trim());
         setFormData({
             check_number: check.check_number,
             amount: check.amount,
@@ -130,9 +132,9 @@ const Checks = () => {
             due_date: check.due_date,
             status: check.status,
             description: check.description || '',
-            notification_email: emails[0] || '',
-            notification_email_2: emails[1] || '',
-            notification_email_3: emails[2] || '',
+            notification_email: check.notification_email || '',
+            notification_email_2: check.notification_email_2 || '',
+            notification_email_3: check.notification_email_3 || '',
             project_id: check.project_id || ''
         });
         setShowModal(true);
@@ -417,212 +419,18 @@ const Checks = () => {
                     </table>
                 </div>
 
-                {/* Modal */}
-                {showModal && (
-                    <div className="modal-overlay" style={{ backdropFilter: 'blur(3px)', backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setShowModal(false)}>
-                        <div className="modal" style={{ maxWidth: '480px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header" style={{ background: 'var(--color-bg-alt)', padding: '12px 20px', borderBottom: '1px solid var(--color-border)' }}>
-                                <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{editingCheck ? 'Çeki Düzenle' : 'Yeni Çek Kaydı'}</h2>
-                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', opacity: 0.5 }}>×</button>
-                            </div>
-
-                            <form onSubmit={handleSubmit}>
-                                <div className="modal-body" style={{ padding: '15px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ŞİRKET BİLGİSİ</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formData.company}
-                                            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                            placeholder="Örn: ÖZYILMAZLAR"
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ÇEK NO</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formData.check_number}
-                                            onChange={(e) => setFormData({ ...formData, check_number: e.target.value })}
-                                            placeholder="000123"
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>TUTAR (₺)</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formatNumberWithDots(formData.amount)}
-                                            onChange={(e) => setFormData({ ...formData, amount: parseNumberFromDots(e.target.value) })}
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>KULLANILACAK YER</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formData.category}
-                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            placeholder="Örn: BETON, ASANSÖR"
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>KDV DURUMU</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formData.vat_status}
-                                            onChange={(e) => setFormData({ ...formData, vat_status: e.target.value })}
-                                            placeholder="Örn: KDV DAHİL"
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>PROJE (OPSİYONEL)</label>
-                                        <select
-                                            className="form-input"
-                                            value={formData.project_id}
-                                            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
-                                            style={{ padding: '8px 12px', fontSize: '13px', height: 'auto' }}
-                                        >
-                                            <option value="">Proje Seçilmedi</option>
-                                            {projects.map(p => (
-                                                <option key={p.id} value={p.id}>{p.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>ÇEKİ VERECEK KİŞİ</label>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            value={formData.issuer}
-                                            onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
-                                            placeholder="Örn: ERHANLAR"
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>DURUM</label>
-                                        <select
-                                            className="form-select"
-                                            value={formData.status}
-                                            onChange={(e) => setFormData({ ...formData, status: e.target.value as CheckStatus })}
-                                            style={{ padding: '8px 12px', fontSize: '13px', margin: 0 }}
-                                        >
-                                            <option value="pending">Beklemede</option>
-                                            <option value="paid">Ödendi</option>
-                                        </select>
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>VERİLİŞ TARİHİ</label>
-                                        <input
-                                            type="date"
-                                            className="form-input"
-                                            value={formData.given_date}
-                                            onChange={(e) => setFormData({ ...formData, given_date: e.target.value })}
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>VADE TARİHİ</label>
-                                        <input
-                                            type="date"
-                                            className="form-input"
-                                            value={formData.due_date}
-                                            onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                                            style={{ padding: '8px 12px', fontSize: '13px' }}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px', color: '#dc2626', fontWeight: 700 }}>BİLDİRİM GÖNDERİLECEK E-POSTALAR</label>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                            <input
-                                                type="email"
-                                                className="form-input"
-                                                value={formData.notification_email}
-                                                onChange={(e) => setFormData({ ...formData, notification_email: e.target.value })}
-                                                placeholder="1. E-posta adresi"
-                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
-                                            />
-                                            <input
-                                                type="email"
-                                                className="form-input"
-                                                value={(formData as any).notification_email_2 || ''}
-                                                onChange={(e) => setFormData({ ...formData, notification_email_2: e.target.value } as any)}
-                                                placeholder="2. E-posta adresi (Opsiyonel)"
-                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
-                                            />
-                                            <input
-                                                type="email"
-                                                className="form-input"
-                                                value={(formData as any).notification_email_3 || ''}
-                                                onChange={(e) => setFormData({ ...formData, notification_email_3: e.target.value } as any)}
-                                                placeholder="3. E-posta adresi (Opsiyonel)"
-                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px' }}>AÇIKLAMA (OPSİYONEL)</label>
-                                        <textarea
-                                            className="form-input"
-                                            value={formData.description}
-                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                            rows={1}
-                                            style={{ resize: 'none', padding: '8px 12px', fontSize: '13px' }}
-                                        />
-                                    </div>
-
-                                    {errorMsg && (
-                                        <div style={{
-                                            gridColumn: 'span 2',
-                                            padding: '10px',
-                                            background: '#fee2e2',
-                                            color: '#991b1b',
-                                            borderRadius: '8px',
-                                            fontSize: '0.85rem',
-                                            border: '1px solid #fecaca'
-                                        }}>
-                                            ⚠️ {errorMsg}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="modal-footer" style={{ padding: '12px 20px', background: '#f8fafc', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', borderTop: '1px solid var(--color-border)' }}>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} style={{ padding: '8px 15px', fontSize: '13px' }}>
-                                        İptal
-                                    </button>
-                                    <button type="submit" className="btn btn-primary" style={{ padding: '8px 25px', fontWeight: 600, fontSize: '13px' }}>
-                                        {editingCheck ? 'Güncelle' : 'Kaydet'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+                {/* Standardized Master Check Modal */}
+                <CheckModal
+                    isOpen={showModal}
+                    onClose={() => setShowModal(false)}
+                    onSave={handleSubmit}
+                    editingCheckId={editingCheck?.id || null}
+                    checkFormData={formData}
+                    setCheckFormData={setFormData}
+                    saving={loading}
+                    errorMsg={errorMsg}
+                    projects={projects}
+                />
                 {/* Delete Confirmation Modal */}
                 {showDeleteModal && (
                     <div style={{

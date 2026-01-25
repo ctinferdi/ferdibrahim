@@ -46,6 +46,8 @@ export interface Check {
     description?: string;
     project_id?: string;
     notification_email?: string;
+    notification_email_2?: string;
+    notification_email_3?: string;
     notification_emails?: string[];
     created_by_email?: string;
     user_id?: string;

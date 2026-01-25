@@ -15,14 +15,38 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const loadInitialData = async () => {
+            const [exps, chks, apts, projs] = await Promise.all([
+                expenseService.getExpenses(),
+                checkService.getChecks(),
+                apartmentService.getApartments(),
+                projectService.getProjects()
+            ]);
+            setExpenses(exps);
+            setChecks(chks);
+            setApartments(apts);
+            setProjects(projs);
+            setLoading(false);
+        };
+
+        loadInitialData();
+
+        const handleRefresh = () => {
+            expenseService.getExpenses().then(setExpenses);
+            checkService.getChecks().then(setChecks);
+            apartmentService.getApartments().then(setApartments);
+            projectService.getProjects().then(setProjects);
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         const unsubExpenses = expenseService.subscribeToExpenses(setExpenses);
         const unsubChecks = checkService.subscribeToChecks(setChecks);
         const unsubApartments = apartmentService.subscribeToApartments(setApartments);
         const unsubProjects = projectService.subscribeToProjects(setProjects);
 
-        setLoading(false);
-
         return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
             unsubExpenses();
             unsubChecks();
             unsubApartments();

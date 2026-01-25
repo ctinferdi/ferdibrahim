@@ -37,11 +37,21 @@ const Projects: React.FC = () => {
     ]);
 
     useEffect(() => {
+        const handleRefresh = () => {
+            projectService.getProjects().then(setProjects);
+            checkService.getChecks().then(setChecks);
+            apartmentService.getApartments().then(setApartments);
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         const unsubscribeProjects = projectService.subscribeToProjects(setProjects);
         const unsubscribeChecks = checkService.subscribeToChecks(setChecks);
         const unsubscribeApartments = apartmentService.subscribeToApartments(setApartments);
         setLoading(false);
+
         return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
             unsubscribeProjects();
             unsubscribeChecks();
             unsubscribeApartments();

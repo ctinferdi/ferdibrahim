@@ -38,9 +38,19 @@ const Apartments = () => {
 
 
     useEffect(() => {
+        const handleRefresh = () => {
+            subscribeToApartments(setApartments);
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
         const unsubscribe = subscribeToApartments(setApartments);
         setLoading(false);
-        return unsubscribe;
+
+        return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
+            unsubscribe();
+        };
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -212,6 +222,7 @@ const Apartments = () => {
                                 {/* Daire Kartı */}
                                 <div
                                     className="card"
+                                    onClick={() => handleEdit(apartment)}
                                     style={{
                                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         color: 'white',
@@ -223,6 +234,17 @@ const Apartments = () => {
                                         display: 'flex',
                                         flexDirection: 'column'
                                     }}>
+                                    {isSuperAdmin && (
+                                        <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '4px', zIndex: 10 }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(apartment.id); }}
+                                                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '10px', color: 'white' }}
+                                                title="Sil"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    )}
 
                                     <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '8px', paddingRight: '2.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apartment.building_name}

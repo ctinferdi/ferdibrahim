@@ -41,8 +41,10 @@
   /* Spacing - Standardized Scale */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
-  --spacing-md: 0.75rem; /* Slightly reduced for compact design */
-  --spacing-lg: 1rem;    /* Slightly reduced for compact design */
+  --spacing-md: 0.75rem;
+  /* Slightly reduced for compact design */
+  --spacing-lg: 1rem;
+  /* Slightly reduced for compact design */
   --spacing-xl: 1.5rem;
   --spacing-2xl: 2.5rem;
 
@@ -145,6 +147,7 @@ a:hover {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
+  overflow-x: hidden;
 }
 
 .card {
@@ -531,7 +534,7 @@ a:hover {
   }
 
   .card {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
   }
 
   .modal {
@@ -541,6 +544,44 @@ a:hover {
   .table th,
   .table td {
     padding: 0.75rem 0.5rem;
+    font-size: 11px;
+  }
+
+  .sidebar-desktop {
+    display: none !important;
+  }
+
+  .bottom-nav-mobile {
+    display: flex !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding-bottom: 70px;
+    /* Space for bottom nav */
+  }
+
+  .project-detail-main {
+    flex-direction: column !important;
+    padding: var(--spacing-sm) !important;
+  }
+
+  .floor-plan-column {
+    width: 100% !important;
+    border-left: none !important;
+    border-top: 2px solid var(--color-border);
+    padding-left: 0 !important;
+    padding-top: var(--spacing-lg);
+  }
+
+  header {
+    padding: 0 var(--spacing-md) !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .main-wrapper {
+    margin-left: 100px !important;
   }
 }
 

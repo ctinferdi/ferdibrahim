@@ -14,6 +14,13 @@ import Apartments from './pages/Apartments';
 import Expenses from './pages/Expenses';
 import './index.css';
 
+import { useBackgroundRefresh } from './hooks/useBackgroundRefresh';
+
+const RefreshManager = () => {
+    useBackgroundRefresh();
+    return null;
+};
+
 const NavigateWithParam = () => {
     const { publicCode } = useParams();
     return <Navigate to={`/p/${publicCode}`} replace />;
@@ -22,6 +29,7 @@ const NavigateWithParam = () => {
 function App() {
     return (
         <AuthProvider>
+            <RefreshManager />
             <BrowserRouter>
                 <Routes>
                     <Route path="/login" element={<Login />} />
