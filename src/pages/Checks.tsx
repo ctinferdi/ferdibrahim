@@ -277,13 +277,13 @@ const Checks = () => {
                     <table className="table" style={{ borderCollapse: 'collapse' }}>
                         <thead style={{ background: '#fef3c7' }}>
                             <tr>
+                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a', width: '60px' }}>📢</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>VADE TARİHİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKLER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ŞİRKET</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KULLANILACAK YER</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>KDV DURUMU</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>PROJE</th>
-                                <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>BİLDİRİM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>ÇEKİ VEREN KİŞİ</th>
                                 <th style={{ color: '#92400e', textAlign: 'center', borderRight: '1px solid #fde68a' }}>DURUM</th>
                                 <th style={{ color: '#92400e', textAlign: 'center' }}>İŞLEMLER</th>
@@ -302,6 +302,16 @@ const Checks = () => {
                                         opacity: check.status === 'paid' ? 0.7 : 1,
                                         borderBottom: '1px solid #fde68a'
                                     }}>
+                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: '1.2rem' }}>
+                                            <div
+                                                onClick={() => handleEdit(check)}
+                                                style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                                                className="hover-scale"
+                                                title={(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Bildirim aktif. Düzenlemek için tıkla." : "Bildirim kurulu değil. Kurmak için tıkla."}
+                                            >
+                                                {(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? '🔔' : '🔕'}
+                                            </div>
+                                        </td>
                                         <td style={{
                                             textAlign: 'center',
                                             borderRight: '1px solid #fef3c7',
@@ -337,11 +347,6 @@ const Checks = () => {
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {projects.find(p => p.id === check.project_id)?.name || '-'}
-                                        </td>
-                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7' }}>
-                                            {(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? (
-                                                <span title="Bu çek için bildirim kuruludur (Vadeye 10 gün kala)" style={{ cursor: 'help' }}>🔔</span>
-                                            ) : '-'}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {check.issuer}
