@@ -169,26 +169,7 @@ const ProjectDetail: React.FC = () => {
     const [actionType, setActionType] = useState<'expense' | 'check' | 'apartment_reset'>('expense');
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        const handleRefresh = () => {
-            if (id) {
-                // Background refresh shouldn't show global spinner
-                loadAllData(false);
-            }
-        };
-
-        window.addEventListener('system-refresh', handleRefresh);
-
-        if (id) {
-            loadAllData(true);
-        }
-
-        return () => {
-            window.removeEventListener('system-refresh', handleRefresh);
-        };
-    }, [id]);
-
-    const loadAllData = async (showSpinner = true) => {
+    const loadAllData = React.useCallback(async (showSpinner = true) => {
         if (!id) return;
 
         // Phase 1: Critical Data (Project Info)
@@ -232,7 +213,26 @@ const ProjectDetail: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, navigate, selectedPartner, project]);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            if (id) {
+                // Background refresh shouldn't show global spinner
+                loadAllData(false);
+            }
+        };
+
+        window.addEventListener('system-refresh', handleRefresh);
+
+        if (id) {
+            loadAllData(true);
+        }
+
+        return () => {
+            window.removeEventListener('system-refresh', handleRefresh);
+        };
+    }, [id, loadAllData]);
 
 
     const formatCurrency = (value: number) => {
