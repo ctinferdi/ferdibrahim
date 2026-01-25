@@ -15,7 +15,6 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
     const menuItems = [
         { path: '/', label: '🏠 Ana Sayfa', icon: '🏠' },
         { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' },
-        { path: '/cekler', label: '💳 Çekler', icon: '💳' },
         { path: '/daireler', label: '🏢 Daireler', icon: '🏢' }
     ];
 

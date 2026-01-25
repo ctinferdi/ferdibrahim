@@ -20,12 +20,18 @@ export const expenseService = {
         };
     },
 
-    getExpenses: async (): Promise<Expense[]> => {
-        const { data, error } = await supabase
+    getExpenses: async (projectId?: string): Promise<Expense[]> => {
+        let query = supabase
             .from('expenses')
             .select('*')
             .order('date', { ascending: false })
             .order('created_at', { ascending: false });
+
+        if (projectId) {
+            query = query.eq('project_id', projectId);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return data as Expense[];

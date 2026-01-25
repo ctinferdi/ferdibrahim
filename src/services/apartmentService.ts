@@ -18,13 +18,19 @@ export const subscribeToApartments = (onUpdate: (apartments: Apartment[]) => voi
     };
 };
 
-export const getApartments = async (): Promise<Apartment[]> => {
-    const { data, error } = await supabase
+export const getApartments = async (projectId?: string): Promise<Apartment[]> => {
+    let query = supabase
         .from('apartments')
         .select('*')
         .order('floor', { ascending: false })
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true });
+
+    if (projectId) {
+        query = query.eq('project_id', projectId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data as Apartment[];

@@ -224,18 +224,6 @@ const CheckModal: React.FC<CheckModalProps> = ({
                             )}
                         </div>
 
-                        {/* Description */}
-                        <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '0' }}>
-                            <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>AÇIKLAMA (OPSİYONEL)</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={checkFormData.description || ''}
-                                onChange={(e) => setCheckFormData({ ...checkFormData, description: e.target.value })}
-                                placeholder="Notlarınız..."
-                                style={{ padding: '6px 10px', fontSize: '13px' }}
-                            />
-                        </div>
                     </div>
 
                     {errorMsg && (

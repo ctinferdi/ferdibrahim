@@ -208,14 +208,14 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            const allExp = await expenseService.getExpenses();
-            setExpenses(allExp.filter(e => e.project_id === id));
+            const allExp = await expenseService.getExpenses(id);
+            setExpenses(allExp);
 
-            const allChecks = await checkService.getChecks();
-            setChecks(allChecks.filter(c => c.project_id === id));
+            const allChecks = await checkService.getChecks(id);
+            setChecks(allChecks);
 
-            const allApts = await apartmentService.getApartments();
-            setApartments(allApts.filter(a => a.project_id === id));
+            const allApts = await apartmentService.getApartments(id);
+            setApartments(allApts);
         } catch (err) {
             console.error(err);
             if (showSpinner) navigate('/projeler');
@@ -260,7 +260,7 @@ const ProjectDetail: React.FC = () => {
             }
             setShowExpenseModal(false);
             setEditingExpenseId(null);
-            loadAllData();
+            loadAllData(false);
         } catch (error: any) {
             setErrorMsg(error.message);
         } finally {
@@ -280,7 +280,7 @@ const ProjectDetail: React.FC = () => {
             }
             setShowCheckModal(false);
             setEditingCheckId(null);
-            loadAllData();
+            loadAllData(false);
         } catch (error: any) {
             setErrorMsg(error.message);
         } finally {
@@ -366,7 +366,8 @@ const ProjectDetail: React.FC = () => {
                 setDeleteConfirmCode('');
                 setReceivedCode('');
                 setDeletingExpense(null);
-                loadAllData();
+                setDeletingExpense(null);
+                loadAllData(false);
             } catch (err) { console.error(err); }
         } else {
             alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
@@ -737,7 +738,7 @@ const ProjectDetail: React.FC = () => {
                                                         };
                                                         await projectService.updateProject(project.id, updates);
                                                         alert('Firma bilgileri kaydedildi!');
-                                                        loadAllData();
+                                                        loadAllData(false);
                                                     } catch (err: any) {
                                                         console.error('❌ Kaydetme Hatası Detayı:', err);
                                                         alert('Hata: ' + (err instanceof Error ? err.message : 'Bir sorun oluştu.'));
@@ -775,7 +776,7 @@ const ProjectDetail: React.FC = () => {
             <ExpenseModal isOpen={showExpenseModal} onClose={() => setShowExpenseModal(false)} onSave={handleSaveExpense} project={project} editingExpenseId={editingExpenseId} expenseDate={expenseDate} setExpenseDate={setExpenseDate} selectedPartner={selectedPartner} setSelectedPartner={setSelectedPartner} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} recipient={recipient} setRecipient={setRecipient} category={category} setCategory={setCategory} description={description} setDescription={setDescription} amount={amount} setAmount={setAmount} saving={saving} errorMsg={errorMsg} />
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
-            <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={loadAllData} />
+            <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} />
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (

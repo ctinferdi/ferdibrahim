@@ -17,11 +17,17 @@ export const subscribeToChecks = (onUpdate: (checks: Check[]) => void) => {
     };
 };
 
-export const getChecks = async (): Promise<Check[]> => {
-    const { data, error } = await supabase
+export const getChecks = async (projectId?: string): Promise<Check[]> => {
+    let query = supabase
         .from('checks')
         .select('*')
         .order('due_date', { ascending: true });
+
+    if (projectId) {
+        query = query.eq('project_id', projectId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data as Check[];
