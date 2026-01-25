@@ -205,19 +205,20 @@ const ProjectDetail: React.FC = () => {
             setLoading(false); // Unblock main UI
 
             // Phase 2: Independent Parallel Fetching
-            setLoadingExpenses(true);
+            // Phase 2: Independent Parallel Fetching
+            if (showSpinner) setLoadingExpenses(true);
             expenseService.getExpenses(id)
                 .then(data => setExpenses(data))
                 .catch(console.error)
                 .finally(() => setLoadingExpenses(false));
 
-            setLoadingChecks(true);
+            if (showSpinner) setLoadingChecks(true);
             checkService.getChecks(id)
                 .then(data => setChecks(data))
                 .catch(console.error)
                 .finally(() => setLoadingChecks(false));
 
-            setLoadingApartments(true);
+            if (showSpinner) setLoadingApartments(true);
             apartmentService.getApartments(id)
                 .then(data => setApartments(data))
                 .catch(console.error)
