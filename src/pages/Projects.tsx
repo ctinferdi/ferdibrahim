@@ -40,12 +40,17 @@ const Projects: React.FC = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                // 1. Force regenerate slugs & public codes to ensure data integrity
-                await Promise.all([
+                // Safeguard: Timeout after 5 seconds to prevent white screen if network hangs
+                const optimizationPromise = Promise.all([
                     projectService.regenerateAllSlugs(),
                     projectService.regeneratePublicCodes()
                 ]);
-                console.log('Slugs & Codes verified');
+
+                const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 5000));
+
+                // Race: If optimization takes > 5s, we skip waiting for it and just load data
+                await Promise.race([optimizationPromise, timeoutPromise]);
+                console.log('Optimization step completed or timed out');
 
                 // 2. Fetch fresh data
                 const [projs, chks, apts] = await Promise.all([
