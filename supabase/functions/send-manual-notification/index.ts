@@ -30,26 +30,27 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 1. Get check details
-        console.log(`Fetching check details for ID: ${checkId}`)
+        // 1. Get check details (simplified)
+        console.log(`Step 1: Fetching check ${checkId}`)
         const { data: check, error: checkError } = await supabase
             .from('checks')
-            .select(`
-                *,
-                projects (
-                  name,
-                  notification_emails
-                )
-            `)
+            .select('*')
             .eq('id', checkId)
             .single()
 
-        if (checkError) {
-            console.error('Database error:', checkError)
-            throw new Error(`Database error: ${checkError.message}`)
-        }
-        if (!check) {
-            throw new Error('Check not found')
+        if (checkError) throw new Error(`Fetch check error: ${checkError.message}`)
+        if (!check) throw new Error('Check not found')
+
+        // 2. Get project details separately if project_id exists
+        let project = null
+        if (check.project_id) {
+            console.log(`Step 2: Fetching project ${check.project_id}`)
+            const { data: pData, error: pError } = await supabase
+                .from('projects')
+                .select('name, notification_emails')
+                .eq('id', check.project_id)
+                .single()
+            if (!pError) project = pData
         }
 
         // 2. Prepare recipients
