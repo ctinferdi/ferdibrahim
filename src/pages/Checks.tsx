@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { subscribeToChecks, addCheck, updateCheck, deleteCheck } from '../services/checkService';
 import { projectService } from '../services/projectService';
+import { supabase } from '../config/supabase';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
@@ -15,6 +16,13 @@ const Checks = () => {
     const [activeTab, setActiveTab] = useState<'pending' | 'paid' | 'all'>('pending');
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    // Security Code State
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [receivedCode, setReceivedCode] = useState('');
+    const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
+    const [deletingCheckInfo, setDeletingCheckInfo] = useState<{ id: string, name: string } | null>(null);
+    const [sendingCode, setSendingCode] = useState(false);
 
     const { user } = useAuth();
     const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
@@ -107,16 +115,48 @@ const Checks = () => {
         setShowModal(true);
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = (id: string, name: string) => {
         handleAdminAction(async () => {
-            if (window.confirm('Bu çeki silmek istediğinizden emin misiniz?')) {
-                try {
-                    await deleteCheck(id);
-                } catch (error: any) {
-                    console.error('Error deleting check:', error);
+            setSendingCode(true);
+            setDeletingCheckInfo({ id, name });
+            try {
+                const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                    body: {
+                        targetName: name,
+                        actionType: 'check',
+                        userEmail: user?.email
+                    }
+                });
+
+                if (error) throw error;
+                if (data?.code) {
+                    setReceivedCode(data.code);
+                    setShowDeleteModal(true);
                 }
+            } catch (error: any) {
+                console.error('Code trigger error:', error);
+                alert('Güvenlik kodu gönderilemedi: ' + error.message);
+            } finally {
+                setSendingCode(false);
             }
         });
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (deleteConfirmCode === receivedCode && deletingCheckInfo) {
+            try {
+                await deleteCheck(deletingCheckInfo.id);
+                setShowDeleteModal(false);
+                setDeleteConfirmCode('');
+                setReceivedCode('');
+                setDeletingCheckInfo(null);
+            } catch (error: any) {
+                console.error('Delete error:', error);
+                alert('Silme işlemi sırasında bir hata oluştu.');
+            }
+        } else {
+            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+        }
     };
 
     const formatCurrency = (amount: number) => {
@@ -311,10 +351,11 @@ const Checks = () => {
                                                 </button>
                                                 <button
                                                     className="btn btn-sm"
-                                                    onClick={() => handleDelete(check.id)}
-                                                    style={{ background: '#fee2e2', border: '1px solid #fecaca', padding: '4px 8px' }}
+                                                    disabled={sendingCode}
+                                                    onClick={() => handleDelete(check.id, `${check.company} (${check.check_number})`)}
+                                                    style={{ background: '#fee2e2', border: '1px solid #fecaca', padding: '4px 8px', opacity: sendingCode ? 0.5 : 1 }}
                                                 >
-                                                    🗑️
+                                                    {sendingCode && deletingCheckInfo?.id === check.id ? '...' : '🗑️'}
                                                 </button>
                                             </div>
                                         </td>
@@ -510,6 +551,66 @@ const Checks = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2000,
+                        padding: 'var(--spacing-md)'
+                    }} onClick={() => setShowDeleteModal(false)}>
+                        <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
+                            <h2 className="mb-md">Çeki Sil</h2>
+                            <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
+                                <strong>{deletingCheckInfo?.name}</strong> kaydını silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                            </p>
+
+                            <div className="form-group">
+                                <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800, fontSize: '11px', textAlign: 'center', display: 'block' }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>
+                                <input
+                                    type="tel"
+                                    className="form-input"
+                                    value={deleteConfirmCode}
+                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                    placeholder="4 haneli kodu girin"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    autoFocus
+                                    style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px', fontWeight: 800, marginTop: '10px' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+                                <button
+                                    onClick={handleDeleteConfirm}
+                                    className="btn btn-primary"
+                                    style={{ flex: 1, backgroundColor: '#f5576c' }}
+                                >
+                                    Sil
+                                </button>
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setDeleteConfirmCode('');
+                                        setReceivedCode('');
+                                        setDeletingCheckInfo(null);
+                                    }}
+                                    style={{ flex: 1 }}
+                                >
+                                    İptal
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

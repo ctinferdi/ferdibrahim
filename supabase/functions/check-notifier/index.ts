@@ -42,6 +42,7 @@ serve(async (req) => {
 
         // 2. Process and send emails
         const notifications = []
+        const DEFAULT_NOTIFICATION_EMAIL = "ctinferdi@gmail.com"
 
         for (const check of checks) {
             const projectEmails = check.projects?.notification_emails || []
@@ -50,15 +51,16 @@ serve(async (req) => {
             const recipients = new Set<string>([...projectEmails])
             if (specificEmail) recipients.add(specificEmail)
 
+            // If no recipients, fallback to default
             if (recipients.size === 0) {
-                console.log(`No recipients for check ${check.check_number}`)
-                continue
+                recipients.add(DEFAULT_NOTIFICATION_EMAIL)
             }
 
             const recipientList = Array.from(recipients)
 
-            // Sending email via Resend (assuming configured)
+            // Sending email via Resend
             if (RESEND_API_KEY) {
+                console.log(`Sending notification for check ${check.check_number} to: ${recipientList.join(', ')}`)
                 const emailRes = await fetch('https://api.resend.com/emails', {
                     method: 'POST',
                     headers: {
@@ -66,7 +68,7 @@ serve(async (req) => {
                         'Authorization': `Bearer ${RESEND_API_KEY}`,
                     },
                     body: JSON.stringify({
-                        from: 'InsaatHesapp <noreply@insaathesapp.com>',
+                        from: 'InsaatHesapp <onboarding@resend.dev>',
                         to: recipientList,
                         subject: `Çek Ödeme Hatırlatıcısı: ${check.check_number}`,
                         html: `
