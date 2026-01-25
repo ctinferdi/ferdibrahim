@@ -41,7 +41,9 @@ serve(async (req) => {
         if (checkError) throw new Error(`Fetch check error: ${checkError.message}`)
         if (!check) throw new Error('Check not found')
 
-        // 2. Get project details separately if project_id exists
+        console.log('Check data fetched:', JSON.stringify(check))
+
+        // 2. Get project details separately
         let project = null
         if (check.project_id) {
             console.log(`Step 2: Fetching project ${check.project_id}`)
@@ -53,12 +55,11 @@ serve(async (req) => {
             if (!pError) project = pData
         }
 
-        // 2. Prepare recipients
-        const projectEmails = check.projects?.notification_emails || []
-        const userEmails = check.user?.notification_emails || []
+        // 3. Prepare recipients
+        const projectEmails = project?.notification_emails || []
         const specificEmailsStr = check.notification_email
 
-        const recipients = new Set<string>([...projectEmails, ...userEmails])
+        const recipients = new Set<string>([...projectEmails])
 
         if (specificEmailsStr) {
             const extraEmails = specificEmailsStr.split(',').map((e: string) => e.trim()).filter((e: string) => e)
@@ -66,18 +67,20 @@ serve(async (req) => {
         }
 
         if (recipients.size === 0) {
-            // Default fallback if no emails defined anywhere
             recipients.add("ctinferdi@gmail.com")
         }
 
         const recipientList = Array.from(recipients)
+        console.log(`Recipients: ${recipientList.join(', ')}`)
 
-        // 3. Send email via Resend
+        // 4. Send email via Resend
         if (!RESEND_API_KEY) {
             throw new Error('RESEND_API_KEY is not configured')
         }
 
-        console.log(`Sending manual notification for check ${check.check_number} to: ${recipientList.join(', ')}`)
+        const checkNum = check.check_number || check.check_no || 'Belirtilmemiş'
+
+        console.log(`Sending manual notification for check ${checkNum} to: ${recipientList.join(', ')}`)
 
         const emailRes = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -88,29 +91,32 @@ serve(async (req) => {
             body: JSON.stringify({
                 from: 'InsaatHesapp <onboarding@resend.dev>',
                 to: recipientList,
-                subject: `MANUEL HATIRLATMA: Çek Ödeme Hatırlatıcısı (${check.check_number})`,
+                subject: `MANUEL HATIRLATMA: Çek Ödeme Hatırlatması (${checkNum})`,
                 html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
             <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px;">Çek Ödeme Hatırlatması</h2>
             <p>Merhaba, bu bir manuel test/hatırlatma bildirilmiştir.</p>
             <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Çek Numarası:</strong> ${check.check_number}</p>
+              <p><strong>Çek Numarası:</strong> ${checkNum}</p>
               <p><strong>Vade Tarihi:</strong> ${check.due_date}</p>
               <p><strong>Tutar:</strong> ${new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(check.amount)}</p>
               <p><strong>Şirket/Kişi:</strong> ${check.company}</p>
-              <p><strong>Proje:</strong> ${check.projects?.name || 'Belirtilmemiş'}</p>
+              <p><strong>Proje:</strong> ${project?.name || 'Belirtilmemiş'}</p>
             </div>
             <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
-              Bu e-posta sistem üzerinden manuel olarak tetiklenmiştir.
+              Bu e-posta sistem üzerinden manuel olarak tetiklenmiştir. <br/>
+              <em>Not: onboarding@resend.dev adresi sadece doğrulanmış hesaplara mail gönderebilir. E-posta ulaşmıyorsa alıcı mail Resend üzerinde kayıtlı değildir.</em>
             </p>
           </div>
         `,
             }),
         })
 
+        const resBody = await emailRes.text()
+        console.log('Resend response:', resBody)
+
         if (!emailRes.ok) {
-            const err = await emailRes.text()
-            throw new Error(`Resend Error: ${err}`)
+            throw new Error(`Resend Error: ${resBody}`)
         }
 
         return new Response(JSON.stringify({ message: 'Email sent successfully' }), {
