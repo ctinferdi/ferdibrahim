@@ -6,9 +6,10 @@ interface ApartmentTableProps {
     onEdit: (apt: Apartment) => void;
     onReset: (apt: Apartment) => void;
     formatCurrency: (value: number) => string;
+    sendingCode?: boolean;
 }
 
-const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, formatCurrency }) => {
+const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, formatCurrency, sendingCode }) => {
     return (
         <div style={{ flex: 1, overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
@@ -82,10 +83,20 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                             </button>
                                             <button
                                                 onClick={() => onReset(apartment)}
-                                                style={{ padding: '4px 8px', fontSize: '12px', background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5', borderRadius: '4px', cursor: 'pointer' }}
+                                                disabled={sendingCode}
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    background: '#fff7ed',
+                                                    color: '#c2410c',
+                                                    border: '1px solid #ffedd5',
+                                                    borderRadius: '4px',
+                                                    cursor: sendingCode ? 'wait' : 'pointer',
+                                                    opacity: sendingCode ? 0.5 : 1
+                                                }}
                                                 title="Satışı İptal Et (Daireyi Boşa Çıkar)"
                                             >
-                                                🔄
+                                                {sendingCode ? '...' : '🔄'}
                                             </button>
                                         </div>
                                     </td>

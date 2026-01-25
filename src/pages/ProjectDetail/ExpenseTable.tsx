@@ -7,9 +7,10 @@ interface ExpenseTableProps {
     onEdit: (expense: Expense) => void;
     onDelete: (id: string, name: string) => void;
     formatCurrency: (value: number) => string;
+    sendingCode?: boolean;
 }
 
-const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, onDelete, formatCurrency }) => {
+const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, onDelete, formatCurrency, sendingCode }) => {
     if (expenses.length === 0) {
         return (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
@@ -70,10 +71,17 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
                                         </button>
                                         <button
                                             onClick={() => onDelete(expense.id, expense.category)}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                            disabled={sendingCode}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: sendingCode ? 'wait' : 'pointer',
+                                                fontSize: '1.2rem',
+                                                opacity: sendingCode ? 0.5 : 1
+                                            }}
                                             title="Sil"
                                         >
-                                            🗑️
+                                            {sendingCode ? '...' : '🗑️'}
                                         </button>
                                     </div>
                                 </td>

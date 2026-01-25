@@ -268,24 +268,6 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
                                 {editingApartmentId ? 'Güncelle' : 'Kaydet'}
                             </button>
-                            {editingApartmentId && (
-                                <button
-                                    type="button"
-                                    className="btn"
-                                    onClick={async () => {
-                                        if (confirm('Bu daireyi silmek istediğinize emin misiniz?')) {
-                                            await apartmentService.deleteApartment(editingApartmentId);
-                                            onClose();
-                                            setEditingApartmentId(null);
-                                            const allApartments = await apartmentService.getApartments();
-                                            setApartments(allApartments.filter(a => a.project_id === id));
-                                        }
-                                    }}
-                                    style={{ flex: 1, background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}
-                                >
-                                    Sil
-                                </button>
-                            )}
                             <button
                                 type="button"
                                 className="btn btn-secondary"

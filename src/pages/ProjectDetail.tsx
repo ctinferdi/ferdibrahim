@@ -7,6 +7,7 @@ import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
 import { Project, Expense, Check, Apartment } from '../types';
+import { supabase } from '../config/supabase';
 
 // Components
 import FloorPlan from './ProjectDetail/FloorPlan';
@@ -28,10 +29,6 @@ const ProjectDetail: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // Rol sistemi kaldırıldı, herkes tam yetkili
-    const handleAdminAction = (action: () => void) => {
-        action();
-    };
     const [project, setProject] = useState<Project | null>(null);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [checks, setChecks] = useState<Check[]>([]);
@@ -164,7 +161,9 @@ const ProjectDetail: React.FC = () => {
 
     const [deletingExpense, setDeletingExpense] = useState<{ id: string, name: string } | null>(null);
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
-    const [generatedSecurityCode, setGeneratedSecurityCode] = useState('');
+    const [receivedCode, setReceivedCode] = useState('');
+    const [sendingCode, setSendingCode] = useState(false);
+    const [actionType, setActionType] = useState<'expense' | 'check' | 'apartment_reset'>('expense');
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -284,24 +283,88 @@ const ProjectDetail: React.FC = () => {
         }
     };
 
-    const handleDeleteClick = (id: string, name: string) => {
-        handleAdminAction(() => {
-            const code = Math.floor(1000 + Math.random() * 9000).toString();
-            setGeneratedSecurityCode(code);
-            setDeletingExpense({ id, name });
-            setShowDeleteModal(true);
-        });
+    const handleDeleteClick = async (id: string, name: string) => {
+        setSendingCode(true);
+        const type = activeTab === 'expenses' ? 'expense' : 'check';
+        setActionType(type);
+        setDeletingExpense({ id, name });
+
+        try {
+            const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                body: {
+                    targetName: name,
+                    actionType: type,
+                    userEmail: user?.email
+                }
+            });
+
+            if (error) throw error;
+            if (data?.code) {
+                setReceivedCode(data.code);
+                setShowDeleteModal(true);
+            }
+        } catch (error: any) {
+            console.error('Full Error:', error);
+            const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
+            alert('Güvenlik kodu gönderilemedi: ' + errorMsg);
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
+    const handleApartmentResetClick = async (apt: Apartment) => {
+        setSendingCode(true);
+        const name = `${apt.building_name} No:${apt.apartment_number} (Satış İptali)`;
+        setActionType('apartment_reset');
+        setDeletingExpense({ id: apt.id, name });
+
+        try {
+            const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                body: {
+                    targetName: name,
+                    actionType: 'apartment_reset',
+                    userEmail: user?.email
+                }
+            });
+
+            if (error) throw error;
+            if (data?.code) {
+                setReceivedCode(data.code);
+                setShowDeleteModal(true);
+            }
+        } catch (error: any) {
+            console.error('Full Error:', error);
+            const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
+            alert('Güvenlik kodu gönderilemedi: ' + errorMsg);
+        } finally {
+            setSendingCode(false);
+        }
     };
 
     const handleDeleteConfirm = async () => {
-        if (deleteConfirmCode === generatedSecurityCode && deletingExpense) {
+        if (deleteConfirmCode === receivedCode && deletingExpense) {
             try {
-                if (activeTab === 'expenses') await expenseService.deleteExpense(deletingExpense.id);
-                else await checkService.deleteCheck(deletingExpense.id);
+                if (actionType === 'expense') {
+                    await expenseService.deleteExpense(deletingExpense.id);
+                } else if (actionType === 'check') {
+                    await checkService.deleteCheck(deletingExpense.id);
+                } else if (actionType === 'apartment_reset') {
+                    await apartmentService.updateApartment(deletingExpense.id, {
+                        status: 'available',
+                        customer_name: '',
+                        customer_phone: '',
+                        sold_price: 0,
+                        paid_amount: 0
+                    });
+                }
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
+                setReceivedCode('');
+                setDeletingExpense(null);
                 loadAllData();
             } catch (err) { console.error(err); }
+        } else {
+            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
         }
     };
 
@@ -407,7 +470,7 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} />}
+                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
                         {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} onEdit={(c) => {
                             setEditingCheckId(c.id);
                             setCheckFormData({
@@ -425,8 +488,8 @@ const ProjectDetail: React.FC = () => {
                                 project_id: c.project_id || id || ''
                             });
                             setShowCheckModal(true);
-                        }} onDelete={handleDeleteClick} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={(a) => handleAdminAction(async () => { if (confirm('Satışı İptal Et?')) { await apartmentService.updateApartment(a.id, { status: 'available', customer_name: '', customer_phone: '', sold_price: 0, paid_amount: 0 }); loadAllData(); } })} />}
+                        }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
@@ -716,24 +779,36 @@ const ProjectDetail: React.FC = () => {
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={loadAllData} />
 
             {/* Delete Confirmation Modal */}
-            {
-                showDeleteModal && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--spacing-md)' }}>
-                        <div className="card" style={{ maxWidth: '400px', width: '100%', padding: 'var(--spacing-lg)' }}>
-                            <h2 className="mb-md">{activeTab === 'expenses' ? 'Gideri Sil' : 'Çeki Sil'}</h2>
-                            <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}><strong>{deletingExpense?.name}</strong> kaydını silmek için: <strong style={{ color: 'var(--color-primary)', fontSize: '1.2rem' }}>{generatedSecurityCode}</strong></p>
-                            <div className="form-group">
-                                <label className="form-label" style={{ fontSize: '10px' }}>GÜVENLİK KODU</label>
-                                <input type="tel" className="form-input" value={deleteConfirmCode} onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="4 haneli kodu girin" autoFocus />
-                            </div>
-                            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-                                <button onClick={handleDeleteConfirm} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#f5576c' }}>SİL</button>
-                                <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); }} style={{ flex: 1 }}>İPTAL</button>
-                            </div>
+            {showDeleteModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--spacing-md)' }}>
+                    <div className="card" style={{ maxWidth: '400px', width: '100%', padding: 'var(--spacing-lg)' }}>
+                        <h2 className="mb-md">
+                            {actionType === 'expense' ? 'Gideri Sil' : actionType === 'check' ? 'Çeki Sil' : 'Satışı İptal Et'}
+                        </h2>
+                        <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}>
+                            <strong>{deletingExpense?.name}</strong> işlemini onaylamak için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                        </p>
+                        <div className="form-group">
+                            <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>
+                            <input
+                                type="tel"
+                                className="form-input"
+                                value={deleteConfirmCode}
+                                onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                placeholder="4 haneli kodu girin"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                autoFocus
+                                style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px', fontWeight: 800 }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
+                            <button onClick={handleDeleteConfirm} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#f5576c' }}>ONAYLA</button>
+                            <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); setDeletingExpense(null); }} style={{ flex: 1 }}>İPTAL</button>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
         </Layout>
     );
 };

@@ -6,9 +6,10 @@ interface CheckTableProps {
     onEdit: (check: Check) => void;
     onDelete: (id: string, name: string) => void;
     formatCurrency: (value: number) => string;
+    sendingCode?: boolean;
 }
 
-const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, formatCurrency }) => {
+const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, formatCurrency, sendingCode }) => {
     if (checks.length === 0) {
         return (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
@@ -86,10 +87,17 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                                     </button>
                                     <button
                                         onClick={() => onDelete(check.id, check.company)}
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                        disabled={sendingCode}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: sendingCode ? 'wait' : 'pointer',
+                                            fontSize: '1.2rem',
+                                            opacity: sendingCode ? 0.5 : 1
+                                        }}
                                         title="Sil"
                                     >
-                                        🗑️
+                                        {sendingCode ? '...' : '🗑️'}
                                     </button>
                                 </div>
                             </td>
