@@ -59,15 +59,14 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '6px',
-            paddingBottom: 'var(--spacing-sm)',
-            padding: '4px', // Space for hover effects
+            gap: '0',
+            paddingBottom: '2px',
+            padding: '2px',
             maxHeight: '600px',
             overflowY: 'auto',
-            overflowX: 'hidden', // Prevent scrollbar on hover
+            overflowX: 'hidden',
             width: '100%'
         }}>
-
             {floors.map(floor => {
                 const floorApts = apartments
                     .filter(a => a.floor === floor)
@@ -82,11 +81,12 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     <div key={floor} className="floor-plan-row" style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        padding: '4px',
-                        borderRadius: '6px',
+                        gap: '2px',
+                        padding: '0', // No padding
+                        borderRadius: '4px',
                         background: '#f8fafc',
-                        marginBottom: '4px',
+                        marginBottom: '0', // No margin
+                        borderBottom: '1px solid white', // Subtle separator
                         width: '100%'
                     }}>
                         <div className="floor-plan-label" style={{
@@ -109,7 +109,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                         <div className="floor-plan-grid" style={{
                             display: 'flex',
                             flexWrap: 'wrap', // Allow wrapping
-                            gap: '6px',
+                            gap: '2px',
                             flex: 1,
                             width: '100%'
                         }}>

@@ -208,14 +208,17 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            const allExp = await expenseService.getExpenses(id);
+            // Parallel Data Fetching
+            const [allExp, allChecks, allApts] = await Promise.all([
+                expenseService.getExpenses(id),
+                checkService.getChecks(id),
+                apartmentService.getApartments(id)
+            ]);
+
             setExpenses(allExp);
-
-            const allChecks = await checkService.getChecks(id);
             setChecks(allChecks);
-
-            const allApts = await apartmentService.getApartments(id);
             setApartments(allApts);
+
         } catch (err) {
             console.error(err);
             if (showSpinner) navigate('/projeler');
