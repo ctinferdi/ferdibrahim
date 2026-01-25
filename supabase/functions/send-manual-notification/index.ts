@@ -30,7 +30,7 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 1. Get check details (simplified)
+        // 1. Get check details
         console.log(`Step 1: Fetching check ${checkId}`)
         const { data: check, error: checkError } = await supabase
             .from('checks')
@@ -38,10 +38,10 @@ serve(async (req) => {
             .eq('id', checkId)
             .single()
 
-        if (checkError) throw new Error(`Fetch check error: ${checkError.message}`)
-        if (!check) throw new Error('Check not found')
+        if (checkError) throw new Error(`Fetch check database error: ${checkError.message}`)
+        if (!check) throw new Error(`Check not found with ID: ${checkId}`)
 
-        console.log('Check data fetched:', JSON.stringify(check))
+        console.log('Check data found:', JSON.stringify(check))
 
         // 2. Get project details separately
         let project = null
@@ -56,31 +56,36 @@ serve(async (req) => {
         }
 
         // 3. Prepare recipients
-        const projectEmails = project?.notification_emails || []
-        const specificEmailsStr = check.notification_email
+        const recipients = new Set<string>()
 
-        const recipients = new Set<string>([...projectEmails])
+        // Add project emails
+        if (project?.notification_emails && Array.isArray(project.notification_emails)) {
+            project.notification_emails.forEach(e => { if (e) recipients.add(e.trim()) })
+        }
 
-        if (specificEmailsStr) {
-            const extraEmails = specificEmailsStr.split(',').map((e: string) => e.trim()).filter((e: string) => e)
+        // Add specific check notification email
+        if (check.notification_email) {
+            const extraEmails = check.notification_email.split(',').map((e: string) => e?.trim()).filter((e: string) => e)
             extraEmails.forEach((e: string) => recipients.add(e))
         }
 
+        // Add user notification emails if we have them (check has user_id, but joining users table is extra work now)
+        // Fallback to defaults
         if (recipients.size === 0) {
             recipients.add("ctinferdi@gmail.com")
         }
 
-        const recipientList = Array.from(recipients)
-        console.log(`Recipients: ${recipientList.join(', ')}`)
+        const recipientList = Array.from(recipients).filter(e => e && e.includes('@'))
+        console.log(`Targeting recipients: ${recipientList.join(', ')}`)
 
         // 4. Send email via Resend
         if (!RESEND_API_KEY) {
-            throw new Error('RESEND_API_KEY is not configured')
+            throw new Error('RESEND_API_KEY environment variable is missing')
         }
 
-        const checkNum = check.check_number || check.check_no || 'Belirtilmemiş'
+        const checkNum = check.check_number || 'Belirtilmemiş'
 
-        console.log(`Sending manual notification for check ${checkNum} to: ${recipientList.join(', ')}`)
+        console.log(`Sending manual notification for check ${checkNum} via Resend...`)
 
         const emailRes = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -103,9 +108,9 @@ serve(async (req) => {
               <p><strong>Şirket/Kişi:</strong> ${check.company}</p>
               <p><strong>Proje:</strong> ${project?.name || 'Belirtilmemiş'}</p>
             </div>
-            <p style="color: #64748b; font-size: 12px; margin-top: 30px;">
-              Bu e-posta sistem üzerinden manuel olarak tetiklenmiştir. <br/>
-              <em>Not: onboarding@resend.dev adresi sadece doğrulanmış hesaplara mail gönderebilir. E-posta ulaşmıyorsa alıcı mail Resend üzerinde kayıtlı değildir.</em>
+            <p style="color: #64748b; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+              Bu e-posta sistem üzerinden manuel olarak tetiklenmiştir. <br/><br/>
+              <strong>📌 Not:</strong> Şu an deneme modunda olduğumuz için e-postalar ulaşmıyorsa, alıcı adresin doğrulanmış olması gerekebilir.
             </p>
           </div>
         `,
@@ -113,19 +118,27 @@ serve(async (req) => {
         })
 
         const resBody = await emailRes.text()
-        console.log('Resend response:', resBody)
+        console.log('Resend Response Status:', emailRes.status)
+        console.log('Resend Response Body:', resBody)
 
         if (!emailRes.ok) {
-            throw new Error(`Resend Error: ${resBody}`)
+            // Return the specific Resend error instead of a generic 500
+            return new Response(JSON.stringify({
+                error: `Resend API Error (Status ${emailRes.status}): ${resBody}`,
+                details: resBody
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 400, // Return 400 so client knows it's a "known" failure
+            })
         }
 
-        return new Response(JSON.stringify({ message: 'Email sent successfully' }), {
+        return new Response(JSON.stringify({ message: 'Email sent successfully', recipients: recipientList }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
         })
 
     } catch (error: any) {
-        console.error('Function Error:', error.message)
+        console.error('Final Catch Error:', error.message)
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 500,
