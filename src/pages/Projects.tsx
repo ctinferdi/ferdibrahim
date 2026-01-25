@@ -27,6 +27,7 @@ const Projects: React.FC = () => {
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isOptimizing, setIsOptimizing] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
     // Form states
@@ -37,25 +38,44 @@ const Projects: React.FC = () => {
     ]);
 
     useEffect(() => {
+        const init = async () => {
+            try {
+                // 1. Force regenerate slugs to ensure uniqueness
+                await projectService.regenerateAllSlugs();
+                console.log('Slugs regenerated/verified');
+
+                // 2. Fetch fresh data
+                const [projs, chks, apts] = await Promise.all([
+                    projectService.getProjects(),
+                    checkService.getChecks(),
+                    apartmentService.getApartments()
+                ]);
+
+                setProjects(projs);
+                setChecks(chks);
+                setApartments(apts);
+            } catch (err) {
+                console.error('Initialization error:', err);
+            } finally {
+                setLoading(false);
+                setIsOptimizing(false);
+            }
+        };
+
+        init();
+
         const handleRefresh = () => {
+            // ... existing refresh logic
             projectService.getProjects().then(setProjects);
             checkService.getChecks().then(setChecks);
             apartmentService.getApartments().then(setApartments);
         };
-
-        // Migration trigger
-        // Migration trigger
-        // Migration trigger - Force regenerate to fix duplicates
-        projectService.regenerateAllSlugs()
-            .then(() => console.log('Slugs regenerated'))
-            .catch(err => console.error('Slug migration failed:', err));
 
         window.addEventListener('system-refresh', handleRefresh);
 
         const unsubscribeProjects = projectService.subscribeToProjects(setProjects);
         const unsubscribeChecks = checkService.subscribeToChecks(setChecks);
         const unsubscribeApartments = apartmentService.subscribeToApartments(setApartments);
-        setLoading(false);
 
         return () => {
             window.removeEventListener('system-refresh', handleRefresh);
@@ -178,11 +198,12 @@ const Projects: React.FC = () => {
     };
 
 
-    if (loading) {
+    if (loading || isOptimizing) {
         return (
             <Layout>
-                <div className="loading-container">
+                <div className="loading-container" style={{ flexDirection: 'column', gap: '20px' }}>
                     <div className="spinner"></div>
+                    {isOptimizing && <div style={{ color: '#666', fontWeight: 500 }}>Veritabanı ve linkler iyileştiriliyor, lütfen bekleyin...</div>}
                 </div>
             </Layout>
         );
