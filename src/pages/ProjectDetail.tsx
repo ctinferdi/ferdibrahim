@@ -211,9 +211,11 @@ const ProjectDetail: React.FC = () => {
 
             setLoading(false); // Unblock main UI
 
-            // Phase 2: Independent Parallel Fetching
+            // Phase 2: Independent Parallel Fetching (Running after we have the real UUID)
+            const realProjectId = proj.id;
+
             if (showSpinner) setLoadingExpenses(true);
-            expenseService.getExpenses(id)
+            expenseService.getExpenses(realProjectId)
                 .then(data => {
                     setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
                 })
@@ -221,7 +223,7 @@ const ProjectDetail: React.FC = () => {
                 .finally(() => { if (showSpinner) setLoadingExpenses(false); });
 
             if (showSpinner) setLoadingChecks(true);
-            checkService.getChecks(id)
+            checkService.getChecks(realProjectId)
                 .then(data => {
                     setChecks(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
                 })
@@ -229,7 +231,7 @@ const ProjectDetail: React.FC = () => {
                 .finally(() => { if (showSpinner) setLoadingChecks(false); });
 
             if (showSpinner) setLoadingApartments(true);
-            apartmentService.getApartments(id)
+            apartmentService.getApartments(realProjectId)
                 .then(data => {
                     setApartments(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
                 })
@@ -243,10 +245,24 @@ const ProjectDetail: React.FC = () => {
         }
     }, [id, navigate, selectedPartner]);
 
+    // Cache Saving Logic
+    useEffect(() => {
+        if (project && id) {
+            const cacheData = {
+                project,
+                expenses,
+                checks,
+                apartments,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(`project_cache_${id}`, JSON.stringify(cacheData));
+        }
+    }, [project, expenses, checks, apartments, id]);
+
+    // Initial Load & Refresh Logic
     useEffect(() => {
         const handleRefresh = () => {
             if (id) {
-                // Background refresh shouldn't show global spinner
                 loadAllData(false);
             }
         };
@@ -254,7 +270,30 @@ const ProjectDetail: React.FC = () => {
         window.addEventListener('system-refresh', handleRefresh);
 
         if (id) {
-            loadAllData(true);
+            // Try loading from cache first
+            const cached = localStorage.getItem(`project_cache_${id}`);
+            let hasCache = false;
+
+            if (cached) {
+                try {
+                    const data = JSON.parse(cached);
+                    // 1 hour cache validity or similar? For now, always show cache first for speed.
+                    setProject(data.project);
+                    setExpenses(data.expenses || []);
+                    setChecks(data.checks || []);
+                    setApartments(data.apartments || []);
+
+                    if (data.project) {
+                        setLoading(false);
+                        hasCache = true;
+                    }
+                } catch (e) {
+                    console.error('Cache parse error', e);
+                }
+            }
+
+            // Fetch fresh data (show spinner only if no cache)
+            loadAllData(!hasCache);
         }
 
         return () => {
