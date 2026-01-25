@@ -236,6 +236,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             editingApartmentId={editingApartmentId}
                             apartmentFormData={apartmentFormData}
                             setApartments={setApartments}
+                            setApartmentFormData={setApartmentFormData}
                             projectId={id}
                         />
 

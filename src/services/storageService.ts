@@ -22,8 +22,10 @@ class StorageService {
 
         // Determine file type
         let fileType: 'pdf' | 'image' | 'dwg' = 'image';
-        if (fileExt?.toLowerCase() === 'pdf') fileType = 'pdf';
-        else if (fileExt?.toLowerCase() === 'dwg') fileType = 'dwg';
+        const lowerExt = fileExt?.toLowerCase();
+        if (lowerExt === 'pdf') fileType = 'pdf';
+        else if (lowerExt === 'dwg') fileType = 'dwg';
+        else if (['jpg', 'jpeg', 'png', 'tiff', 'tif'].includes(lowerExt || '')) fileType = 'image';
 
         return {
             id: crypto.randomUUID(),

@@ -5,6 +5,7 @@ interface FileUploadSectionProps {
     editingApartmentId: string | null;
     apartmentFormData: any;
     setApartments: (apts: any[]) => void;
+    setApartmentFormData: (data: any) => void;
     projectId: string;
 }
 
@@ -12,6 +13,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
     editingApartmentId,
     apartmentFormData,
     setApartments,
+    setApartmentFormData,
     projectId
 }) => {
     if (!editingApartmentId) return null;
@@ -25,14 +27,21 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
             {/* File Upload */}
             <input
                 type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.dwg"
+                accept=".pdf,.png,.jpg,.jpeg,.dwg,.tif,.tiff"
                 onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file && editingApartmentId) {
                         try {
                             await apartmentService.addPlanFile(editingApartmentId, file);
                             const allApartments = await apartmentService.getApartments();
+                            const currentApt = allApartments.find(a => a.id === editingApartmentId);
+
+                            // Update both states for immediate reactivity
                             setApartments(allApartments.filter(a => a.project_id === projectId));
+                            if (currentApt) {
+                                setApartmentFormData(currentApt);
+                            }
+
                             alert('Dosya yüklendi!');
                             e.target.value = ''; // Reset input
                         } catch (error: any) {
@@ -69,7 +78,13 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
                                         try {
                                             await apartmentService.removePlanFile(editingApartmentId, file.id);
                                             const allApartments = await apartmentService.getApartments();
+                                            const currentApt = allApartments.find(a => a.id === editingApartmentId);
+
+                                            // Update both states
                                             setApartments(allApartments.filter(a => a.project_id === projectId));
+                                            if (currentApt) {
+                                                setApartmentFormData(currentApt);
+                                            }
                                         } catch (error: any) {
                                             alert(`Hata: ${error.message}`);
                                         }
