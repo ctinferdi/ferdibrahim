@@ -24,6 +24,9 @@ serve(async (req) => {
         projects (
           name,
           notification_emails
+        ),
+        user:users (
+          notification_emails
         )
       `)
             .eq('due_date', tenDaysStr)
@@ -46,9 +49,10 @@ serve(async (req) => {
 
         for (const check of checks) {
             const projectEmails = check.projects?.notification_emails || []
+            const userEmails = check.user?.notification_emails || []
             const specificEmail = check.notification_email
 
-            const recipients = new Set<string>([...projectEmails])
+            const recipients = new Set<string>([...projectEmails, ...userEmails])
             if (specificEmail) recipients.add(specificEmail)
 
             // If no recipients, fallback to default
