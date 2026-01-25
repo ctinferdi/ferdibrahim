@@ -36,7 +36,7 @@ const Checks = () => {
         action();
     };
 
-    const [formData, setFormData] = useState<CheckInput>({
+    const [formData, setFormData] = useState<any>({
         check_number: '',
         amount: 0,
         company: '',
@@ -48,6 +48,8 @@ const Checks = () => {
         status: 'pending' as CheckStatus,
         description: '',
         notification_email: '',
+        notification_email_2: '',
+        notification_email_3: '',
         project_id: ''
     });
 
@@ -64,10 +66,26 @@ const Checks = () => {
 
         try {
             setErrorMsg(null);
+
+            // Merge emails
+            const emails = [
+                formData.notification_email,
+                formData.notification_email_2,
+                formData.notification_email_3
+            ].map(e => e?.trim()).filter(e => e);
+
+            const submitData = {
+                ...formData,
+                notification_email: emails.join(', ')
+            };
+
+            delete submitData.notification_email_2;
+            delete submitData.notification_email_3;
+
             if (editingCheck) {
-                await updateCheck(editingCheck.id, formData);
+                await updateCheck(editingCheck.id, submitData as CheckInput);
             } else {
-                await addCheck(formData, user!.id);
+                await addCheck(submitData as CheckInput, user?.id || '');
             }
 
             setShowModal(false);
@@ -92,12 +110,15 @@ const Checks = () => {
             status: 'pending',
             description: '',
             notification_email: '',
+            notification_email_2: '',
+            notification_email_3: '',
             project_id: ''
         });
     };
 
     const handleEdit = (check: Check) => {
         setEditingCheck(check);
+        const emails = (check.notification_email || '').split(',').map(e => e.trim());
         setFormData({
             check_number: check.check_number,
             amount: check.amount,
@@ -109,37 +130,43 @@ const Checks = () => {
             due_date: check.due_date,
             status: check.status,
             description: check.description || '',
-            notification_email: check.notification_email || '',
+            notification_email: emails[0] || '',
+            notification_email_2: emails[1] || '',
+            notification_email_3: emails[2] || '',
             project_id: check.project_id || ''
         });
         setShowModal(true);
     };
 
-    const handleDelete = (id: string, name: string) => {
-        handleAdminAction(async () => {
-            setSendingCode(true);
-            setDeletingCheckInfo({ id, name });
-            try {
-                const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                    body: {
-                        targetName: name,
-                        actionType: 'check',
-                        userEmail: user?.email
-                    }
-                });
+    const handleManualNotify = async (check: Check) => {
+        const emails = [
+            check.notification_email,
+            ...(check.notification_emails || []),
+            ...(projects.find(p => p.id === check.project_id)?.notification_emails || [])
+        ].filter(e => e);
 
-                if (error) throw error;
-                if (data?.code) {
-                    setReceivedCode(data.code);
-                    setShowDeleteModal(true);
-                }
-            } catch (error: any) {
-                console.error('Code trigger error:', error);
-                alert('Güvenlik kodu gönderilemedi: ' + error.message);
-            } finally {
-                setSendingCode(false);
-            }
-        });
+        if (emails.length === 0) {
+            alert('Bu çek için tanımlı bir e-posta adresi bulunamadı. Lütfen önce e-posta adresi ekleyin.');
+            handleEdit(check);
+            return;
+        }
+
+        if (!window.confirm(`${check.check_number} numaralı çek için bildirim e-postası şimdi gönderilsin mi?\n\nAlıcılar: ${emails.join(', ')}`)) return;
+
+        setSendingCode(true);
+        try {
+            const { error } = await supabase.functions.invoke('send-manual-notification', {
+                body: { checkId: check.id }
+            });
+
+            if (error) throw error;
+            alert('✅ Bildirim e-postası başarıyla gönderildi.');
+        } catch (error: any) {
+            console.error('Manual notify error:', error);
+            alert('❌ Bildirim gönderilemedi: ' + error.message);
+        } finally {
+            setSendingCode(false);
+        }
     };
 
     const handleDeleteConfirm = async () => {
@@ -304,10 +331,10 @@ const Checks = () => {
                                     }}>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: '1.2rem' }}>
                                             <div
-                                                onClick={() => handleEdit(check)}
-                                                style={{ cursor: 'pointer', transition: 'transform 0.2s' }}
+                                                onClick={() => handleManualNotify(check)}
+                                                style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1 }}
                                                 className="hover-scale"
-                                                title={(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Bildirim aktif. Düzenlemek için tıkla." : "Bildirim kurulu değil. Kurmak için tıkla."}
+                                                title={(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Şimdi bildirim gönder" : "E-posta tanımlamak için tıkla"}
                                             >
                                                 {(check.notification_email || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? '🔔' : '🔕'}
                                             </div>
@@ -519,15 +546,33 @@ const Checks = () => {
                                     </div>
 
                                     <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '8px' }}>
-                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px', color: '#dc2626', fontWeight: 700 }}>BİLDİRİM GÖNDERİLECEK E-POSTA</label>
-                                        <input
-                                            type="email"
-                                            className="form-input"
-                                            value={formData.notification_email}
-                                            onChange={(e) => setFormData({ ...formData, notification_email: e.target.value })}
-                                            placeholder="Örn: ornek@mail.com (Vade yaklaştığında mail gider)"
-                                            style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
-                                        />
+                                        <label className="form-label" style={{ fontSize: '10px', marginBottom: '4px', color: '#dc2626', fontWeight: 700 }}>BİLDİRİM GÖNDERİLECEK E-POSTALAR</label>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                            <input
+                                                type="email"
+                                                className="form-input"
+                                                value={formData.notification_email}
+                                                onChange={(e) => setFormData({ ...formData, notification_email: e.target.value })}
+                                                placeholder="1. E-posta adresi"
+                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                            />
+                                            <input
+                                                type="email"
+                                                className="form-input"
+                                                value={(formData as any).notification_email_2 || ''}
+                                                onChange={(e) => setFormData({ ...formData, notification_email_2: e.target.value } as any)}
+                                                placeholder="2. E-posta adresi (Opsiyonel)"
+                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                            />
+                                            <input
+                                                type="email"
+                                                className="form-input"
+                                                value={(formData as any).notification_email_3 || ''}
+                                                onChange={(e) => setFormData({ ...formData, notification_email_3: e.target.value } as any)}
+                                                placeholder="3. E-posta adresi (Opsiyonel)"
+                                                style={{ padding: '8px 12px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '5px' }}>

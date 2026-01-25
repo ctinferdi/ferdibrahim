@@ -50,10 +50,15 @@ serve(async (req) => {
         for (const check of checks) {
             const projectEmails = check.projects?.notification_emails || []
             const userEmails = check.user?.notification_emails || []
-            const specificEmail = check.notification_email
+            const specificEmailsStr = check.notification_email
 
             const recipients = new Set<string>([...projectEmails, ...userEmails])
-            if (specificEmail) recipients.add(specificEmail)
+
+            if (specificEmailsStr) {
+                // Support multiple comma separated emails
+                const extraEmails = specificEmailsStr.split(',').map((e: string) => e.trim()).filter((e: string) => e)
+                extraEmails.forEach((e: string) => recipients.add(e))
+            }
 
             // If no recipients, fallback to default
             if (recipients.size === 0) {
