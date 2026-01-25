@@ -1,6 +1,26 @@
 import { supabase } from '../config/supabase';
 import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput } from '../types';
-import { slugify } from '../utils/slugify';
+
+// Helper: Slugify
+const slugify = (text: string): string => {
+    const trMap: { [key: string]: string } = {
+        'ç': 'c', 'Ç': 'C',
+        'ğ': 'g', 'Ğ': 'G',
+        'ş': 's', 'Ş': 'S',
+        'ü': 'u', 'Ü': 'U',
+        'ı': 'i', 'İ': 'I',
+        'ö': 'o', 'Ö': 'O'
+    };
+    return text
+        .split('')
+        .map(char => trMap[char] || char)
+        .join('')
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+};
 
 class ProjectService {
     // Get all projects for current user
