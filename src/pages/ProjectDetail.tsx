@@ -91,6 +91,7 @@ const ProjectDetail: React.FC = () => {
         customer_name: '',
         customer_phone: '',
         sort_order: 0,
+        plan_files: [] as any[],
         project_id: id || ''
     });
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
@@ -489,7 +490,7 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ building_name: a.building_name, apartment_number: a.apartment_number, floor: a.floor, square_meters: a.square_meters, price: a.price, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, status: a.status, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
@@ -533,20 +534,7 @@ const ProjectDetail: React.FC = () => {
                         </div>
                         <FloorPlan apartments={apartments} onApartmentClick={(a) => {
                             setEditingApartmentId(a.id);
-                            setApartmentFormData({
-                                building_name: a.building_name,
-                                apartment_number: a.apartment_number,
-                                floor: a.floor,
-                                square_meters: a.square_meters,
-                                price: a.price,
-                                sold_price: a.sold_price || 0,
-                                paid_amount: a.paid_amount || 0,
-                                status: a.status,
-                                customer_name: a.customer_name || '',
-                                customer_phone: a.customer_phone || '',
-                                sort_order: a.sort_order || 0,
-                                project_id: a.project_id || id || ''
-                            });
+                            setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' });
                             setShowApartmentModal(true);
                         }} />
 

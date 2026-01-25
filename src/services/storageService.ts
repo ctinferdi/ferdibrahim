@@ -9,7 +9,7 @@ class StorageService {
         const fileExt = file.name.split('.').pop();
         const fileName = `${apartmentId}/${Date.now()}.${fileExt}`;
 
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
             .from(this.bucketName)
             .upload(fileName, file);
 
