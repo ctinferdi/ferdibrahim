@@ -195,7 +195,6 @@ const ProjectDetail: React.FC = () => {
             // If the URL is using slug but state has ID, that's fine.
             // If we want to force URL to slug, we could do it here but let's keep it simple.
 
-            // ... (keep companyInfo logic same) ...
             const newCompanyInfo = {
                 company_name: proj.company_name || '',
                 company_address: proj.company_address || '',
@@ -203,7 +202,11 @@ const ProjectDetail: React.FC = () => {
                 whatsapp_number: proj.whatsapp_number || '',
                 notification_emails: proj.notification_emails || []
             };
-            setCompanyInfo(prev => JSON.stringify(prev) !== JSON.stringify(newCompanyInfo) ? newCompanyInfo : prev);
+
+            // If section is open, skip updating to prevent overwriting user input
+            if (!showCompanySection) {
+                setCompanyInfo(prev => JSON.stringify(prev) !== JSON.stringify(newCompanyInfo) ? newCompanyInfo : prev);
+            }
 
             if (proj.partners && proj.partners.length > 0 && !selectedPartner) {
                 setSelectedPartner(proj.partners[0].id);
@@ -243,7 +246,7 @@ const ProjectDetail: React.FC = () => {
             if (showSpinner) navigate('/projeler');
             setLoading(false);
         }
-    }, [id, navigate, selectedPartner]);
+    }, [id, navigate, selectedPartner, showCompanySection]);
 
     // Cache Saving Logic
     useEffect(() => {
