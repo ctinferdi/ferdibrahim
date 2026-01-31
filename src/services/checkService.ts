@@ -35,8 +35,6 @@ export const getChecks = async (projectId?: string): Promise<Check[]> => {
 
 export const addCheck = async (check: CheckInput, userId: string): Promise<void> => {
     try {
-        const { data: { user } } = await supabase.auth.getUser();
-
         // Define data to insert explicitly to avoid issues with missing columns
         const checkData: any = {
             check_number: check.check_number,
@@ -58,7 +56,6 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
         if (check.notification_email) checkData.notification_email = check.notification_email;
         if (check.notification_email_2) checkData.notification_email_2 = check.notification_email_2;
         if (check.notification_email_3) checkData.notification_email_3 = check.notification_email_3;
-        if (user?.email) checkData.created_by_email = user.email;
 
         const { error } = await supabase
             .from('checks')

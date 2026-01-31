@@ -43,8 +43,7 @@ export const expenseService = {
             .from('expenses')
             .insert([{
                 ...expense,
-                user_id: user?.id,
-                created_by_email: user?.email
+                user_id: user?.id
             }]);
 
         if (error) throw error;
