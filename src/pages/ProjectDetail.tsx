@@ -353,6 +353,17 @@ const ProjectDetail: React.FC = () => {
         return expenses.filter(e => e.partner_id === partnerId).reduce((sum, e) => sum + e.amount, 0);
     };
 
+    const resetExpenseForm = () => {
+        setExpenseDate(new Date().toISOString().split('T')[0]);
+        setSelectedPartner(project?.partners && project.partners.length > 0 ? project.partners[0].id : '');
+        setPaymentMethod('');
+        setRecipient('');
+        setCategory('');
+        setDescription('');
+        setAmount('');
+        setEditingExpenseId(null);
+    };
+
     const handleSaveExpense = async (e: React.FormEvent) => {
         e.preventDefault();
         if (saving || !project?.id) return;
@@ -376,7 +387,7 @@ const ProjectDetail: React.FC = () => {
                 await expenseService.addExpense(data, user.id);
             }
             setShowExpenseModal(false);
-            setEditingExpenseId(null);
+            resetExpenseForm();
             // Optimistic update: manually update the local state if needed
             // But since we use subscribeToExpenses, it might refresh anyway.
             // Let's call loadAllData(false) as it was, but without blocking the modal close.
@@ -386,6 +397,26 @@ const ProjectDetail: React.FC = () => {
         } finally {
             setSaving(false);
         }
+    };
+
+    const resetCheckForm = () => {
+        setCheckFormData({
+            check_number: '',
+            amount: 0,
+            company: '',
+            category: '',
+            vat_status: '',
+            issuer: '',
+            given_date: new Date().toISOString().split('T')[0],
+            due_date: new Date().toISOString().split('T')[0],
+            status: 'pending',
+            description: '',
+            notification_email: '',
+            notification_email_2: '',
+            notification_email_3: '',
+            project_id: id || ''
+        });
+        setEditingCheckId(null);
     };
 
     const handleSaveCheck = async (e: React.FormEvent) => {
@@ -401,7 +432,7 @@ const ProjectDetail: React.FC = () => {
                 await checkService.addCheck({ ...checkFormData, project_id: projectId }, user.id);
             }
             setShowCheckModal(false);
-            setEditingCheckId(null);
+            resetCheckForm();
             loadAllData(false);
         } catch (error: any) {
             setErrorMsg(error.message);
@@ -538,8 +569,14 @@ const ProjectDetail: React.FC = () => {
                         gap: 'var(--spacing-md)'
                     }}>
                         <button className="btn btn-primary" onClick={() => {
-                            if (activeTab === 'expenses') setShowExpenseModal(true);
-                            else if (activeTab === 'checks') setShowCheckModal(true);
+                            if (activeTab === 'expenses') {
+                                resetExpenseForm();
+                                setShowExpenseModal(true);
+                            }
+                            else if (activeTab === 'checks') {
+                                resetCheckForm();
+                                setShowCheckModal(true);
+                            }
                             else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold' }); setShowApartmentModal(true); }
                         }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
                             + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
