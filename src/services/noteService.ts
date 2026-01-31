@@ -24,15 +24,12 @@ export const noteService = {
         }
     },
 
-    addNote: async (content: string): Promise<Note> => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
-
+    addNote: async (content: string, userId: string): Promise<Note> => {
         const { data, error } = await supabase
             .from('notes')
             .insert([{
                 content: toTurkishUpperCase(content),
-                user_id: user.id
+                user_id: userId
             }])
             .select()
             .single();

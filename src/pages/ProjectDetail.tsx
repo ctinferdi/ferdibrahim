@@ -181,8 +181,11 @@ const ProjectDetail: React.FC = () => {
         if (showSpinner && !project) setLoading(true);
 
         try {
-            // First fetch project details only (ID param can be slug or UUID)
-            const proj = await projectService.getProjectBySlug(id);
+            // First fetch project details only if not existing or forced
+            let proj = project;
+            if (!proj || showSpinner) {
+                proj = await projectService.getProjectBySlug(id);
+            }
             if (!proj) throw new Error('Proje bulunamadı');
 
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
@@ -336,10 +339,14 @@ const ProjectDetail: React.FC = () => {
             if (editingExpenseId) {
                 await expenseService.updateExpense(editingExpenseId, data);
             } else {
-                await expenseService.addExpense(data);
+                if (!user?.id) throw new Error('Oturum bilgisi bulunamadı');
+                await expenseService.addExpense(data, user.id);
             }
             setShowExpenseModal(false);
             setEditingExpenseId(null);
+            // Optimistic update: manually update the local state if needed
+            // But since we use subscribeToExpenses, it might refresh anyway.
+            // Let's call loadAllData(false) as it was, but without blocking the modal close.
             loadAllData(false);
         } catch (error: any) {
             setErrorMsg(error.message);
@@ -357,7 +364,8 @@ const ProjectDetail: React.FC = () => {
             if (editingCheckId) {
                 await checkService.updateCheck(editingCheckId, { ...checkFormData, project_id: projectId });
             } else {
-                await checkService.addCheck({ ...checkFormData, project_id: projectId }, user?.id || '');
+                if (!user?.id) throw new Error('Oturum bulunamadı');
+                await checkService.addCheck({ ...checkFormData, project_id: projectId }, user.id);
             }
             setShowCheckModal(false);
             setEditingCheckId(null);

@@ -7,8 +7,11 @@ import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { noteService, Note } from '../services/noteService';
 import { Expense, Check, Apartment, Project } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 const Dashboard = () => {
+    const { user } = useAuth();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
@@ -66,14 +69,24 @@ const Dashboard = () => {
         if (e) e.preventDefault();
         if (!newNote.trim() || savingNote) return;
 
-        setSavingNote(true);
+        const tempNote: Note = {
+            id: 'temp-' + Date.now(),
+            content: toTurkishUpperCase(newNote),
+            user_id: user?.id || '',
+            created_at: new Date().toISOString()
+        };
+
+        setNotes(prev => [tempNote, ...prev]);
+        setNewNote('');
+
         try {
-            await noteService.addNote(newNote);
-            setNewNote('');
-            // Immediate refresh
-            noteService.getNotes().then(setNotes);
+            if (!user?.id) throw new Error('Oturum bulunamadı');
+            await noteService.addNote(newNote, user.id);
+            // After successful add, the realtime subscription will update the list with the real object
         } catch (error) {
             console.error('Note add error:', error);
+            // Rollback optimistic update if needed or alert
+            setNotes(prev => prev.filter(n => n.id !== tempNote.id));
         } finally {
             setSavingNote(false);
         }

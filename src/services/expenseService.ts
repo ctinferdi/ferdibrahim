@@ -38,15 +38,13 @@ export const expenseService = {
         return data as Expense[];
     },
 
-    addExpense: async (expense: Omit<Expense, 'id'>): Promise<void> => {
-        const { data: { user } } = await supabase.auth.getUser();
-
+    addExpense: async (expense: Omit<Expense, 'id'>, userId: string): Promise<void> => {
         const data: any = {
             date: expense.date,
             amount: expense.amount || 0,
             category: toTurkishUpperCase(expense.category || ''),
             description: toTurkishUpperCase(expense.description || ''),
-            user_id: user?.id
+            user_id: userId
         };
 
         if (expense.project_id) data.project_id = expense.project_id;

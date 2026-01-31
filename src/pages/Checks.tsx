@@ -85,15 +85,18 @@ const Checks = () => {
                 notification_email_3: formData.notification_email_3?.trim() || ''
             };
 
-            if (editingCheck) {
-                await updateCheck(editingCheck.id, submitData as CheckInput);
-            } else {
-                await addCheck(submitData as CheckInput, user?.id || '');
-            }
-
+            // Optimistic Update: Close modal immediately
             setShowModal(false);
             setEditingCheck(null);
             resetForm();
+
+            if (editingCheck) {
+                await updateCheck(editingCheck.id, submitData as CheckInput);
+            } else {
+                if (!user?.id) throw new Error('Oturum bilgisi bulunamadı');
+                await addCheck(submitData as CheckInput, user.id);
+            }
+            // Background refresh happens automatically via subscription
         } catch (error: any) {
             console.error('Error saving check:', error);
             setErrorMsg(error.message || 'Çek kaydedilemedi. Lütfen tekrar deneyin.');

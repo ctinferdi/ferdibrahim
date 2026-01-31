@@ -66,7 +66,8 @@ const Expenses = () => {
             if (editingExpense) {
                 await expenseService.updateExpense(editingExpense.id, formData);
             } else {
-                await expenseService.addExpense(formData);
+                if (!user?.id) throw new Error('Oturum bilgisi bulunamadı');
+                await expenseService.addExpense(formData, user.id);
             }
 
             setShowModal(false);
