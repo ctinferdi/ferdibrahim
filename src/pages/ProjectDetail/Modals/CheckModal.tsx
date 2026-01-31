@@ -39,7 +39,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" style={{ zIndex: 1001 }} onClick={onClose}>
+        <div className="modal-overlay" style={{ zIndex: 1001 }}>
             <div className="modal" style={{ maxWidth: '480px', borderRadius: '12px', overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header" style={{ background: '#fff', padding: '15px 20px', borderBottom: '1px solid var(--color-border)' }}>
                     <h2 className="modal-title" style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>
@@ -128,14 +128,16 @@ const CheckModal: React.FC<CheckModalProps> = ({
                         {/* KDV Durumu & Durum */}
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>KDV DURUMU</label>
-                            <input
-                                type="text"
-                                className="form-input"
-                                value={checkFormData.vat_status || ''}
+                            <select
+                                className="form-select"
+                                value={checkFormData.vat_status || 'KDV DAHİL'}
                                 onChange={(e) => setCheckFormData({ ...checkFormData, vat_status: e.target.value })}
-                                placeholder="Örn: KDV DAHİL"
-                                style={{ padding: '6px 10px', fontSize: '13px' }}
-                            />
+                                style={{ padding: '6px 10px', fontSize: '13px', margin: 0, height: '33px' }}
+                            >
+                                <option value="KDV DAHİL">KDV DAHİL</option>
+                                <option value="+KDV OLACAK">+KDV OLACAK</option>
+                                <option value="KDV YOK">KDV YOK</option>
+                            </select>
                         </div>
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>DURUM</label>

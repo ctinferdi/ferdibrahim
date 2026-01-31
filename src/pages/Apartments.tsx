@@ -287,7 +287,7 @@ const Apartments = () => {
 
                 {/* Modal */}
                 {showModal && (
-                    <div className="modal-overlay" style={{ backdropFilter: 'blur(5px)' }} onClick={() => setShowModal(false)}>
+                    <div className="modal-overlay" style={{ backdropFilter: 'blur(5px)' }}>
                         <div className="modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
                             <div className="modal-header">
                                 <h2 className="modal-title">{editingApartment ? 'Daire Düzenle' : 'Yeni Daire Kaydı'}</h2>

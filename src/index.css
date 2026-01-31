@@ -96,17 +96,35 @@ body {
 }
 
 /* Force all text to be uppercase as per user request */
-h1, h2, h3, h4, h5, h6, 
-.btn, .form-label, .form-input, .form-select, .form-textarea, 
-.table th, .badge, .modal-title {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.btn,
+.form-label,
+.form-input,
+.form-select,
+.form-textarea,
+.table th,
+.table td,
+.badge,
+.modal-title,
+p,
+span,
+li,
+a {
   text-transform: uppercase !important;
 }
 
-input[type="email"], .lowercase {
+input[type="email"],
+.lowercase {
   text-transform: lowercase !important;
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   text-transform: none;
 }
 
