@@ -29,18 +29,21 @@ const Apartments = () => {
 
 
     useEffect(() => {
+        let unsubscribe: (() => void) | null = null;
+
         const handleRefresh = () => {
-            subscribeToApartments(setApartments);
+            if (unsubscribe) unsubscribe();
+            unsubscribe = subscribeToApartments(setApartments);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
 
-        const unsubscribe = subscribeToApartments(setApartments);
+        unsubscribe = subscribeToApartments(setApartments);
         setLoading(false);
 
         return () => {
             window.removeEventListener('system-refresh', handleRefresh);
-            unsubscribe();
+            if (unsubscribe) unsubscribe();
         };
     }, []);
 
@@ -101,9 +104,11 @@ const Apartments = () => {
         return matchesSearch && matchesStatus;
     });
 
-    const availableCount = apartments.filter(a => a.status === 'available').length;
-    const ownerCount = apartments.filter(a => a.status === 'owner').length;
-    const soldCount = apartments.filter(a => a.status === 'sold').length;
+    const totalCount = filteredApartments.length;
+    const availableCount = filteredApartments.filter(a => a.status === 'available').length;
+    const ownerCount = filteredApartments.filter(a => a.status === 'owner').length;
+    const soldCount = filteredApartments.filter(a => a.status === 'sold').length;
+    const commonCount = filteredApartments.filter(a => a.status === 'common').length;
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -139,24 +144,32 @@ const Apartments = () => {
         <Layout>
             <div className="animate-fadeIn">
                 <div className="flex justify-between items-center mb-md">
-                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase' }}>
                         <span style={{ fontSize: '1.2em' }}>🏢</span> Daire Yönetimi
                     </h1>
                 </div>
 
                 {/* Summary Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>SATILACAK</h3>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{availableCount}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', padding: '10px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.6rem', marginBottom: '0.2rem', fontWeight: 600 }}>TOPLAM</h3>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{totalCount}</div>
                     </div>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>M. SAHİBİ</h3>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{ownerCount}</div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', border: 'none', padding: '10px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.6rem', marginBottom: '0.2rem', fontWeight: 600 }}>SATILACAK</h3>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{availableCount}</div>
                     </div>
-                    <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', border: 'none', padding: '12px 15px' }}>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.25rem', fontWeight: 600 }}>SATILDI</h3>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{soldCount}</div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', border: 'none', padding: '10px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.6rem', marginBottom: '0.2rem', fontWeight: 600 }}>M. SAHİBİ</h3>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{ownerCount}</div>
+                    </div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', border: 'none', padding: '10px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.6rem', marginBottom: '0.2rem', fontWeight: 600 }}>SATILDI</h3>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{soldCount}</div>
+                    </div>
+                    <div className="card" style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)', color: 'white', border: 'none', padding: '10px 15px' }}>
+                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: '0.6rem', marginBottom: '0.2rem', fontWeight: 600 }}>ORTAK ALAN</h3>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 800 }}>{commonCount}</div>
                     </div>
                 </div>
 
@@ -180,8 +193,20 @@ const Apartments = () => {
                     >
                         <option value="all">Tüm Durumlar</option>
                         <option value="available">Müsait</option>
+                        <option value="owner">M. Sahibi</option>
                         <option value="sold">Satıldı</option>
+                        <option value="common">Ortak Alan</option>
                     </select>
+
+                    {(searchTerm || statusFilter !== 'all') && (
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                            style={{ height: '36px', padding: '0 15px', fontSize: '12px' }}
+                        >
+                            Filtreyi Temizle
+                        </button>
+                    )}
                 </div>
 
 
