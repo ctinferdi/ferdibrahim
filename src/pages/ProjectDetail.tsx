@@ -319,7 +319,7 @@ const ProjectDetail: React.FC = () => {
 
     const handleSaveExpense = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (saving) return;
+        if (saving || !project?.id) return;
         setSaving(true);
         try {
             const data = {
@@ -327,7 +327,7 @@ const ProjectDetail: React.FC = () => {
                 category,
                 description,
                 amount: Number(amount.replace(/\./g, '')),
-                project_id: id,
+                project_id: project.id,
                 partner_id: selectedPartner || undefined,
                 payment_method: paymentMethod,
                 recipient
@@ -350,13 +350,14 @@ const ProjectDetail: React.FC = () => {
 
     const handleSaveCheck = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (saving || !id) return;
+        const projectId = project?.id;
+        if (saving || !projectId) return;
         setSaving(true);
         try {
             if (editingCheckId) {
-                await checkService.updateCheck(editingCheckId, { ...checkFormData, project_id: id });
+                await checkService.updateCheck(editingCheckId, { ...checkFormData, project_id: projectId });
             } else {
-                await checkService.addCheck({ ...checkFormData, project_id: id }, user?.id || '');
+                await checkService.addCheck({ ...checkFormData, project_id: projectId }, user?.id || '');
             }
             setShowCheckModal(false);
             setEditingCheckId(null);
