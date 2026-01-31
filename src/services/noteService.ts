@@ -16,13 +16,21 @@ const toTurkishUpperCase = (str: string) => {
 
 export const noteService = {
     getNotes: async (): Promise<Note[]> => {
-        const { data, error } = await supabase
-            .from('notes')
-            .select('*')
-            .order('created_at', { ascending: false });
+        try {
+            const { data, error } = await supabase
+                .from('notes')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        return data || [];
+            if (error) {
+                if (error.code === 'PGRST205') return []; // Table not created yet
+                throw error;
+            }
+            return data || [];
+        } catch (error) {
+            console.error('Note fetch error:', error);
+            return [];
+        }
     },
 
     addNote: async (content: string): Promise<Note> => {
@@ -52,7 +60,7 @@ export const noteService = {
     },
 
     subscribeToNotes: (onUpdate: (notes: Note[]) => void) => {
-        noteService.getNotes().then(onUpdate);
+        noteService.getNotes().then(onUpdate).catch(() => onUpdate([]));
 
         const subscription = supabase
             .channel('public:notes')
