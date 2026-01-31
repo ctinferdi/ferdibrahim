@@ -104,7 +104,6 @@ const Dashboard = () => {
 
     const pendingChecks = checks.filter(c => c.status === 'pending');
     const totalCheckAmount = pendingChecks.reduce((sum, c) => sum + c.amount, 0);
-    const availableApartments = apartments.filter(a => a.status === 'available');
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -195,35 +194,6 @@ const Dashboard = () => {
                         </p>
                     </Link>
 
-                    {/* Daireler Kartı */}
-                    <Link to="/daireler" className="card" style={{
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        color: 'white',
-                        border: 'none',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        textDecoration: 'none',
-                        transition: 'transform 0.2s, box-shadow 0.2s'
-                    }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-5px)';
-                            e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
-                        }}>
-                        <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🏢</div>
-                        <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-sm)', marginBottom: '0.5rem', fontWeight: 600 }}>
-                            SATILACAK DAİRELER
-                        </h3>
-                        <div style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 800 }}>
-                            {availableApartments.length}
-                        </div>
-                        <p style={{ marginTop: '0.5rem', opacity: 0.8, fontSize: 'var(--font-size-sm)' }}>
-                            Toplam {apartments.length} daire
-                        </p>
-                    </Link>
                 </div>
 
                 {/* Vadesi Yaklaşan Çekler Uyarısı */}
