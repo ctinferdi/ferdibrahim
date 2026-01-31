@@ -56,9 +56,17 @@ export const expenseService = {
         };
 
         if (expense.project_id) data.project_id = expense.project_id;
-        if (expense.partner_id && expense.partner_id.trim() !== '') data.partner_id = expense.partner_id;
-        if (expense.payment_method && expense.payment_method.trim() !== '') data.payment_method = toTurkishUpperCase(expense.payment_method);
-        if (expense.recipient && expense.recipient.trim() !== '') data.recipient = toTurkishUpperCase(expense.recipient);
+
+        // Only add these if they have values to avoid schema issues on older tables
+        if (expense.partner_id && expense.partner_id.trim() !== '') {
+            data.partner_id = expense.partner_id;
+        }
+        if (expense.payment_method && expense.payment_method.trim() !== '') {
+            data.payment_method = toTurkishUpperCase(expense.payment_method);
+        }
+        if (expense.recipient && expense.recipient.trim() !== '') {
+            data.recipient = toTurkishUpperCase(expense.recipient);
+        }
 
         const { error } = await supabase
             .from('expenses')
@@ -68,25 +76,29 @@ export const expenseService = {
     },
 
     updateExpense: async (id: string, expense: Partial<Expense>): Promise<void> => {
-        const data: any = { ...expense };
+        const data: any = {};
 
-        if (data.category) data.category = toTurkishUpperCase(data.category);
-        if (data.description) data.description = toTurkishUpperCase(data.description);
-        if (data.payment_method !== undefined) {
-            data.payment_method = data.payment_method && data.payment_method.trim() !== ''
-                ? toTurkishUpperCase(data.payment_method)
+        if (expense.date) data.date = expense.date;
+        if (expense.amount !== undefined) data.amount = expense.amount;
+        if (expense.category) data.category = toTurkishUpperCase(expense.category);
+        if (expense.description !== undefined) data.description = toTurkishUpperCase(expense.description || '');
+
+        if (expense.payment_method !== undefined) {
+            data.payment_method = expense.payment_method && expense.payment_method.trim() !== ''
+                ? toTurkishUpperCase(expense.payment_method)
                 : null;
         }
-        if (data.recipient !== undefined) {
-            data.recipient = data.recipient && data.recipient.trim() !== ''
-                ? toTurkishUpperCase(data.recipient)
+        if (expense.recipient !== undefined) {
+            data.recipient = expense.recipient && expense.recipient.trim() !== ''
+                ? toTurkishUpperCase(expense.recipient)
                 : null;
         }
-        if (data.partner_id !== undefined) {
-            data.partner_id = data.partner_id && data.partner_id.trim() !== ''
-                ? data.partner_id
+        if (expense.partner_id !== undefined) {
+            data.partner_id = expense.partner_id && expense.partner_id.trim() !== ''
+                ? expense.partner_id
                 : null;
         }
+        if (expense.project_id) data.project_id = expense.project_id;
 
         const { error } = await supabase
             .from('expenses')
