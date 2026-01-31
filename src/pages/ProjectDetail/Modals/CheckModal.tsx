@@ -91,10 +91,11 @@ const CheckModal: React.FC<CheckModalProps> = ({
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>VADE TARİHİ</label>
                             <input
-                                type="date"
+                                type="text"
                                 className="form-input"
                                 value={checkFormData.due_date}
                                 onChange={(e) => setCheckFormData({ ...checkFormData, due_date: e.target.value })}
+                                placeholder="GG.AA.YYYY"
                                 style={{ padding: '6px 10px', fontSize: '13px' }}
                                 required
                             />
@@ -154,10 +155,11 @@ const CheckModal: React.FC<CheckModalProps> = ({
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>VERİLİŞ TARİHİ</label>
                             <input
-                                type="date"
+                                type="text"
                                 className="form-input"
                                 value={checkFormData.given_date}
                                 onChange={(e) => setCheckFormData({ ...checkFormData, given_date: e.target.value })}
+                                placeholder="GG.AA.YYYY"
                                 style={{ padding: '6px 10px', fontSize: '13px' }}
                                 required
                             />
@@ -200,7 +202,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                         type="email"
                                         className="form-input"
                                         value={checkFormData.notification_email || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email: e.target.value })}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email: e.target.value.toLowerCase() })}
                                         placeholder="1. E-posta adresi"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
                                     />
@@ -208,7 +210,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                         type="email"
                                         className="form-input"
                                         value={checkFormData.notification_email_2 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_2: e.target.value })}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_2: e.target.value.toLowerCase() })}
                                         placeholder="2. E-posta adresi (Opsiyonel)"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
                                     />
@@ -216,7 +218,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                         type="email"
                                         className="form-input"
                                         value={checkFormData.notification_email_3 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_3: e.target.value })}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_3: e.target.value.toLowerCase() })}
                                         placeholder="3. E-posta adresi (Opsiyonel)"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
                                     />

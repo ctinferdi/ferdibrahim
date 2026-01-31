@@ -70,6 +70,7 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                                 fontSize: 'var(--font-size-sm)',
                                 color: (() => {
                                     const dueDate = new Date(check.due_date);
+                                    if (isNaN(dueDate.getTime())) return 'inherit'; // Handle invalid dates
                                     const today = new Date();
                                     const diffTime = dueDate.getTime() - today.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -77,13 +78,17 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                                 })(),
                                 background: (() => {
                                     const dueDate = new Date(check.due_date);
+                                    if (isNaN(dueDate.getTime())) return 'transparent'; // Handle invalid dates
                                     const today = new Date();
                                     const diffTime = dueDate.getTime() - today.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                     return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';
                                 })()
                             }}>
-                                {new Date(check.due_date).toLocaleDateString('tr-TR')}
+                                {(() => {
+                                    const d = new Date(check.due_date);
+                                    return isNaN(d.getTime()) ? check.due_date : d.toLocaleDateString('tr-TR');
+                                })()}
                             </td>
                             <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
                                 {formatCurrency(check.amount)}

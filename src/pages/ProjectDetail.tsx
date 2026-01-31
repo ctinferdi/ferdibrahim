@@ -856,7 +856,7 @@ const ProjectDetail: React.FC = () => {
                                                                 value={email}
                                                                 onChange={(e) => {
                                                                     const newEmails = [...companyInfo.notification_emails];
-                                                                    newEmails[index] = e.target.value;
+                                                                    newEmails[index] = e.target.value.toLowerCase();
                                                                     setCompanyInfo({ ...companyInfo, notification_emails: newEmails });
                                                                 }}
                                                                 placeholder={`E-posta ${index + 1}`}
