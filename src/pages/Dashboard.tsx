@@ -238,17 +238,17 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 'var(--spacing-lg)', alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-lg)', alignItems: 'stretch', marginBottom: 'var(--spacing-xl)' }}>
                     {/* Son Hareketler */}
-                    <div className="card" style={{ height: 'fit-content' }}>
-                        <h2 className="mb-lg">Son Hareketler</h2>
+                    <div className="card" style={{ height: '100%', margin: 0, display: 'flex', flexDirection: 'column' }}>
+                        <h2 className="mb-lg">SON HAREKETLER</h2>
 
                         {expenses.length === 0 && checks.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
+                            <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)', flex: 1 }}>
                                 <p>Henüz kayıt bulunmuyor. Harcama veya çek ekleyerek başlayın.</p>
                             </div>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', flex: 1 }}>
                                 {[
                                     ...expenses.map(e => ({ ...e, type: 'expense' as const })),
                                     ...checks.map(c => ({ ...c, type: 'check' as const }))
@@ -271,13 +271,13 @@ const Dashboard = () => {
                                             opacity: item.type === 'check' && (item as any).status === 'paid' ? 0.7 : 1
                                         }}>
                                             <div>
-                                                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>
+                                                <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: 'var(--font-size-sm)' }}>
                                                     {item.type === 'expense'
                                                         ? `💰 Gider: ${(item as any).category} - ${(item as any).description || (item as any).recipient}`
                                                         : `💳 Çek: ${(item as any).company} - ${(item as any).category}`
                                                     }
                                                 </div>
-                                                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', display: 'flex', gap: 'var(--spacing-sm)' }}>
+                                                <div style={{ fontSize: '10px', color: 'var(--color-text-light)', display: 'flex', gap: 'var(--spacing-sm)' }}>
                                                     <span>{new Date('date' in item ? item.date : item.given_date).toLocaleDateString('tr-TR')}</span>
                                                     {item.created_by_email && (
                                                         <>
@@ -287,7 +287,7 @@ const Dashboard = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div style={{ fontWeight: 700, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)' }}>
+                                            <div style={{ fontWeight: 700, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
                                                 {item.type === 'expense' ? '-' : ''}{formatCurrency(item.amount)}
                                             </div>
                                         </div>
@@ -297,55 +297,55 @@ const Dashboard = () => {
                     </div>
 
                     {/* Hızlı Notlar */}
-                    <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '600px', background: '#f8fafc' }}>
-                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
-                            <h2 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="card" style={{ padding: 0, height: '100%', margin: 0, display: 'flex', flexDirection: 'column', background: 'white' }}>
+                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: '12px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ opacity: 0.7 }}>📝</span> HIZLI NOTLAR
                             </h2>
-                            <span style={{ fontSize: '1.2rem', opacity: 0.5 }}>🏗️</span>
+                            <span style={{ fontSize: '1rem', opacity: 0.3 }}>🏗️</span>
                         </div>
 
-                        <div style={{ padding: 'var(--spacing-md)', background: 'white' }}>
-                            <form onSubmit={handleAddNote} style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+                        <div style={{ padding: 'var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
+                            <form onSubmit={handleAddNote} style={{ display: 'flex', gap: '8px' }}>
                                 <input
                                     type="text"
                                     className="form-input"
                                     placeholder="YENİ NOT..."
                                     value={newNote}
                                     onChange={(e) => setNewNote(e.target.value)}
-                                    style={{ borderRadius: '24px', paddingLeft: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                                    style={{ borderRadius: '20px', paddingLeft: '16px', background: '#f8fafc', fontSize: '11px' }}
                                 />
                                 <button
                                     type="submit"
                                     className="btn btn-primary"
                                     disabled={savingNote || !newNote.trim()}
-                                    style={{ width: '40px', height: '40px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)' }}
+                                    style={{ width: '36px', height: '36px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px' }}
                                 >
                                     {savingNote ? '...' : '+'}
                                 </button>
                             </form>
                         </div>
 
-                        <div style={{ padding: 'var(--spacing-md)', overflowY: 'auto', flex: 1 }}>
+                        <div style={{ padding: 'var(--spacing-md)', overflowY: 'auto', maxHeight: '450px', flex: 1, background: '#fcfdfd' }}>
                             {notes.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: '#94a3b8', fontSize: '11px', fontWeight: 700 }}>
+                                <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: '#94a3b8', fontSize: '10px', fontWeight: 700 }}>
                                     NOT BULUNAMADI
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     {notes.map(note => (
-                                        <div key={note.id} className="card" style={{ padding: '12px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', position: 'relative', transition: 'all 0.2s' }}>
-                                            <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4', paddingRight: '24px', wordBreak: 'break-word' }}>
+                                        <div key={note.id} style={{ padding: '10px', background: 'white', borderRadius: '10px', border: '1px solid #edf2f7', position: 'relative' }}>
+                                            <p style={{ margin: 0, fontSize: '12px', lineHeight: '1.4', paddingRight: '20px', wordBreak: 'break-word' }}>
                                                 {note.content}
                                             </p>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', opacity: 0.5, fontSize: '10px' }}>
-                                                <span>{new Date(note.created_at).toLocaleDateString('tr-TR')}</span>
+                                            <div style={{ marginTop: '6px', opacity: 0.4, fontSize: '9px' }}>
+                                                {new Date(note.created_at).toLocaleDateString('tr-TR')}
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteNote(note.id)}
-                                                style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: 0.3 }}
+                                                style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', opacity: 0.2 }}
                                                 onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                                                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.3'}
+                                                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.2'}
                                             >
                                                 🗑️
                                             </button>
