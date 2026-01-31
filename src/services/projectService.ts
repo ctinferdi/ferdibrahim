@@ -1,6 +1,13 @@
 import { supabase } from '../config/supabase';
 import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput } from '../types';
 
+const toTurkishUpperCase = (str: string) => {
+    return str
+        .replace(/i/g, 'İ')
+        .replace(/ı/g, 'I')
+        .toUpperCase();
+};
+
 // Helper: Slugify
 const slugify = (text: string): string => {
     const trMap: { [key: string]: string } = {
@@ -115,7 +122,16 @@ class ProjectService {
 
         const { data, error } = await supabase
             .from('projects')
-            .insert([{ ...project, user_id: user.id, public_code: publicCode, slug }])
+            .insert([{
+                ...project,
+                name: toTurkishUpperCase(project.name),
+                description: project.description ? toTurkishUpperCase(project.description) : '',
+                company_name: project.company_name ? toTurkishUpperCase(project.company_name) : '',
+                company_address: project.company_address ? toTurkishUpperCase(project.company_address) : '',
+                user_id: user.id,
+                public_code: publicCode,
+                slug
+            }])
             .select()
             .single();
 
@@ -125,9 +141,15 @@ class ProjectService {
 
     // Update project
     async updateProject(id: string, updates: Partial<ProjectInput>): Promise<Project> {
+        const normalizedUpdates = { ...updates };
+        if (normalizedUpdates.name) normalizedUpdates.name = toTurkishUpperCase(normalizedUpdates.name);
+        if (normalizedUpdates.description) normalizedUpdates.description = toTurkishUpperCase(normalizedUpdates.description);
+        if (normalizedUpdates.company_name) normalizedUpdates.company_name = toTurkishUpperCase(normalizedUpdates.company_name);
+        if (normalizedUpdates.company_address) normalizedUpdates.company_address = toTurkishUpperCase(normalizedUpdates.company_address);
+
         const { data, error } = await supabase
             .from('projects')
-            .update(updates)
+            .update(normalizedUpdates)
             .eq('id', id)
             .select()
             .single();

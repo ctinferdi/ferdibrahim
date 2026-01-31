@@ -2,6 +2,13 @@ import { supabase } from '../config/supabase';
 import { Apartment, ApartmentInput, PlanFile } from '../types';
 import { storageService } from './storageService';
 
+const toTurkishUpperCase = (str: string) => {
+    return str
+        .replace(/i/g, 'İ')
+        .replace(/ı/g, 'I')
+        .toUpperCase();
+};
+
 export const subscribeToApartments = (onUpdate: (apartments: Apartment[]) => void) => {
     getApartments().then(onUpdate);
 
@@ -39,15 +46,26 @@ export const getApartments = async (projectId?: string): Promise<Apartment[]> =>
 export const addApartment = async (apartment: ApartmentInput, userId: string): Promise<void> => {
     const { error } = await supabase
         .from('apartments')
-        .insert([{ ...apartment, user_id: userId }]);
+        .insert([{
+            ...apartment,
+            building_name: toTurkishUpperCase(apartment.building_name),
+            apartment_number: toTurkishUpperCase(apartment.apartment_number),
+            customer_name: apartment.customer_name ? toTurkishUpperCase(apartment.customer_name) : '',
+            user_id: userId
+        }]);
 
     if (error) throw error;
 };
 
 export const updateApartment = async (id: string, apartment: Partial<Apartment>): Promise<void> => {
+    const normalizedApartment = { ...apartment };
+    if (normalizedApartment.building_name) normalizedApartment.building_name = toTurkishUpperCase(normalizedApartment.building_name);
+    if (normalizedApartment.apartment_number) normalizedApartment.apartment_number = toTurkishUpperCase(normalizedApartment.apartment_number);
+    if (normalizedApartment.customer_name) normalizedApartment.customer_name = toTurkishUpperCase(normalizedApartment.customer_name);
+
     const { error } = await supabase
         .from('apartments')
-        .update(apartment)
+        .update(normalizedApartment)
         .eq('id', id);
 
     if (error) throw error;
@@ -65,7 +83,13 @@ export const deleteApartment = async (id: string): Promise<void> => {
 export const bulkAddApartments = async (apartments: ApartmentInput[], userId: string): Promise<void> => {
     const { error } = await supabase
         .from('apartments')
-        .insert(apartments.map(apt => ({ ...apt, user_id: userId })));
+        .insert(apartments.map(apt => ({
+            ...apt,
+            building_name: toTurkishUpperCase(apt.building_name),
+            apartment_number: toTurkishUpperCase(apt.apartment_number),
+            customer_name: apt.customer_name ? toTurkishUpperCase(apt.customer_name) : '',
+            user_id: userId
+        })));
 
     if (error) throw error;
 };

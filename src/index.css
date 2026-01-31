@@ -95,6 +95,17 @@ body {
   min-height: 100vh;
 }
 
+/* Force all text to be uppercase as per user request */
+h1, h2, h3, h4, h5, h6, 
+.btn, .form-label, .form-input, .form-select, .form-textarea, 
+.table th, .badge, .modal-title {
+  text-transform: uppercase !important;
+}
+
+input::placeholder, textarea::placeholder {
+  text-transform: none;
+}
+
 /* ===== TYPOGRAPHY ===== */
 h1,
 h2,

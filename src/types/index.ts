@@ -24,7 +24,6 @@ export interface Expense {
     partner_id?: string;
     payment_method?: string;
     recipient?: string;
-    created_by_email?: string;
 }
 
 export type ExpenseInput = Omit<Expense, 'id' | 'user_id' | 'created_at'>;
@@ -49,7 +48,6 @@ export interface Check {
     notification_email_2?: string;
     notification_email_3?: string;
     notification_emails?: string[];
-    created_by_email?: string;
     user_id?: string;
     created_at?: string;
 }

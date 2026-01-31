@@ -1,6 +1,13 @@
 import { supabase } from '../config/supabase';
 import { Expense } from '../types';
 
+const toTurkishUpperCase = (str: string) => {
+    return str
+        .replace(/i/g, 'İ')
+        .replace(/ı/g, 'I')
+        .toUpperCase();
+};
+
 export const expenseService = {
     subscribeToExpenses: (onUpdate: (expenses: Expense[]) => void) => {
         // Initial fetch
@@ -43,6 +50,10 @@ export const expenseService = {
             .from('expenses')
             .insert([{
                 ...expense,
+                category: toTurkishUpperCase(expense.category),
+                description: toTurkishUpperCase(expense.description),
+                recipient: expense.recipient ? toTurkishUpperCase(expense.recipient) : '',
+                payment_method: expense.payment_method ? toTurkishUpperCase(expense.payment_method) : '',
                 user_id: user?.id
             }]);
 
@@ -50,9 +61,15 @@ export const expenseService = {
     },
 
     updateExpense: async (id: string, expense: Partial<Expense>): Promise<void> => {
+        const normalizedExpense = { ...expense };
+        if (normalizedExpense.category) normalizedExpense.category = toTurkishUpperCase(normalizedExpense.category);
+        if (normalizedExpense.description) normalizedExpense.description = toTurkishUpperCase(normalizedExpense.description);
+        if (normalizedExpense.recipient) normalizedExpense.recipient = toTurkishUpperCase(normalizedExpense.recipient);
+        if (normalizedExpense.payment_method) normalizedExpense.payment_method = toTurkishUpperCase(normalizedExpense.payment_method);
+
         const { error } = await supabase
             .from('expenses')
-            .update(expense)
+            .update(normalizedExpense)
             .eq('id', id);
 
         if (error) throw error;

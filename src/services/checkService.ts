@@ -1,6 +1,13 @@
 import { supabase } from '../config/supabase';
 import { Check, CheckInput } from '../types';
 
+const toTurkishUpperCase = (str: string) => {
+    return str
+        .replace(/i/g, 'İ')
+        .replace(/ı/g, 'I')
+        .toUpperCase();
+};
+
 export const subscribeToChecks = (onUpdate: (checks: Check[]) => void) => {
     getChecks().then(onUpdate);
 
@@ -37,16 +44,16 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
     try {
         // Define data to insert explicitly to avoid issues with missing columns
         const checkData: any = {
-            check_number: check.check_number,
+            check_number: toTurkishUpperCase(check.check_number),
             amount: check.amount,
-            company: check.company,
-            recipient: check.company, // Add this to satisfy the NOT NULL constraint in DB
-            category: check.category,
-            issuer: check.issuer,
+            company: toTurkishUpperCase(check.company),
+            recipient: toTurkishUpperCase(check.company), // Add this to satisfy the NOT NULL constraint in DB
+            category: toTurkishUpperCase(check.category),
+            issuer: toTurkishUpperCase(check.issuer),
             given_date: check.given_date,
             due_date: check.due_date,
             status: check.status,
-            description: check.description || '',
+            description: check.description ? toTurkishUpperCase(check.description) : '',
             project_id: (check.project_id && check.project_id.trim() !== '') ? check.project_id : null,
             user_id: (userId && userId.trim() !== '') ? userId : null
         };
@@ -73,9 +80,14 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
 
 export const updateCheck = async (id: string, check: Partial<Check>): Promise<void> => {
     const updateData: any = { ...check };
-    if (check.company) {
-        updateData.recipient = check.company;
+    if (updateData.check_number) updateData.check_number = toTurkishUpperCase(updateData.check_number);
+    if (updateData.company) {
+        updateData.company = toTurkishUpperCase(updateData.company);
+        updateData.recipient = updateData.company;
     }
+    if (updateData.category) updateData.category = toTurkishUpperCase(updateData.category);
+    if (updateData.issuer) updateData.issuer = toTurkishUpperCase(updateData.issuer);
+    if (updateData.description) updateData.description = toTurkishUpperCase(updateData.description);
 
     const { error } = await supabase
         .from('checks')
