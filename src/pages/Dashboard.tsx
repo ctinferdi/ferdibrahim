@@ -5,6 +5,7 @@ import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
+import { noteService, Note } from '../services/noteService';
 import { Expense, Check, Apartment, Project } from '../types';
 
 const Dashboard = () => {
@@ -12,20 +13,25 @@ const Dashboard = () => {
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [notes, setNotes] = useState<Note[]>([]);
+    const [newNote, setNewNote] = useState('');
     const [loading, setLoading] = useState(true);
+    const [savingNote, setSavingNote] = useState(false);
 
     useEffect(() => {
         const loadInitialData = async () => {
-            const [exps, chks, apts, projs] = await Promise.all([
+            const [exps, chks, apts, projs, nts] = await Promise.all([
                 expenseService.getExpenses(),
                 checkService.getChecks(),
                 apartmentService.getApartments(),
-                projectService.getProjects()
+                projectService.getProjects(),
+                noteService.getNotes()
             ]);
             setExpenses(exps);
             setChecks(chks);
             setApartments(apts);
             setProjects(projs);
+            setNotes(nts);
             setLoading(false);
         };
 
@@ -36,6 +42,7 @@ const Dashboard = () => {
             checkService.getChecks().then(setChecks);
             apartmentService.getApartments().then(setApartments);
             projectService.getProjects().then(setProjects);
+            noteService.getNotes().then(setNotes);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
@@ -44,6 +51,7 @@ const Dashboard = () => {
         const unsubChecks = checkService.subscribeToChecks(setChecks);
         const unsubApartments = apartmentService.subscribeToApartments(setApartments);
         const unsubProjects = projectService.subscribeToProjects(setProjects);
+        const unsubNotes = noteService.subscribeToNotes(setNotes);
 
         return () => {
             window.removeEventListener('system-refresh', handleRefresh);
@@ -51,8 +59,32 @@ const Dashboard = () => {
             unsubChecks();
             unsubApartments();
             unsubProjects();
+            unsubNotes();
         };
     }, []);
+
+    const handleAddNote = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!newNote.trim() || savingNote) return;
+
+        setSavingNote(true);
+        try {
+            await noteService.addNote(newNote);
+            setNewNote('');
+        } catch (error) {
+            console.error('Note add error:', error);
+        } finally {
+            setSavingNote(false);
+        }
+    };
+
+    const handleDeleteNote = async (id: string) => {
+        try {
+            await noteService.deleteNote(id);
+        } catch (error) {
+            console.error('Note delete error:', error);
+        }
+    };
 
     const pendingChecks = checks.filter(c => c.status === 'pending');
     const totalCheckAmount = pendingChecks.reduce((sum, c) => sum + c.amount, 0);
@@ -207,66 +239,123 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                <div className="card">
-                    <h2 className="mb-lg">Son Hareketler</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 'var(--spacing-lg)', alignItems: 'start' }}>
+                    {/* Son Hareketler */}
+                    <div className="card" style={{ height: 'fit-content' }}>
+                        <h2 className="mb-lg">Son Hareketler</h2>
 
-                    {expenses.length === 0 && checks.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
-                            <p>Henüz kayıt bulunmuyor. Harcama veya çek ekleyerek başlayın.</p>
-                        </div>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-                            {[
-                                ...expenses.map(e => ({ ...e, type: 'expense' as const })),
-                                ...checks.map(c => ({ ...c, type: 'check' as const }))
-                            ]
-                                .sort((a, b) => {
-                                    const dateA = new Date('date' in a ? a.date : a.given_date).getTime();
-                                    const dateB = new Date('date' in b ? b.date : b.given_date).getTime();
-                                    return dateB - dateA;
-                                })
-                                .slice(0, 8) // Biraz daha fazla gösterelim
-                                .map((item) => (
-                                    <div key={item.id} style={{
-                                        padding: 'var(--spacing-md)',
-                                        background: 'var(--color-bg)',
-                                        borderRadius: 'var(--radius-md)',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        borderLeft: `4px solid ${item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)'}`,
-                                        opacity: item.type === 'check' && (item as any).status === 'paid' ? 0.7 : 1
-                                    }}>
-                                        <div>
-                                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>
-                                                {item.type === 'expense'
-                                                    ? `💰 Gider: ${(item as any).category} - ${(item as any).description || (item as any).recipient}`
-                                                    : `💳 Çek: ${(item as any).company} - ${(item as any).category}`
-                                                }
+                        {expenses.length === 0 && checks.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
+                                <p>Henüz kayıt bulunmuyor. Harcama veya çek ekleyerek başlayın.</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                                {[
+                                    ...expenses.map(e => ({ ...e, type: 'expense' as const })),
+                                    ...checks.map(c => ({ ...c, type: 'check' as const }))
+                                ]
+                                    .sort((a, b) => {
+                                        const dateA = new Date('date' in a ? a.date : a.given_date).getTime();
+                                        const dateB = new Date('date' in b ? b.date : b.given_date).getTime();
+                                        return dateB - dateA;
+                                    })
+                                    .slice(0, 8)
+                                    .map((item) => (
+                                        <div key={item.id} style={{
+                                            padding: 'var(--spacing-md)',
+                                            background: 'var(--color-bg)',
+                                            borderRadius: 'var(--radius-md)',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            borderLeft: `4px solid ${item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)'}`,
+                                            opacity: item.type === 'check' && (item as any).status === 'paid' ? 0.7 : 1
+                                        }}>
+                                            <div>
+                                                <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>
+                                                    {item.type === 'expense'
+                                                        ? `💰 Gider: ${(item as any).category} - ${(item as any).description || (item as any).recipient}`
+                                                        : `💳 Çek: ${(item as any).company} - ${(item as any).category}`
+                                                    }
+                                                </div>
+                                                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', display: 'flex', gap: 'var(--spacing-sm)' }}>
+                                                    <span>{new Date('date' in item ? item.date : item.given_date).toLocaleDateString('tr-TR')}</span>
+                                                    {item.created_by_email && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span style={{ fontStyle: 'italic', opacity: 0.8 }}>{item.created_by_email}</span>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', display: 'flex', gap: 'var(--spacing-sm)' }}>
-                                                <span>{new Date('date' in item ? item.date : item.given_date).toLocaleDateString('tr-TR')}</span>
-                                                {item.created_by_email && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span style={{ fontStyle: 'italic', opacity: 0.8 }}>{item.created_by_email}</span>
-                                                    </>
-                                                )}
-                                                {item.type === 'check' && (item as any).status === 'paid' && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>ÖDENDİ</span>
-                                                    </>
-                                                )}
+                                            <div style={{ fontWeight: 700, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)' }}>
+                                                {item.type === 'expense' ? '-' : ''}{formatCurrency(item.amount)}
                                             </div>
                                         </div>
-                                        <div style={{ fontWeight: 700, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)' }}>
-                                            {item.type === 'expense' ? '-' : ''}{formatCurrency(item.amount)}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Hızlı Notlar */}
+                    <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '600px', background: '#f8fafc' }}>
+                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white' }}>
+                            <h2 style={{ fontSize: '14px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ opacity: 0.7 }}>📝</span> HIZLI NOTLAR
+                            </h2>
+                            <span style={{ fontSize: '1.2rem', opacity: 0.5 }}>🏗️</span>
                         </div>
-                    )}
+
+                        <div style={{ padding: 'var(--spacing-md)', background: 'white' }}>
+                            <form onSubmit={handleAddNote} style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    placeholder="YENİ NOT..."
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                    style={{ borderRadius: '24px', paddingLeft: '16px', background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                                />
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={savingNote || !newNote.trim()}
+                                    style={{ width: '40px', height: '40px', borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '40px', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)' }}
+                                >
+                                    {savingNote ? '...' : '+'}
+                                </button>
+                            </form>
+                        </div>
+
+                        <div style={{ padding: 'var(--spacing-md)', overflowY: 'auto', flex: 1 }}>
+                            {notes.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: '#94a3b8', fontSize: '11px', fontWeight: 700 }}>
+                                    NOT BULUNAMADI
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {notes.map(note => (
+                                        <div key={note.id} className="card" style={{ padding: '12px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', position: 'relative', transition: 'all 0.2s' }}>
+                                            <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.4', paddingRight: '24px', wordBreak: 'break-word' }}>
+                                                {note.content}
+                                            </p>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', opacity: 0.5, fontSize: '10px' }}>
+                                                <span>{new Date(note.created_at).toLocaleDateString('tr-TR')}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteNote(note.id)}
+                                                style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: 0.3 }}
+                                                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                                                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.3'}
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </Layout>

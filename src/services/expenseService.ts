@@ -46,30 +46,51 @@ export const expenseService = {
 
     addExpense: async (expense: Omit<Expense, 'id'>): Promise<void> => {
         const { data: { user } } = await supabase.auth.getUser();
+
+        const data: any = {
+            date: expense.date,
+            amount: expense.amount || 0,
+            category: toTurkishUpperCase(expense.category || ''),
+            description: toTurkishUpperCase(expense.description || ''),
+            user_id: user?.id
+        };
+
+        if (expense.project_id) data.project_id = expense.project_id;
+        if (expense.partner_id && expense.partner_id.trim() !== '') data.partner_id = expense.partner_id;
+        if (expense.payment_method && expense.payment_method.trim() !== '') data.payment_method = toTurkishUpperCase(expense.payment_method);
+        if (expense.recipient && expense.recipient.trim() !== '') data.recipient = toTurkishUpperCase(expense.recipient);
+
         const { error } = await supabase
             .from('expenses')
-            .insert([{
-                ...expense,
-                category: toTurkishUpperCase(expense.category),
-                description: toTurkishUpperCase(expense.description),
-                recipient: expense.recipient ? toTurkishUpperCase(expense.recipient) : '',
-                payment_method: expense.payment_method ? toTurkishUpperCase(expense.payment_method) : '',
-                user_id: user?.id
-            }]);
+            .insert([data]);
 
         if (error) throw error;
     },
 
     updateExpense: async (id: string, expense: Partial<Expense>): Promise<void> => {
-        const normalizedExpense = { ...expense };
-        if (normalizedExpense.category) normalizedExpense.category = toTurkishUpperCase(normalizedExpense.category);
-        if (normalizedExpense.description) normalizedExpense.description = toTurkishUpperCase(normalizedExpense.description);
-        if (normalizedExpense.recipient) normalizedExpense.recipient = toTurkishUpperCase(normalizedExpense.recipient);
-        if (normalizedExpense.payment_method) normalizedExpense.payment_method = toTurkishUpperCase(normalizedExpense.payment_method);
+        const data: any = { ...expense };
+
+        if (data.category) data.category = toTurkishUpperCase(data.category);
+        if (data.description) data.description = toTurkishUpperCase(data.description);
+        if (data.payment_method !== undefined) {
+            data.payment_method = data.payment_method && data.payment_method.trim() !== ''
+                ? toTurkishUpperCase(data.payment_method)
+                : null;
+        }
+        if (data.recipient !== undefined) {
+            data.recipient = data.recipient && data.recipient.trim() !== ''
+                ? toTurkishUpperCase(data.recipient)
+                : null;
+        }
+        if (data.partner_id !== undefined) {
+            data.partner_id = data.partner_id && data.partner_id.trim() !== ''
+                ? data.partner_id
+                : null;
+        }
 
         const { error } = await supabase
             .from('expenses')
-            .update(normalizedExpense)
+            .update(data)
             .eq('id', id);
 
         if (error) throw error;
