@@ -543,7 +543,18 @@ const ProjectDetail: React.FC = () => {
         return stats;
     }, { total: 0, soldCount: 0, ownerCount: 0, totalSoldPrice: 0, totalPaidAmount: 0 });
 
-    const generalTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const checkStats = checks.reduce((stats, check) => {
+        if (check.status === 'paid') {
+            stats.paidTotal += check.amount;
+        } else {
+            stats.pendingTotal += check.amount;
+        }
+        return stats;
+    }, { paidTotal: 0, pendingTotal: 0 });
+
+    const generalTotal = activeTab === 'checks'
+        ? (checkStats.paidTotal + checkStats.pendingTotal)
+        : expenses.reduce((sum, e) => sum + e.amount, 0);
 
     return (
         <Layout>
@@ -581,7 +592,7 @@ const ProjectDetail: React.FC = () => {
                         }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
                             + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
                         </button>
-
+                        |
                         {/* Tabs */}
                         <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '8px', height: '40px', alignItems: 'center' }}>
                             <button className={`btn`} onClick={() => setActiveTab('expenses')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'expenses' ? 'white' : 'transparent', color: activeTab === 'expenses' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'expenses' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Giderler</button>
@@ -599,7 +610,15 @@ const ProjectDetail: React.FC = () => {
                     </div>
 
                     {/* Right Side: Summaries */}
-                    <SummaryCards activeTab={activeTab} generalTotal={generalTotal} project={project} getPartnerTotal={getPartnerTotal} aptStats={aptStats} formatCurrency={formatCurrency} />
+                    <SummaryCards
+                        activeTab={activeTab}
+                        generalTotal={generalTotal}
+                        project={project}
+                        getPartnerTotal={getPartnerTotal}
+                        aptStats={aptStats}
+                        checkStats={checkStats}
+                        formatCurrency={formatCurrency}
+                    />
                 </div>
 
 

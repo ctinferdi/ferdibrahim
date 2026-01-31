@@ -13,6 +13,10 @@ interface SummaryCardsProps {
         totalSoldPrice: number;
         totalPaidAmount: number;
     };
+    checkStats: {
+        paidTotal: number;
+        pendingTotal: number;
+    };
     formatCurrency: (value: number) => string;
 }
 
@@ -22,6 +26,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     project,
     getPartnerTotal,
     aptStats,
+    checkStats,
     formatCurrency
 }) => {
     const totalRemaining = aptStats.totalSoldPrice - aptStats.totalPaidAmount;
@@ -34,11 +39,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
             width: 'auto', // Don't take full width
             flexWrap: 'nowrap' // Stay on same line
         }}>
-            {activeTab === 'expenses' || activeTab === 'checks' ? (
+            {activeTab === 'expenses' ? (
                 <>
                     <div className="card" style={{
-                        width: '200px', // Reduced width
-                        height: '40px', // Reduced height
+                        width: '200px',
+                        height: '40px',
                         padding: '0 var(--spacing-sm)',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
@@ -52,7 +57,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         </div>
                     </div>
 
-                    {activeTab === 'expenses' && project.partners?.map((partner) => (
+                    {project.partners?.map((partner) => (
                         <div key={partner.id} className="card" style={{
                             width: '200px',
                             height: '40px',
@@ -72,6 +77,61 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
                         </div>
                     ))}
 
+                </>
+            ) : activeTab === 'checks' ? (
+                <>
+                    {/* General Total (Purple/Blue) */}
+                    <div className="card" style={{
+                        width: '200px',
+                        height: '40px',
+                        padding: '0 var(--spacing-sm)',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>GENEL TOPLAM</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{formatCurrency(generalTotal)}</div>
+                        </div>
+                    </div>
+
+                    {/* Paid Checks (Green) */}
+                    <div className="card" style={{
+                        width: '200px',
+                        height: '40px',
+                        padding: '0 var(--spacing-sm)',
+                        background: 'linear-gradient(135deg, #065f46 0%, #10b981 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>ÖDENEN ÇEKLER</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatCurrency(checkStats.paidTotal)}</div>
+                            <div style={{ fontSize: '8px', opacity: 0.8 }}>ÖDENDİ</div>
+                        </div>
+                    </div>
+
+                    {/* Pending Checks (Orange/Amber) */}
+                    <div className="card" style={{
+                        width: '200px',
+                        height: '40px',
+                        padding: '0 var(--spacing-sm)',
+                        background: 'linear-gradient(135deg, #92400e 0%, #f59e0b 100%)',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{ fontSize: '9px', opacity: 0.9, fontWeight: 600 }}>KALAN ÇEK ÖDEMELERİ</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ fontSize: '1rem', fontWeight: 700 }}>{formatCurrency(checkStats.pendingTotal)}</div>
+                            <div style={{ fontSize: '8px', opacity: 0.8 }}>BEKLEMEDE</div>
+                        </div>
+                    </div>
                 </>
             ) : (
                 <>
