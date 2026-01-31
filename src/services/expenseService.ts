@@ -1,12 +1,6 @@
 import { supabase } from '../config/supabase';
 import { Expense } from '../types';
-
-const toTurkishUpperCase = (str: string) => {
-    return str
-        .replace(/i/g, 'İ')
-        .replace(/ı/g, 'I')
-        .toUpperCase();
-};
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 export const expenseService = {
     subscribeToExpenses: (onUpdate: (expenses: Expense[]) => void) => {

@@ -6,6 +6,7 @@ import { supabase } from '../config/supabase';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import CheckModal from './ProjectDetail/Modals/CheckModal';
+import { isUserSuperAdmin } from '../config/admin';
 
 const Checks = () => {
     const [checks, setChecks] = useState<Check[]>([]);
@@ -25,8 +26,7 @@ const Checks = () => {
     const [sendingCode, setSendingCode] = useState(false);
 
     const { user } = useAuth();
-    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
-    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+    const isSuperAdmin = isUserSuperAdmin(user?.email);
 
     const handleAdminAction = (action: () => void) => {
         if (!isSuperAdmin) {
@@ -137,7 +137,52 @@ const Checks = () => {
             notification_email_3: check.notification_email_3 || '',
             project_id: check.project_id || ''
         });
+        setErrorMsg(null);
         setShowModal(true);
+    };
+
+    const handleDelete = (id: string, name: string) => {
+        handleAdminAction(async () => {
+            setSendingCode(true);
+            setDeletingCheckInfo({ id, name });
+            try {
+                const { data, error } = await supabase.functions.invoke('send-delete-code', {
+                    body: {
+                        targetName: name,
+                        actionType: 'check',
+                        userEmail: user?.email
+                    }
+                });
+
+                if (error) throw error;
+                if (data?.code) {
+                    setReceivedCode(data.code);
+                    setShowDeleteModal(true);
+                }
+            } catch (error: any) {
+                console.error('Code trigger error:', error);
+                alert('Güvenlik kodu gönderilemedi: ' + error.message);
+            } finally {
+                setSendingCode(false);
+            }
+        });
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (deleteConfirmCode === receivedCode && deletingCheckInfo) {
+            try {
+                await deleteCheck(deletingCheckInfo.id);
+                setShowDeleteModal(false);
+                setDeleteConfirmCode('');
+                setReceivedCode('');
+                setDeletingCheckInfo(null);
+            } catch (error: any) {
+                console.error('Delete error:', error);
+                alert('Silme işlemi sırasında bir hata oluştu.');
+            }
+        } else {
+            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+        }
     };
 
     const handleManualNotify = async (check: Check) => {
@@ -173,7 +218,6 @@ const Checks = () => {
             }
         } catch (error: any) {
             console.error('Manual notify error details:', error);
-            // Try to extract a meaningful message from the error object
             const errorMsg = error.context?.message || error.message || 'Bilinmeyen bir hata oluştu.';
             alert('❌ Bildirim gönderilemedi: ' + errorMsg);
         } finally {
@@ -181,22 +225,6 @@ const Checks = () => {
         }
     };
 
-    const handleDeleteConfirm = async () => {
-        if (deleteConfirmCode === receivedCode && deletingCheckInfo) {
-            try {
-                await deleteCheck(deletingCheckInfo.id);
-                setShowDeleteModal(false);
-                setDeleteConfirmCode('');
-                setReceivedCode('');
-                setDeletingCheckInfo(null);
-            } catch (error: any) {
-                console.error('Delete error:', error);
-                alert('Silme işlemi sırasında bir hata oluştu.');
-            }
-        } else {
-            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
-        }
-    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
@@ -449,7 +477,7 @@ const Checks = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Çeki Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingCheckInfo?.name}</strong> kaydını silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingCheckInfo?.name}</strong> kaydını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
                             </p>
 
                             <div className="form-group">

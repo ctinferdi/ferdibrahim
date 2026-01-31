@@ -7,18 +7,18 @@ import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
 import { Project, ProjectInput, ProjectPartnerInput, Check, Apartment } from '../types';
 import { supabase } from '../config/supabase';
+import { isUserSuperAdmin } from '../config/admin';
 
 const Projects: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
 
-    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
-    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+    const isSuperAdmin = isUserSuperAdmin(user?.email);
 
     const handleAdminAction = (action: () => void) => {
         if (!isSuperAdmin) {
-            alert(`Bu işlem için yönetici (ctinferdi veya ibrahim.erhan2) onayına ihtiyaç var.`);
+            alert(`Bu işlem için yönetici onayına ihtiyaç var.`);
             return;
         }
         action();
@@ -72,7 +72,6 @@ const Projects: React.FC = () => {
         init();
 
         const handleRefresh = () => {
-            // ... existing refresh logic
             projectService.getProjects().then(setProjects);
             checkService.getChecks().then(setChecks);
             apartmentService.getApartments().then(setApartments);
@@ -145,7 +144,6 @@ const Projects: React.FC = () => {
             const updatedProjects = await projectService.getProjects();
             setProjects(updatedProjects);
         } catch (error: any) {
-            console.error('Error creating project:', error);
             setErrorMsg(error.message || 'Proje oluşturulamadı.');
         } finally {
             setSaving(false);
@@ -203,9 +201,6 @@ const Projects: React.FC = () => {
             alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
         }
     };
-
-
-
 
     return (
         <Layout>
@@ -520,7 +515,7 @@ const Projects: React.FC = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Projeyi Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingProject?.name}</strong> projesini silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingProject?.name}</strong> projesini silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
                             </p>
 
                             <div className="form-group">

@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
 import { Expense, ExpenseInput } from '../types';
 import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
+import { isUserSuperAdmin } from '../config/admin';
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -22,8 +23,7 @@ const Expenses = () => {
     const [sendingCode, setSendingCode] = useState(false);
 
     const { user } = useAuth();
-    const superAdminEmails = ['ctinferdi@gmail.com', 'ibrahim.erhan2@gmail.com'];
-    const isSuperAdmin = user?.email && superAdminEmails.includes(user.email);
+    const isSuperAdmin = isUserSuperAdmin(user?.email);
 
     const handleAdminAction = (action: () => void) => {
         if (!isSuperAdmin) {
@@ -378,7 +378,7 @@ const Expenses = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Harcamayı Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingExpenseInfo?.name}</strong> kaydını silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingExpenseInfo?.name}</strong> kaydını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
                             </p>
 
                             <div className="form-group">

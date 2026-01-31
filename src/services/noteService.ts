@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 export interface Note {
     id: string;
@@ -6,13 +7,6 @@ export interface Note {
     user_id: string;
     created_at: string;
 }
-
-const toTurkishUpperCase = (str: string) => {
-    return str
-        .replace(/i/g, 'İ')
-        .replace(/ı/g, 'I')
-        .toUpperCase();
-};
 
 export const noteService = {
     getNotes: async (): Promise<Note[]> => {

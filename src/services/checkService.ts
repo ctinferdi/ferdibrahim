@@ -1,12 +1,6 @@
 import { supabase } from '../config/supabase';
 import { Check, CheckInput } from '../types';
-
-const toTurkishUpperCase = (str: string) => {
-    return str
-        .replace(/i/g, 'İ')
-        .replace(/ı/g, 'I')
-        .toUpperCase();
-};
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 export const subscribeToChecks = (onUpdate: (checks: Check[]) => void) => {
     getChecks().then(onUpdate);
@@ -68,12 +62,8 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
             .from('checks')
             .insert([checkData]);
 
-        if (error) {
-            console.error('Supabase Insert Error:', error);
-            throw error;
-        }
+        if (error) throw error;
     } catch (err) {
-        console.error('addCheck Service Error:', err);
         throw err;
     }
 };

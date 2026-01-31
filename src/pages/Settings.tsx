@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
+import { isUserSuperAdmin } from '../config/admin';
 
 const Settings: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -14,6 +15,7 @@ const Settings: React.FC = () => {
     const [loadingUsers, setLoadingUsers] = useState(false);
 
     const { user } = useAuth();
+    const isSuperAdmin = isUserSuperAdmin(user?.email);
 
     const fetchUsers = async () => {
         setLoadingUsers(true);
@@ -161,6 +163,20 @@ const Settings: React.FC = () => {
             setLoading(false);
         }
     };
+
+    if (!isSuperAdmin) {
+        return (
+            <Layout>
+                <div className="card">
+                    <h2>Kişisel Bilgiler</h2>
+                    <p>Email: {user?.email}</p>
+                    <p style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
+                        Bu sayfada sadece yöneticiler işlem yapabilir.
+                    </p>
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout>
@@ -341,7 +357,7 @@ const Settings: React.FC = () => {
                             <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                                 <h2 className="mb-md">Kullanıcıyı Sil</h2>
                                 <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                    <strong>{deletingUser?.email}</strong> kullanıcısını silmek için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                                    <strong>{deletingUser?.email}</strong> kullanıcısını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
                                 </p>
 
                                 <div className="form-group">

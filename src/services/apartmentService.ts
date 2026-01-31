@@ -1,13 +1,7 @@
 import { supabase } from '../config/supabase';
 import { Apartment, ApartmentInput, PlanFile } from '../types';
 import { storageService } from './storageService';
-
-const toTurkishUpperCase = (str: string) => {
-    return str
-        .replace(/i/g, 'İ')
-        .replace(/ı/g, 'I')
-        .toUpperCase();
-};
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 export const subscribeToApartments = (onUpdate: (apartments: Apartment[]) => void) => {
     getApartments().then(onUpdate);

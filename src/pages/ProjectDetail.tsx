@@ -859,7 +859,7 @@ const ProjectDetail: React.FC = () => {
                             {actionType === 'expense' ? 'Gideri Sil' : actionType === 'check' ? 'Çeki Sil' : 'Satışı İptal Et'}
                         </h2>
                         <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}>
-                            <strong>{deletingExpense?.name}</strong> işlemini onaylamak için e-posta adresinize (ctinferdi@gmail.com) gönderilen 4 haneli kodu girin.
+                            <strong>{deletingExpense?.name}</strong> işlemini onaylamak için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
                         </p>
                         <div className="form-group">
                             <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>

@@ -70,14 +70,14 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
                                 fontSize: 'var(--font-size-sm)',
                                 color: (() => {
                                     const dueDate = new Date(check.due_date);
-                                    const today = new Date('2026-01-22');
+                                    const today = new Date();
                                     const diffTime = dueDate.getTime() - today.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                     return (diffDays <= 10 && check.status === 'pending') ? '#dc2626' : 'inherit';
                                 })(),
                                 background: (() => {
                                     const dueDate = new Date(check.due_date);
-                                    const today = new Date('2026-01-22');
+                                    const today = new Date();
                                     const diffTime = dueDate.getTime() - today.getTime();
                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                     return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';

@@ -1,12 +1,6 @@
 import { supabase } from '../config/supabase';
 import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput } from '../types';
-
-const toTurkishUpperCase = (str: string) => {
-    return str
-        .replace(/i/g, 'İ')
-        .replace(/ı/g, 'I')
-        .toUpperCase();
-};
+import { toTurkishUpperCase } from '../utils/stringUtils';
 
 // Helper: Slugify
 const slugify = (text: string): string => {
