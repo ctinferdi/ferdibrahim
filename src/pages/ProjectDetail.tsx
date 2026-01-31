@@ -177,27 +177,86 @@ const ProjectDetail: React.FC = () => {
     const loadAllData = React.useCallback(async (showSpinner = true) => {
         if (!id) return;
 
-        // Phase 1: Critical Data (Project Info)
+        // Phase 1: Preparation & Fast-path
         if (showSpinner && !project) setLoading(true);
 
         try {
-            // First fetch project details only if not existing or forced
-            let proj = project;
-            if (!proj || showSpinner) {
-                proj = await projectService.getProjectBySlug(id);
+            // Shortcut: If ID is a UUID, we can fetch everything in parallel immediately.
+            // Shortcut 2: If we have the UUID cached from a previous visit, use it.
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            let targetUUID = isUUID ? id : null;
+
+            if (!targetUUID) {
+                const cached = localStorage.getItem(`project_uuid_${id}`);
+                if (cached) targetUUID = cached;
             }
+
+            // Phase 2: Parallel Fetching
+            const fetchPromises: Promise<any>[] = [
+                projectService.getProjectBySlug(id)
+            ];
+
+            // If we have a UUID (direct or cached), trigger child fetches immediately
+            if (targetUUID) {
+                fetchPromises.push(expenseService.getExpenses(targetUUID));
+                fetchPromises.push(checkService.getChecks(targetUUID));
+                fetchPromises.push(apartmentService.getApartments(targetUUID));
+            }
+
+            if (showSpinner) {
+                setLoadingExpenses(true);
+                setLoadingChecks(true);
+                setLoadingApartments(true);
+            }
+
+            const results = await Promise.all(fetchPromises);
+            const proj = results[0] as Project;
+
             if (!proj) throw new Error('Proje bulunamadı');
 
+            // Store ID-Slug mapping for future fast-paths
+            if (proj.slug) {
+                localStorage.setItem(`project_uuid_${proj.slug}`, proj.id);
+            }
+
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
+            setLoading(false);
+
+            // If we didn't have the UUID yet, results array will only have 1 element.
+            // We need to trigger the others now (slower but correct for first visit).
+            if (results.length === 1) {
+                const realProjectId = proj.id;
+
+                // Fetch others in parallel now
+                const [exps, chks, apts] = await Promise.all([
+                    expenseService.getExpenses(realProjectId),
+                    checkService.getChecks(realProjectId),
+                    apartmentService.getApartments(realProjectId)
+                ]);
+
+                setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(exps) ? exps : prev);
+                setChecks(prev => JSON.stringify(prev) !== JSON.stringify(chks) ? chks : prev);
+                setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
+            } else {
+                // We fetched everything in the first Promise.all
+                const [_, exps, chks, apts] = results;
+                setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(exps) ? exps : prev);
+                setChecks(prev => JSON.stringify(prev) !== JSON.stringify(chks) ? chks : prev);
+                setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
+            }
+
+            if (showSpinner) {
+                setLoadingExpenses(false);
+                setLoadingChecks(false);
+                setLoadingApartments(false);
+            }
 
             // Auto-redirect to slug if accessing via ID
-            if (proj.slug && id !== proj.slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+            if (proj.slug && id !== proj.slug && isUUID) {
                 navigate(`/projeler/${proj.slug}?${searchParams.toString()}`, { replace: true });
-                return;
             }
-            // If the URL is using slug but state has ID, that's fine.
-            // If we want to force URL to slug, we could do it here but let's keep it simple.
 
+            // Sync company info
             const newCompanyInfo = {
                 company_name: proj.company_name || '',
                 company_address: proj.company_address || '',
@@ -206,7 +265,6 @@ const ProjectDetail: React.FC = () => {
                 notification_emails: proj.notification_emails || []
             };
 
-            // If section is open, skip updating to prevent overwriting user input
             if (!showCompanySection) {
                 setCompanyInfo(prev => JSON.stringify(prev) !== JSON.stringify(newCompanyInfo) ? newCompanyInfo : prev);
             }
@@ -215,41 +273,15 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            setLoading(false); // Unblock main UI
-
-            // Phase 2: Independent Parallel Fetching (Running after we have the real UUID)
-            const realProjectId = proj.id;
-
-            if (showSpinner) setLoadingExpenses(true);
-            expenseService.getExpenses(realProjectId)
-                .then(data => {
-                    setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
-                })
-                .catch(console.error)
-                .finally(() => { if (showSpinner) setLoadingExpenses(false); });
-
-            if (showSpinner) setLoadingChecks(true);
-            checkService.getChecks(realProjectId)
-                .then(data => {
-                    setChecks(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
-                })
-                .catch(console.error)
-                .finally(() => { if (showSpinner) setLoadingChecks(false); });
-
-            if (showSpinner) setLoadingApartments(true);
-            apartmentService.getApartments(realProjectId)
-                .then(data => {
-                    setApartments(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
-                })
-                .catch(console.error)
-                .finally(() => { if (showSpinner) setLoadingApartments(false); });
-
         } catch (err) {
             console.error(err);
             if (showSpinner) navigate('/projeler');
             setLoading(false);
+            setLoadingExpenses(false);
+            setLoadingChecks(false);
+            setLoadingApartments(false);
         }
-    }, [id, navigate, selectedPartner, showCompanySection]);
+    }, [id, navigate, selectedPartner, showCompanySection, searchParams, project]);
 
     // Cache Saving Logic
     useEffect(() => {
