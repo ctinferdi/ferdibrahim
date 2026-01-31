@@ -70,6 +70,8 @@ const Dashboard = () => {
         try {
             await noteService.addNote(newNote);
             setNewNote('');
+            // Immediate refresh
+            noteService.getNotes().then(setNotes);
         } catch (error) {
             console.error('Note add error:', error);
         } finally {
@@ -80,6 +82,8 @@ const Dashboard = () => {
     const handleDeleteNote = async (id: string) => {
         try {
             await noteService.deleteNote(id);
+            // Immediate refresh
+            noteService.getNotes().then(setNotes);
         } catch (error) {
             console.error('Note delete error:', error);
         }
