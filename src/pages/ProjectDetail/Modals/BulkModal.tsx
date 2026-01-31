@@ -60,7 +60,8 @@ const BulkModal: React.FC<BulkModalProps> = ({
 
     if (!isOpen) return null;
 
-    const handleBulkSubmit = async () => {
+    const handleBulkSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         console.log('[BulkModal] handleBulkSubmit çağrıldı');
         console.log('[BulkModal] bulkFormData:', bulkFormData);
         console.log('[BulkModal] apartments.length:', apartments.length);
@@ -166,127 +167,131 @@ const BulkModal: React.FC<BulkModalProps> = ({
                 <p style={{ fontSize: '11px', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
                     Belirlediğiniz kat aralığında her kat için istenen sayıda boş daire oluşturur.
                 </p>
-                <div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                En Alt Kat (Bodrum: -1)
-                            </label>
-                            <input
-                                type="number"
-                                value={bulkFormData.startFloor}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    setBulkFormData({ ...bulkFormData, startFloor: isNaN(val) ? -1 : val });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                En Üst Kat No
-                            </label>
-                            <input
-                                type="number"
-                                value={bulkFormData.endFloor}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    setBulkFormData({ ...bulkFormData, endFloor: isNaN(val) ? 1 : val });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-sm)' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                Bodrumda Kaç?
-                            </label>
-                            <input
-                                type="number"
-                                value={bulkFormData.basementApts}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    setBulkFormData({ ...bulkFormData, basementApts: isNaN(val) ? 0 : val });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                Zeminde Kaç?
-                            </label>
-                            <input
-                                type="number"
-                                value={bulkFormData.groundApts}
-                                onChange={(e) => {
-                                    const val = parseInt(e.target.value);
-                                    setBulkFormData({ ...bulkFormData, groundApts: isNaN(val) ? 0 : val });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                Ara Katta Kaç?
-                            </label>
-                            <input
-                                type="number"
-                                value={bulkFormData.normalApts}
-                                onChange={(e) => {
-                                    const val = e.target.value === '' ? '' : parseInt(e.target.value);
-                                    setBulkFormData({ ...bulkFormData, normalApts: val === '' ? 1 : (isNaN(val) ? 1 : val) });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-                    </div>
-
-                    <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                            <input
-                                type="checkbox"
-                                checked={bulkFormData.hasDuplex}
-                                onChange={(e) => setBulkFormData({ ...bulkFormData, hasDuplex: e.target.checked })}
-                            />
-                            En Üst Kat Dubleks mi?
-                        </label>
-
-                        {bulkFormData.hasDuplex && (
-                            <div style={{ marginTop: '10px' }}>
+                <form onSubmit={handleBulkSubmit}>
+                    <div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                            <div>
                                 <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                    Kaç Adet Dubleks Var?
+                                    En Alt Kat (Bodrum: -1)
                                 </label>
                                 <input
                                     type="number"
-                                    value={bulkFormData.duplexCount}
+                                    value={bulkFormData.startFloor}
                                     onChange={(e) => {
                                         const val = parseInt(e.target.value);
-                                        setBulkFormData({ ...bulkFormData, duplexCount: isNaN(val) ? 1 : val });
+                                        setBulkFormData({ ...bulkFormData, startFloor: isNaN(val) ? -1 : val });
                                     }}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
                                 />
                             </div>
-                        )}
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                                    En Üst Kat No
+                                </label>
+                                <input
+                                    type="number"
+                                    value={bulkFormData.endFloor}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        setBulkFormData({ ...bulkFormData, endFloor: isNaN(val) ? 1 : val });
+                                    }}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                                    Bodrumda Kaç?
+                                </label>
+                                <input
+                                    type="number"
+                                    value={bulkFormData.basementApts}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        setBulkFormData({ ...bulkFormData, basementApts: isNaN(val) ? 0 : val });
+                                    }}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                                    Zeminde Kaç?
+                                </label>
+                                <input
+                                    type="number"
+                                    value={bulkFormData.groundApts}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value);
+                                        setBulkFormData({ ...bulkFormData, groundApts: isNaN(val) ? 0 : val });
+                                    }}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                                    Ara Katta Kaç?
+                                </label>
+                                <input
+                                    type="number"
+                                    value={bulkFormData.normalApts}
+                                    onChange={(e) => {
+                                        const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                                        setBulkFormData({ ...bulkFormData, normalApts: val === '' ? 1 : (isNaN(val) ? 1 : val) });
+                                    }}
+                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                <input
+                                    type="checkbox"
+                                    checked={bulkFormData.hasDuplex}
+                                    onChange={(e) => setBulkFormData({ ...bulkFormData, hasDuplex: e.target.checked })}
+                                />
+                                En Üst Kat Dubleks mi?
+                            </label>
+
+                            {bulkFormData.hasDuplex && (
+                                <div style={{ marginTop: '10px' }}>
+                                    <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
+                                        Kaç Adet Dubleks Var?
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={bulkFormData.duplexCount}
+                                        onChange={(e) => {
+                                            const val = parseInt(e.target.value);
+                                            setBulkFormData({ ...bulkFormData, duplexCount: isNaN(val) ? 1 : val });
+                                        }}
+                                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ flex: 1 }}
+                            >
+                                Planı {apartments.length > 0 ? 'Güncelle' : 'Oluştur'}
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={onClose}
+                                style={{ flex: 1 }}
+                            >
+                                İptal
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
-                    <button
-                        className="btn btn-primary"
-                        style={{ flex: 1 }}
-                        onClick={handleBulkSubmit}
-                    >
-                        Planı {apartments.length > 0 ? 'Güncelle' : 'Oluştur'}
-                    </button>
-                    <button
-                        className="btn btn-secondary"
-                        onClick={onClose}
-                        style={{ flex: 1 }}
-                    >
-                        İptal
-                    </button>
-                </div>
+                </form>
             </div>
         </div>
     );

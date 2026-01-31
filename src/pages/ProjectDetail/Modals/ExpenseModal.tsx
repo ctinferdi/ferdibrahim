@@ -189,25 +189,26 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 ⚠️ {errorMsg}
                             </div>
                         )}
-                    </form>
-                </div>
 
-                <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--spacing-md)' }}>
-                    <button
-                        className="btn btn-secondary"
-                        onClick={onClose}
-                        style={{ flex: 1, padding: '0.5rem' }}
-                    >
-                        İptal
-                    </button>
-                    <button
-                        onClick={onSave}
-                        className="btn btn-primary"
-                        style={{ flex: 2, padding: '0.5rem' }}
-                        disabled={saving}
-                    >
-                        {saving ? 'Kaydediliyor...' : (editingExpenseId ? 'Güncelle' : 'Kaydet')}
-                    </button>
+                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--spacing-md)', margin: 'var(--spacing-lg) -var(--spacing-lg) -var(--spacing-lg) -var(--spacing-lg)' }}>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={onClose}
+                                style={{ flex: 1, padding: '0.5rem' }}
+                            >
+                                İptal
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ flex: 2, padding: '0.5rem' }}
+                                disabled={saving}
+                            >
+                                {saving ? 'Kaydediliyor...' : (editingExpenseId ? 'Güncelle' : 'Kaydet')}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
