@@ -178,7 +178,8 @@ const ProjectDetail: React.FC = () => {
         if (!id) return;
 
         // Phase 1: Preparation & Fast-path
-        if (showSpinner && !project) setLoading(true);
+        // Only show main spinner if we don't have project data yet
+        if (showSpinner) setLoading(true);
 
         try {
             // Shortcut: If ID is a UUID, we can fetch everything in parallel immediately.
@@ -220,10 +221,8 @@ const ProjectDetail: React.FC = () => {
             }
 
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
-            setLoading(false);
 
-            // If we didn't have the UUID yet, results array will only have 1 element.
-            // We need to trigger the others now (slower but correct for first visit).
+            // Phase 3: Handle individual results
             if (results.length === 1) {
                 const realProjectId = proj.id;
 
@@ -245,17 +244,6 @@ const ProjectDetail: React.FC = () => {
                 setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
             }
 
-            if (showSpinner) {
-                setLoadingExpenses(false);
-                setLoadingChecks(false);
-                setLoadingApartments(false);
-            }
-
-            // Auto-redirect to slug if accessing via ID
-            if (proj.slug && id !== proj.slug && isUUID) {
-                navigate(`/projeler/${proj.slug}?${searchParams.toString()}`, { replace: true });
-            }
-
             // Sync company info
             const newCompanyInfo = {
                 company_name: proj.company_name || '',
@@ -273,6 +261,17 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
+            // Final: Unblock all UI states
+            setLoading(false);
+            setLoadingExpenses(false);
+            setLoadingChecks(false);
+            setLoadingApartments(false);
+
+            // Auto-redirect to slug if accessing via ID
+            if (proj.slug && id !== proj.slug && isUUID) {
+                navigate(`/projeler/${proj.slug}?${searchParams.toString()}`, { replace: true });
+            }
+
         } catch (err) {
             console.error(err);
             if (showSpinner) navigate('/projeler');
@@ -281,7 +280,7 @@ const ProjectDetail: React.FC = () => {
             setLoadingChecks(false);
             setLoadingApartments(false);
         }
-    }, [id, navigate, selectedPartner, showCompanySection, searchParams, project]);
+    }, [id, navigate, selectedPartner, showCompanySection, searchParams]);
 
     // Cache Saving Logic
     useEffect(() => {
