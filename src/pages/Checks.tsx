@@ -388,25 +388,20 @@ const Checks = () => {
                                             fontWeight: 500,
                                             color: (() => {
                                                 const dueDate = new Date(check.due_date);
-                                                if (isNaN(dueDate.getTime())) return 'inherit';
-                                                const today = new Date(); // Use actual current date for comparison
+                                                const today = new Date(); // Using system provided current date
                                                 const diffTime = dueDate.getTime() - today.getTime();
                                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                                 return (diffDays <= 10 && check.status === 'pending') ? '#dc2626' : 'inherit';
                                             })(),
                                             background: (() => {
                                                 const dueDate = new Date(check.due_date);
-                                                if (isNaN(dueDate.getTime())) return 'transparent';
                                                 const today = new Date();
                                                 const diffTime = dueDate.getTime() - today.getTime();
                                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                                 return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';
                                             })()
                                         }}>
-                                            {(() => {
-                                                const d = new Date(check.due_date);
-                                                return isNaN(d.getTime()) ? check.due_date : d.toLocaleDateString('tr-TR');
-                                            })()}
+                                            {new Date(check.due_date).toLocaleDateString('tr-TR')}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 600 }}>
                                             {formatCurrency(check.amount)}

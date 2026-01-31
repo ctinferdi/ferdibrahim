@@ -91,11 +91,10 @@ const CheckModal: React.FC<CheckModalProps> = ({
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>VADE TARİHİ</label>
                             <input
-                                type="text"
+                                type="date"
                                 className="form-input"
                                 value={checkFormData.due_date}
                                 onChange={(e) => setCheckFormData({ ...checkFormData, due_date: e.target.value })}
-                                placeholder="GG.AA.YYYY"
                                 style={{ padding: '6px 10px', fontSize: '13px' }}
                                 required
                             />
@@ -155,11 +154,10 @@ const CheckModal: React.FC<CheckModalProps> = ({
                         <div className="form-group" style={{ marginBottom: '2px' }}>
                             <label className="form-label" style={{ fontSize: '10px', marginBottom: '2px', fontWeight: 700 }}>VERİLİŞ TARİHİ</label>
                             <input
-                                type="text"
+                                type="date"
                                 className="form-input"
                                 value={checkFormData.given_date}
                                 onChange={(e) => setCheckFormData({ ...checkFormData, given_date: e.target.value })}
-                                placeholder="GG.AA.YYYY"
                                 style={{ padding: '6px 10px', fontSize: '13px' }}
                                 required
                             />
