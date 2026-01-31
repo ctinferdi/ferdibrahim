@@ -15,25 +15,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check active sessions and sets the user
+        // 1. Check active session once
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user ?? null);
             setLoading(false);
         });
 
-        // Listen for changes on auth state (sign in, sign out, etc.)
+        // 2. Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
             setLoading(false);
         });
 
-        // --- SESSION TIMEOUT (1 HOUR) ---
+        // 3. Session Timeout logic initialization
         let lastActivity = Date.now();
         const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
-
-        const resetTimer = () => {
-            lastActivity = Date.now();
-        };
+        const resetTimer = () => { lastActivity = Date.now(); };
 
         activityEvents.forEach(event => {
             window.addEventListener(event, resetTimer);
@@ -42,11 +39,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const timeoutInterval = setInterval(() => {
             const now = Date.now();
             const oneHourInMs = 60 * 60 * 1000;
-            if (user && (now - lastActivity > oneHourInMs)) {
-                console.log('Session timed out due to inactivity');
-                signOut();
+            // Use a ref-like approach or just check current state safely
+            // Note: In an interval, we will see the LATEST 'user' if we define the function here?
+            // Actually, to be safe with closures, we could use a ref for 'user' but
+            // for now, let's keep it simple as it's a global singleton state.
+            if (now - lastActivity > oneHourInMs) {
+                // We'll handle the signout if a user is present
+                // supabase.auth.getUser() is safer inside interval than closed-over 'user'
+                supabase.auth.getUser().then(({ data: { user } }) => {
+                    if (user) {
+                        console.log('Session timed out due to inactivity');
+                        signOut();
+                    }
+                });
             }
-        }, 60000); // Check every minute
+        }, 60000);
 
         return () => {
             subscription.unsubscribe();
@@ -55,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
             clearInterval(timeoutInterval);
         };
-    }, [user]);
+    }, []); // Empty array - run once on mount
 
     const signOut = async () => {
         await supabase.auth.signOut();

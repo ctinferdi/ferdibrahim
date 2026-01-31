@@ -269,7 +269,9 @@ const ProjectDetail: React.FC = () => {
 
             // Auto-redirect to slug if accessing via ID
             if (proj.slug && id !== proj.slug && isUUID) {
-                navigate(`/projeler/${proj.slug}?${searchParams.toString()}`, { replace: true });
+                // Use current window search to avoid searchParams dependency loop
+                const currentSearch = window.location.search;
+                navigate(`/projeler/${proj.slug}${currentSearch}`, { replace: true });
             }
 
         } catch (err) {
@@ -280,7 +282,7 @@ const ProjectDetail: React.FC = () => {
             setLoadingChecks(false);
             setLoadingApartments(false);
         }
-    }, [id, navigate, selectedPartner, showCompanySection, searchParams]);
+    }, [id, navigate, selectedPartner, showCompanySection]);
 
     // Cache Saving Logic
     useEffect(() => {
