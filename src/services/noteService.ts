@@ -14,8 +14,12 @@ const toTurkishUpperCase = (str: string) => {
         .toUpperCase();
 };
 
+let tableExists = true;
+
 export const noteService = {
     getNotes: async (): Promise<Note[]> => {
+        if (!tableExists) return [];
+
         try {
             const { data, error } = await supabase
                 .from('notes')
@@ -23,11 +27,17 @@ export const noteService = {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                if (error.code === 'PGRST205') return []; // Table not created yet
+                if (error.code === 'PGRST205' || error.message?.includes('notes')) {
+                    tableExists = false;
+                    return [];
+                }
                 throw error;
             }
             return data || [];
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.status === 404 || error?.code === 'PGRST205') {
+                tableExists = false;
+            }
             console.error('Note fetch error:', error);
             return [];
         }
@@ -60,13 +70,20 @@ export const noteService = {
     },
 
     subscribeToNotes: (onUpdate: (notes: Note[]) => void) => {
+        if (!tableExists) {
+            onUpdate([]);
+            return () => { };
+        }
+
         noteService.getNotes().then(onUpdate).catch(() => onUpdate([]));
 
         const subscription = supabase
             .channel('public:notes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, async () => {
-                const notes = await noteService.getNotes();
-                onUpdate(notes);
+                if (tableExists) {
+                    const notes = await noteService.getNotes();
+                    onUpdate(notes);
+                }
             })
             .subscribe();
 

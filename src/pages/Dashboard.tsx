@@ -42,7 +42,6 @@ const Dashboard = () => {
             checkService.getChecks().then(setChecks);
             apartmentService.getApartments().then(setApartments);
             projectService.getProjects().then(setProjects);
-            noteService.getNotes().then(setNotes);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
