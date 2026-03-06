@@ -1,12 +1,58 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const WHATSAPP_TOKEN = Deno.env.get('WHATSAPP_TOKEN') ?? ''
+const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? ''
+const WHATSAPP_TEMPLATE_NAME = Deno.env.get('WHATSAPP_TEMPLATE_NAME') ?? 'cek_odeme_hatirlatmasi'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+const normalizePhone = (phone: string): string => {
+    const digits = phone.replace(/\D/g, '')
+    if (digits.startsWith('90') && digits.length === 12) return digits
+    if (digits.startsWith('0') && digits.length === 11) return '90' + digits.substring(1)
+    if (digits.startsWith('5') && digits.length === 10) return '90' + digits
+    return digits
+}
+
+const sendWhatsApp = async (phone: string, params: string[]): Promise<boolean> => {
+    const normalized = normalizePhone(phone)
+    if (!normalized || normalized.length < 10) return false
+
+    const res = await fetch(
+        `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+            },
+            body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: normalized,
+                type: 'template',
+                template: {
+                    name: WHATSAPP_TEMPLATE_NAME,
+                    language: { code: 'tr' },
+                    components: [{
+                        type: 'body',
+                        parameters: params.map(text => ({ type: 'text', text })),
+                    }],
+                },
+            }),
+        }
+    )
+
+    if (!res.ok) {
+        const err = await res.text()
+        console.error('WhatsApp send failed:', { phone: normalized, error: err })
+        return false
+    }
+    return true
 }
 
 serve(async (req) => {
@@ -23,7 +69,6 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 1. Get check details
         const { data: check, error: checkError } = await supabase
             .from('checks')
             .select('*, projects(name)')
@@ -32,61 +77,43 @@ serve(async (req) => {
 
         if (checkError || !check) throw new Error(`Check not found: ${checkError?.message}`)
 
-        // 2. Prepare recipients
-        // IMPORTANT: Resend onboarding@resend.dev ONLY works for the owner's email
-        const recipientList = ["ctinferdi@gmail.com"]
+        const phones = [
+            check.notification_phone,
+            check.notification_phone_2,
+            check.notification_phone_3,
+        ].filter((p: string | null) => p && p.trim() !== '') as string[]
 
-        // 3. Send email via Resend
-        if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY is not configured')
+        if (phones.length === 0) {
+            throw new Error('Bu çeke tanımlı WhatsApp numarası yok. Çeki düzenleyip numara ekleyin.')
+        }
 
-        // Try multiple field names for check number just in case
-        const checkNum = check.check_number || check.check_no || '---'
-        const projectName = check.projects?.name || 'Belirtilmemiş'
+        const projectName = check.projects?.name ?? 'Proje'
+        const params = [
+            check.check_number || '-',
+            check.due_date,
+            new Intl.NumberFormat('tr-TR').format(check.amount) + ' TL',
+            check.company || '-',
+            projectName,
+        ]
 
-        console.log(`Sending manual notification for check ${checkNum} to ${recipientList[0]}`)
+        let sent = 0
+        let failed = 0
+        for (const phone of phones) {
+            const ok = await sendWhatsApp(phone, params)
+            ok ? sent++ : failed++
+        }
 
-        const emailRes = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-                from: 'InsaatHesapp <onboarding@resend.dev>',
-                to: recipientList,
-                subject: `MANUEL HATIRLATMA: Çek Ödeme Hatırlatması (${checkNum})`,
-                html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px;">Çek Ödeme Hatırlatması</h2>
-            <p>Merhaba kanka, bu bir manuel test/hatırlatma bildirilmiştir.</p>
-            <div style="background: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
-              <p><strong>Çek Numarası:</strong> ${checkNum}</p>
-              <p><strong>Vade Tarihi:</strong> ${check.due_date}</p>
-              <p><strong>Tutar:</strong> ${new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(check.amount)}</p>
-              <p><strong>Şirket/Kişi:</strong> ${check.company}</p>
-              <p><strong>Proje:</strong> ${projectName}</p>
-            </div>
-            <p style="color: #64748b; font-size: 12px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px;">
-              Not: Şu an deneme modunda olduğumuz için tüm bildirimler ctinferdi@gmail.com adresine yönlendirilmektedir. <br/>
-              Tanımladığın mail adresleri: ${[check.notification_email, check.notification_email_2, check.notification_email_3].filter(e => e).join(', ') || 'Seçilmedi'}
-            </p>
-          </div>
-        `,
-            }),
-        })
+        if (sent === 0) throw new Error('Tüm WhatsApp mesajları gönderilemedi. Token ve Phone Number ID\'yi kontrol edin.')
 
-        const resBody = await emailRes.text()
-        if (!emailRes.ok) throw new Error(`Resend Error: ${resBody}`)
-
-        return new Response(JSON.stringify({ success: true }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200,
-        })
+        return new Response(
+            JSON.stringify({ success: true, sent, failed }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        )
 
     } catch (error: any) {
-        return new Response(JSON.stringify({ success: false, error: error.message }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200,
-        })
+        return new Response(
+            JSON.stringify({ success: false, error: error.message }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        )
     }
 })

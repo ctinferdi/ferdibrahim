@@ -74,9 +74,9 @@ const ProjectDetail: React.FC = () => {
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending',
         description: '',
-        notification_email: '',
-        notification_email_2: '',
-        notification_email_3: '',
+        notification_phone: '',
+        notification_phone_2: '',
+        notification_phone_3: '',
         project_id: id || ''
     });
     const [editingCheckId, setEditingCheckId] = useState<string | null>(null);
@@ -412,9 +412,9 @@ const ProjectDetail: React.FC = () => {
             due_date: new Date().toISOString().split('T')[0],
             status: 'pending',
             description: '',
-            notification_email: '',
-            notification_email_2: '',
-            notification_email_3: '',
+            notification_phone: '',
+            notification_phone_2: '',
+            notification_phone_3: '',
             project_id: id || ''
         });
         setEditingCheckId(null);
@@ -674,9 +674,9 @@ const ProjectDetail: React.FC = () => {
                                 due_date: c.due_date,
                                 status: c.status,
                                 description: c.description || '',
-                                notification_email: c.notification_email || '',
-                                notification_email_2: (c as any).notification_email_2 || '',
-                                notification_email_3: (c as any).notification_email_3 || '',
+                                notification_phone: c.notification_phone || '',
+                                notification_phone_2: c.notification_phone_2 || '',
+                                notification_phone_3: c.notification_phone_3 || '',
                                 project_id: c.project_id || id || ''
                             });
                             setShowCheckModal(true);

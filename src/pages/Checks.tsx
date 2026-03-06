@@ -47,9 +47,9 @@ const Checks = () => {
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending' as CheckStatus,
         description: '',
-        notification_email: '',
-        notification_email_2: '',
-        notification_email_3: '',
+        notification_phone: '',
+        notification_phone_2: '',
+        notification_phone_3: '',
         project_id: ''
     });
 
@@ -115,9 +115,9 @@ const Checks = () => {
             due_date: new Date().toISOString().split('T')[0],
             status: 'pending',
             description: '',
-            notification_email: '',
-            notification_email_2: '',
-            notification_email_3: '',
+            notification_phone: '',
+            notification_phone_2: '',
+            notification_phone_3: '',
             project_id: ''
         });
     };
@@ -135,9 +135,9 @@ const Checks = () => {
             due_date: check.due_date,
             status: check.status,
             description: check.description || '',
-            notification_email: check.notification_email || '',
-            notification_email_2: check.notification_email_2 || '',
-            notification_email_3: check.notification_email_3 || '',
+            notification_phone: check.notification_phone || '',
+            notification_phone_2: check.notification_phone_2 || '',
+            notification_phone_3: check.notification_phone_3 || '',
             project_id: check.project_id || ''
         });
         setErrorMsg(null);
@@ -189,19 +189,19 @@ const Checks = () => {
     };
 
     const handleManualNotify = async (check: Check) => {
-        const emails = [
-            check.notification_email,
-            ...(check.notification_emails || []),
-            ...(projects.find(p => p.id === check.project_id)?.notification_emails || [])
-        ].filter(e => e);
+        const phones = [
+            check.notification_phone,
+            check.notification_phone_2,
+            check.notification_phone_3,
+        ].filter(p => p && p.trim() !== '');
 
-        if (emails.length === 0) {
-            alert('Bu çek için tanımlı bir e-posta adresi bulunamadı. Lütfen önce e-posta adresi ekleyin.');
+        if (phones.length === 0) {
+            alert('Bu çek için tanımlı bir WhatsApp numarası bulunamadı. Lütfen önce numara ekleyin.');
             handleEdit(check);
             return;
         }
 
-        if (!window.confirm(`${check.check_number} numaralı çek için bildirim e-postası şimdi gönderilsin mi?\n\nAlıcılar: ${emails.join(', ')}`)) return;
+        if (!window.confirm(`${check.check_number} numaralı çek için WhatsApp bildirimi şimdi gönderilsin mi?\n\nNumaralar: ${phones.join(', ')}`)) return;
 
         setSendingCode(true);
         try {
@@ -377,9 +377,9 @@ const Checks = () => {
                                                 onClick={() => handleManualNotify(check)}
                                                 style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1 }}
                                                 className="hover-scale"
-                                                title={(check.notification_email || check.notification_email_2 || check.notification_email_3 || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? "Şimdi bildirim gönder" : "E-posta tanımlamak için tıkla"}
+                                                title={(check.notification_phone || check.notification_phone_2 || check.notification_phone_3) ? "Şimdi WhatsApp bildirimi gönder" : "WhatsApp numarası eklemek için tıkla"}
                                             >
-                                                {(check.notification_email || check.notification_email_2 || check.notification_email_3 || projects.find(p => p.id === check.project_id)?.notification_emails?.length) ? '🔔' : '🔕'}
+                                                {(check.notification_phone || check.notification_phone_2 || check.notification_phone_3) ? '🔔' : '🔕'}
                                             </div>
                                         </td>
                                         <td style={{

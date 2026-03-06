@@ -18,9 +18,9 @@ interface CheckModalProps {
         status: string;
         given_date: string;
         description?: string;
-        notification_email?: string;
-        notification_email_2?: string;
-        notification_email_3?: string;
+        notification_phone?: string;
+        notification_phone_2?: string;
+        notification_phone_3?: string;
         project_id?: string;
     };
     setCheckFormData: (data: any) => void;
@@ -34,7 +34,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
     checkFormData, setCheckFormData,
     saving, errorMsg, projects = []
 }) => {
-    const [showEmails, setShowEmails] = React.useState(false);
+    const [showPhones, setShowPhones] = React.useState(false);
 
     if (!isOpen) return null;
 
@@ -179,49 +179,54 @@ const CheckModal: React.FC<CheckModalProps> = ({
                             </select>
                         </div>
 
-                        {/* Emails - Collapsible */}
+                        {/* WhatsApp Bildirimleri - Collapsible */}
                         <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '2px' }}>
                             <div
-                                onClick={() => setShowEmails(!showEmails)}
+                                onClick={() => setShowPhones(!showPhones)}
                                 style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                     cursor: 'pointer',
                                     padding: '4px 0',
-                                    borderBottom: '1px solid #fee2e2'
+                                    borderBottom: '1px solid #d1fae5'
                                 }}
                             >
-                                <label className="form-label" style={{ fontSize: '10px', cursor: 'pointer', marginBottom: 0, color: '#dc2626', fontWeight: 800 }}>BİLDİRİM E-POSTALARI</label>
-                                <span style={{ fontSize: '10px', color: '#dc2626' }}>{showEmails ? '▲' : '▼'}</span>
+                                <label className="form-label" style={{ fontSize: '10px', cursor: 'pointer', marginBottom: 0, color: '#059669', fontWeight: 800 }}>
+                                    📱 WHATSAPP BİLDİRİM NUMARALARI
+                                </label>
+                                <span style={{ fontSize: '10px', color: '#059669' }}>{showPhones ? '▲' : '▼'}</span>
                             </div>
 
-                            {showEmails && (
+                            {showPhones && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
                                     <input
-                                        type="email"
+                                        type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_email || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email: e.target.value.toLowerCase() })}
-                                        placeholder="1. E-posta adresi"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                        value={checkFormData.notification_phone || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone: e.target.value })}
+                                        placeholder="1. Numara (05XXXXXXXXX)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
                                     <input
-                                        type="email"
+                                        type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_email_2 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_2: e.target.value.toLowerCase() })}
-                                        placeholder="2. E-posta adresi (Opsiyonel)"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                        value={checkFormData.notification_phone_2 || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_2: e.target.value })}
+                                        placeholder="2. Numara (Opsiyonel)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
                                     <input
-                                        type="email"
+                                        type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_email_3 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_3: e.target.value.toLowerCase() })}
-                                        placeholder="3. E-posta adresi (Opsiyonel)"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#fca5a5' }}
+                                        value={checkFormData.notification_phone_3 || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_3: e.target.value })}
+                                        placeholder="3. Numara (Opsiyonel)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
+                                    <p style={{ fontSize: '10px', color: '#6b7280', margin: '2px 0 0 0' }}>
+                                        Vade 10 gün kala tanımlı numaralara WhatsApp mesajı gönderilir.
+                                    </p>
                                 </div>
                             )}
                         </div>
