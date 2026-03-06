@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
-import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { noteService, Note } from '../services/noteService';
-import { Expense, Check, Apartment, Project } from '../types';
+import { Expense, Check, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { toTurkishUpperCase } from '../utils/stringUtils';
 
@@ -14,7 +13,6 @@ const Dashboard = () => {
     const { user } = useAuth();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [checks, setChecks] = useState<Check[]>([]);
-    const [apartments, setApartments] = useState<Apartment[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [notes, setNotes] = useState<Note[]>([]);
     const [newNote, setNewNote] = useState('');
@@ -23,16 +21,14 @@ const Dashboard = () => {
 
     useEffect(() => {
         const loadInitialData = async () => {
-            const [exps, chks, apts, projs, nts] = await Promise.all([
+            const [exps, chks, projs, nts] = await Promise.all([
                 expenseService.getExpenses(),
                 checkService.getChecks(),
-                apartmentService.getApartments(),
                 projectService.getProjects(),
                 noteService.getNotes()
             ]);
             setExpenses(exps);
             setChecks(chks);
-            setApartments(apts);
             setProjects(projs);
             setNotes(nts);
             setLoading(false);
@@ -43,15 +39,14 @@ const Dashboard = () => {
         const handleRefresh = () => {
             expenseService.getExpenses().then(setExpenses);
             checkService.getChecks().then(setChecks);
-            apartmentService.getApartments().then(setApartments);
             projectService.getProjects().then(setProjects);
+            noteService.getNotes().then(setNotes);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
 
         const unsubExpenses = expenseService.subscribeToExpenses(setExpenses);
         const unsubChecks = checkService.subscribeToChecks(setChecks);
-        const unsubApartments = apartmentService.subscribeToApartments(setApartments);
         const unsubProjects = projectService.subscribeToProjects(setProjects);
         const unsubNotes = noteService.subscribeToNotes(setNotes);
 
@@ -59,7 +54,6 @@ const Dashboard = () => {
             window.removeEventListener('system-refresh', handleRefresh);
             unsubExpenses();
             unsubChecks();
-            unsubApartments();
             unsubProjects();
             unsubNotes();
         };
@@ -68,6 +62,8 @@ const Dashboard = () => {
     const handleAddNote = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!newNote.trim() || savingNote) return;
+
+        setSavingNote(true);
 
         const tempNote: Note = {
             id: 'temp-' + Date.now(),

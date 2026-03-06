@@ -22,7 +22,7 @@ const ResetPassword: React.FC = () => {
             }
 
             // 2. Token yoksa, belki Supabase zaten oturumu açmıştır (Recovery flow)
-            const { data: { session }, error } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
                 // Hem token yok hem session yok -> Hata

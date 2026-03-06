@@ -144,7 +144,7 @@ const Expenses = () => {
                 alert('Silme işlemi sırasında bir hata oluştu.');
             }
         } else {
-            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 

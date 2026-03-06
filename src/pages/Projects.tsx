@@ -39,8 +39,6 @@ const Projects: React.FC = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                console.log('Fetching projects...');
-                // 1. Fetch fresh data IMMEDIATELY (Critical Path)
                 const [projs, chks, apts] = await Promise.all([
                     projectService.getProjects(),
                     checkService.getChecks(),
@@ -50,22 +48,11 @@ const Projects: React.FC = () => {
                 setProjects(projs);
                 setChecks(chks);
                 setApartments(apts);
-                setLoading(false); // Show UI as soon as data is ready
-
-                // 2. Run optimization in BACKGROUND (Non-critical)
-                // We don't await this for the UI. It runs silently.
-                Promise.all([
-                    projectService.regenerateAllSlugs(),
-                    projectService.regeneratePublicCodes()
-                ]).then(() => {
-                    console.log('Background optimization complete');
-                }).catch(err => {
-                    console.error('Background optimization failed:', err);
-                });
+                setLoading(false);
 
             } catch (err) {
                 console.error('Initialization error:', err);
-                setLoading(false); // Ensure we unblock even on error
+                setLoading(false);
             }
         };
 
@@ -198,7 +185,7 @@ const Projects: React.FC = () => {
                 alert('Hata: ' + error.message);
             }
         } else {
-            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 

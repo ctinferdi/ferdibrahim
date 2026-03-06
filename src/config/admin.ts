@@ -12,5 +12,5 @@ export const SUPER_ADMIN_EMAILS = [
  */
 export const isUserSuperAdmin = (email: string | null | undefined): boolean => {
     if (!email) return false;
-    return SUPER_ADMIN_EMAILS.includes(email);
+    return SUPER_ADMIN_EMAILS.includes(email.toLowerCase());
 };

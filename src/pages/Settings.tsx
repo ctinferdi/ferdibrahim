@@ -85,7 +85,7 @@ const Settings: React.FC = () => {
 
     const confirmDeleteUser = async () => {
         if (deleteConfirmCode !== receivedCode) {
-            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
             return;
         }
 

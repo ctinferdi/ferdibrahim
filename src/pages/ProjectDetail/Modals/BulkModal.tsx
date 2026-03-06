@@ -62,14 +62,10 @@ const BulkModal: React.FC<BulkModalProps> = ({
 
     const handleBulkSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        console.log('[BulkModal] handleBulkSubmit çağrıldı');
-        console.log('[BulkModal] bulkFormData:', bulkFormData);
-        console.log('[BulkModal] apartments.length:', apartments.length);
 
         try {
             const isUpdate = apartments.length > 0;
 
-            console.log('[BulkModal] İşlem başlatılıyor...');
             setLoading(true);
 
             if (isUpdate) {
@@ -119,24 +115,13 @@ const BulkModal: React.FC<BulkModalProps> = ({
                 await apartmentService.bulkAddApartments(newApartments, project?.user_id || '');
             }
 
-            // Refresh all data (summary cards + tables)
-            console.log('[BulkModal] Veriler yenileniyor...');
             await loadAllData();
-            console.log('[BulkModal] Veriler yenilendi');
-
             setLoading(false);
-            const successMsg = isUpdate ? 'Kat planı başarıyla güncellendi!' : 'Kat planı başarıyla oluşturuldu!';
-            console.log('[BulkModal] BAŞARILI:', successMsg);
-            console.log('[BulkModal] Toplam eklenen daire:', newApartments.length);
 
-            // 1 saniye bekle ki kullanıcı sonucu görsün
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
+            await new Promise(resolve => setTimeout(resolve, 500));
             onClose();
         } catch (error: any) {
-            console.error('[BulkModal] HATA OLUŞTU:', error);
-            console.error('[BulkModal] Hata mesajı:', error.message);
-            console.error('[BulkModal] Hata stack:', error.stack);
+            console.error('BulkModal hata:', error);
             setLoading(false);
             alert(`Bir hata oluştu: ${error.message || 'Bilinmeyen hata'}`);
         }

@@ -115,11 +115,11 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                 </label>
                                 <input
                                     type="text"
-                                    required={apartmentFormData.status !== 'common_area'}
+                                    required={apartmentFormData.status !== 'common'}
                                     value={apartmentFormData.apartment_number}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, apartment_number: e.target.value })}
                                     style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                    placeholder={apartmentFormData.status === 'common_area' ? 'Opsiyonel' : 'Daire numarası'}
+                                    placeholder={apartmentFormData.status === 'common' ? 'Opsiyonel' : 'Daire numarası'}
                                 />
                             </div>
                             <div>

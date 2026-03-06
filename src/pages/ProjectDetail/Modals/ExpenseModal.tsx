@@ -190,7 +190,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                             </div>
                         )}
 
-                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--spacing-md)', margin: 'var(--spacing-lg) -var(--spacing-lg) -var(--spacing-lg) -var(--spacing-lg)' }}>
+                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', borderTop: '1px solid var(--color-border)', display: 'flex', gap: 'var(--spacing-md)', margin: `var(--spacing-lg) calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg))` }}>
                             <button
                                 type="button"
                                 className="btn btn-secondary"

@@ -135,17 +135,31 @@ export const removePlanFile = async (apartmentId: string, fileId: string): Promi
 
     if (fetchError) throw fetchError;
 
-    // Remove file from array
     const currentFiles = (apartment?.plan_files as PlanFile[]) || [];
+    const fileToRemove = currentFiles.find(f => f.id === fileId);
     const updatedFiles = currentFiles.filter(f => f.id !== fileId);
 
-    // Update apartment
+    // Update apartment record first
     const { error: updateError } = await supabase
         .from('apartments')
         .update({ plan_files: updatedFiles })
         .eq('id', apartmentId);
 
     if (updateError) throw updateError;
+
+    // Delete actual file from storage
+    if (fileToRemove?.url) {
+        const marker = '/apartment-plans/';
+        const idx = fileToRemove.url.indexOf(marker);
+        if (idx !== -1) {
+            const storagePath = fileToRemove.url.substring(idx + marker.length);
+            try {
+                await storageService.deleteFile(storagePath);
+            } catch (e) {
+                console.warn('Storage file deletion failed, orphaned object:', storagePath, e);
+            }
+        }
+    }
 };
 
 // Get apartments by project public code (for public viewing)

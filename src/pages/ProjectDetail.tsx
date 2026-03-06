@@ -362,6 +362,7 @@ const ProjectDetail: React.FC = () => {
         setDescription('');
         setAmount('');
         setEditingExpenseId(null);
+        setErrorMsg(null);
     };
 
     const handleSaveExpense = async (e: React.FormEvent) => {
@@ -417,6 +418,7 @@ const ProjectDetail: React.FC = () => {
             project_id: id || ''
         });
         setEditingCheckId(null);
+        setErrorMsg(null);
     };
 
     const handleSaveCheck = async (e: React.FormEvent) => {
@@ -519,11 +521,10 @@ const ProjectDetail: React.FC = () => {
                 setDeleteConfirmCode('');
                 setReceivedCode('');
                 setDeletingExpense(null);
-                setDeletingExpense(null);
                 loadAllData(false);
             } catch (err) { console.error(err); }
         } else {
-            alert('Girdiğiniz kod hatalı. Lütfen meilinizi kontrol edin.');
+            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 
