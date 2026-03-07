@@ -4,7 +4,7 @@
  */
 export const SUPER_ADMIN_EMAILS = [
     'ctinferdi@gmail.com',
-    'ibrahim.erhan2@gmail.com'
+    'ibrahim.erhan1@gmail.com'
 ];
 
 /**
