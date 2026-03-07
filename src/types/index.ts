@@ -106,6 +106,7 @@ export interface Project {
     status: ProjectStatus;
     slug?: string; // URL dostu kısa isim
     public_code?: string; // Karekod için benzersiz kod
+    short_url?: string; // TinyURL kısa link
     company_name?: string; // Firma adı
     company_address?: string; // Firma adresi
     company_location?: string; // Firma konumu

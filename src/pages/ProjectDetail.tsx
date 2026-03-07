@@ -142,6 +142,26 @@ const ProjectDetail: React.FC = () => {
     // Collapsible Panels State
     const [showQRSection, setShowQRSection] = useState(false);
     const [showCompanySection, setShowCompanySection] = useState(false);
+    const [shorteningUrl, setShorteningUrl] = useState(false);
+
+    const generateShortUrl = async () => {
+        if (!project || project.short_url || shorteningUrl) return;
+        setShorteningUrl(true);
+        try {
+            const cleanSlug = project.slug ? project.slug.replace(/-/g, '') : '';
+            const fullUrl = `https://www.insaathesapp.com/${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
+            const { data } = await supabase.functions.invoke('shorten-url', {
+                body: { project_id: project.id, long_url: fullUrl }
+            });
+            if (data?.short_url) {
+                setProject((prev: any) => prev ? { ...prev, short_url: data.short_url } : prev);
+            }
+        } catch (e) {
+            console.warn('URL shortening failed:', e);
+        } finally {
+            setShorteningUrl(false);
+        }
+    };
 
     // Firma Bilgileri State (Proje Özel)
     const [companyInfo, setCompanyInfo] = useState({
@@ -757,13 +777,22 @@ const ProjectDetail: React.FC = () => {
                                         </p>
                                         {(() => {
                                             const cleanSlug = project.slug ? project.slug.replace(/-/g, '') : '';
-                                            const publicPath = `${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
-                                            const fullUrl = `https://www.insaathesapp.com/${publicPath}`;
+                                            const fullUrl = `https://www.insaathesapp.com/${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
+                                            const qrUrl = project.short_url || fullUrl;
                                             return (
                                                 <>
                                                     <div style={{ fontSize: '9px', color: 'var(--color-text-light)', marginBottom: '6px', wordBreak: 'break-all', background: '#f1f5f9', borderRadius: '4px', padding: '4px 6px' }}>
-                                                        {publicPath}
+                                                        {project.short_url || (shorteningUrl ? 'Kısaltılıyor...' : fullUrl.replace('https://www.insaathesapp.com/', ''))}
                                                     </div>
+                                                    {!project.short_url && !shorteningUrl && (
+                                                        <button
+                                                            onClick={generateShortUrl}
+                                                            className="btn btn-secondary"
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', width: '100%', marginBottom: '6px' }}
+                                                        >
+                                                            🔗 Kısa URL Oluştur (bit.ly tarzı)
+                                                        </button>
+                                                    )}
                                                     <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
                                                         <a
                                                             href={fullUrl}
@@ -778,7 +807,7 @@ const ProjectDetail: React.FC = () => {
                                                             onClick={() => {
                                                                 const link = document.createElement('a');
                                                                 link.download = `${project.name}-qr.png`;
-                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(fullUrl)}`;
+                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrUrl)}`;
                                                                 link.click();
                                                             }}
                                                             className="btn"
@@ -788,7 +817,7 @@ const ProjectDetail: React.FC = () => {
                                                         </button>
                                                     </div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                                        <QRCode value={fullUrl} size={120} />
+                                                        <QRCode value={qrUrl} size={120} />
                                                     </div>
                                                 </>
                                             );
