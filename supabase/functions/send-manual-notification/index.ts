@@ -19,9 +19,9 @@ const normalizePhone = (phone: string): string => {
     return digits
 }
 
-const sendWhatsApp = async (phone: string, params: string[]): Promise<boolean> => {
+const sendWhatsApp = async (phone: string, params: string[]): Promise<{ ok: boolean; error?: string }> => {
     const normalized = normalizePhone(phone)
-    if (!normalized || normalized.length < 10) return false
+    if (!normalized || normalized.length < 10) return { ok: false, error: `Geçersiz telefon: ${phone}` }
 
     const res = await fetch(
         `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
@@ -48,11 +48,11 @@ const sendWhatsApp = async (phone: string, params: string[]): Promise<boolean> =
     )
 
     if (!res.ok) {
-        const err = await res.text()
-        console.error('WhatsApp send failed:', { phone: normalized, error: err })
-        return false
+        const errText = await res.text()
+        console.error('WhatsApp API error:', { phone: normalized, status: res.status, body: errText })
+        return { ok: false, error: `Meta API ${res.status}: ${errText}` }
     }
-    return true
+    return { ok: true }
 }
 
 serve(async (req) => {
@@ -98,12 +98,18 @@ serve(async (req) => {
 
         let sent = 0
         let failed = 0
+        const errors: string[] = []
         for (const phone of phones) {
-            const ok = await sendWhatsApp(phone, params)
-            ok ? sent++ : failed++
+            const result = await sendWhatsApp(phone, params)
+            if (result.ok) {
+                sent++
+            } else {
+                failed++
+                if (result.error) errors.push(result.error)
+            }
         }
 
-        if (sent === 0) throw new Error('Tüm WhatsApp mesajları gönderilemedi. Token ve Phone Number ID\'yi kontrol edin.')
+        if (sent === 0) throw new Error(errors.length > 0 ? errors[0] : 'Tüm WhatsApp mesajları gönderilemedi.')
 
         return new Response(
             JSON.stringify({ success: true, sent, failed }),
