@@ -95,6 +95,7 @@ export interface ProjectPartner {
     project_id: string;
     name: string;
     share_percentage: number;
+    email?: string;
     created_at?: string;
 }
 

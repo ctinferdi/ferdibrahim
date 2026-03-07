@@ -32,8 +32,8 @@ const Projects: React.FC = () => {
     // Form states
     const [projectName, setProjectName] = useState('');
     const [projectDescription, setProjectDescription] = useState('');
-    const [partners, setPartners] = useState<Array<{ name: string; share: number }>>([
-        { name: '', share: 100 }
+    const [partners, setPartners] = useState<Array<{ name: string; share: number; email: string }>>([
+        { name: '', share: 100, email: '' }
     ]);
 
     useEffect(() => {
@@ -79,14 +79,14 @@ const Projects: React.FC = () => {
     }, []);
 
     const addPartner = () => {
-        setPartners([...partners, { name: '', share: 0 }]);
+        setPartners([...partners, { name: '', share: 0, email: '' }]);
     };
 
     const removePartner = (index: number) => {
         setPartners(partners.filter((_, i) => i !== index));
     };
 
-    const updatePartner = (index: number, field: 'name' | 'share', value: string | number) => {
+    const updatePartner = (index: number, field: 'name' | 'share' | 'email', value: string | number) => {
         const updated = [...partners];
         updated[index] = { ...updated[index], [field]: value };
         setPartners(updated);
@@ -115,7 +115,8 @@ const Projects: React.FC = () => {
                     const partnerInput: ProjectPartnerInput = {
                         project_id: newProject.id,
                         name: partner.name,
-                        share_percentage: Number(partner.share)
+                        share_percentage: Number(partner.share),
+                        email: partner.email.trim() || undefined
                     };
                     await projectService.addPartner(partnerInput);
                 }
@@ -124,7 +125,7 @@ const Projects: React.FC = () => {
             // Reset form
             setProjectName('');
             setProjectDescription('');
-            setPartners([{ name: '', share: 100 }]);
+            setPartners([{ name: '', share: 100, email: '' }]);
             setShowModal(false);
 
             // Update projects list without reload
@@ -210,7 +211,14 @@ const Projects: React.FC = () => {
                     gap: 'var(--spacing-md)',
                     gridAutoRows: '1fr'
                 }}>
-                    {projects.map((project) => {
+                    {(isSuperAdmin
+                        ? projects
+                        : projects.filter(p =>
+                            p.partners?.some(partner =>
+                                partner.email?.toLowerCase() === user?.email?.toLowerCase()
+                            )
+                        )
+                    ).map((project) => {
                         const totalPartners = project.partners?.length || 0;
                         const projectChecks = checks.filter(c => c.project_id === project.id);
                         const pendingChecks = projectChecks.filter(c => c.status === 'pending').length;
@@ -402,7 +410,7 @@ const Projects: React.FC = () => {
                                     {partners.map((partner, index) => (
                                         <div key={index} style={{
                                             display: 'grid',
-                                            gridTemplateColumns: '1fr auto auto',
+                                            gridTemplateColumns: '1fr 1fr auto auto',
                                             gap: 'var(--spacing-sm)',
                                             marginBottom: 'var(--spacing-sm)'
                                         }}>
@@ -411,7 +419,14 @@ const Projects: React.FC = () => {
                                                 className="form-input"
                                                 value={partner.name}
                                                 onChange={(e) => updatePartner(index, 'name', e.target.value)}
-                                                placeholder="Ortak Adı (boş bırakabilirsiniz)"
+                                                placeholder="Ortak Adı"
+                                            />
+                                            <input
+                                                type="email"
+                                                className="form-input"
+                                                value={partner.email}
+                                                onChange={(e) => updatePartner(index, 'email', e.target.value)}
+                                                placeholder="E-posta (opsiyonel)"
                                             />
                                             <input
                                                 type="number"
