@@ -3,7 +3,7 @@ export interface User {
     id: string;
     email: string;
     displayName?: string;
-    createdAt: Date;
+    created_at?: string;
     company_name?: string;
     company_address?: string;
     company_location?: string;
@@ -72,14 +72,14 @@ export interface Apartment {
     apartment_number: string;
     floor: number;
     square_meters: number;
-    price: number; // Hedef Satış Fiyatı
-    sold_price?: number; // Gerçek Satış Fiyatı
-    paid_amount?: number; // Alınan Ödeme
+    price: number;
+    sold_price?: number;
+    paid_amount?: number;
     status: ApartmentStatus;
     customer_name?: string;
     customer_phone?: string;
     sort_order?: number;
-    plan_files?: PlanFile[]; // Daire planları/resimleri
+    plan_files?: PlanFile[];
     project_id?: string;
     user_id?: string;
     created_at?: string;
@@ -113,13 +113,13 @@ export interface Project {
     name: string;
     description?: string;
     status: ProjectStatus;
-    slug?: string; // URL dostu kısa isim
-    public_code?: string; // Karekod için benzersiz kod
-    company_name?: string; // Firma adı
-    company_address?: string; // Firma adresi
-    company_location?: string; // Firma konumu
-    whatsapp_number?: string; // WhatsApp numarası
-    notification_emails?: string[]; // Bildirim e-postaları
+    slug?: string;
+    public_code?: string;
+    company_name?: string;
+    company_address?: string;
+    company_location?: string;
+    whatsapp_number?: string;
+    notification_emails?: string[];
     user_id?: string;
     created_at?: string;
     partners?: ProjectPartner[];

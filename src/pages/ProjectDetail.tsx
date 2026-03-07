@@ -575,10 +575,10 @@ const ProjectDetail: React.FC = () => {
 
 
                 {/* Second Row - Actions & Summaries */}
-                <div style={{
+                <div className="project-toolbar" style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between', // Push to edges
+                    justifyContent: 'space-between',
                     background: 'white',
                     padding: 'var(--spacing-xs) var(--spacing-md)',
                     borderRadius: 'var(--border-radius-lg)',
@@ -644,7 +644,7 @@ const ProjectDetail: React.FC = () => {
                 }}>
 
                     {/* Left Column - Main Table */}
-                    <div className="table-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <div className="table-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                             <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, margin: 0, color: 'var(--color-dark)' }}>
                                 {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}

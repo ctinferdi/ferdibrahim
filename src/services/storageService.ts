@@ -1,12 +1,19 @@
 import { supabase } from '../config/supabase';
 import { PlanFile } from '../types';
 
+const ALLOWED_PLAN_EXTENSIONS = ['pdf', 'dwg', 'jpg', 'jpeg', 'png', 'tiff', 'tif'];
+const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
 class StorageService {
     private bucketName = 'apartment-plans';
 
-    // Upload file to Supabase Storage
     async uploadFile(file: File, apartmentId: string): Promise<PlanFile> {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+
+        if (!ALLOWED_PLAN_EXTENSIONS.includes(fileExt)) {
+            throw new Error(`Desteklenmeyen dosya türü: .${fileExt}. İzin verilenler: ${ALLOWED_PLAN_EXTENSIONS.join(', ')}`);
+        }
+
         const fileName = `${apartmentId}/${Date.now()}.${fileExt}`;
 
         const { error } = await supabase.storage
@@ -15,17 +22,13 @@ class StorageService {
 
         if (error) throw error;
 
-        // Get public URL
         const { data: { publicUrl } } = supabase.storage
             .from(this.bucketName)
             .getPublicUrl(fileName);
 
-        // Determine file type
         let fileType: 'pdf' | 'image' | 'dwg' = 'image';
-        const lowerExt = fileExt?.toLowerCase();
-        if (lowerExt === 'pdf') fileType = 'pdf';
-        else if (lowerExt === 'dwg') fileType = 'dwg';
-        else if (['jpg', 'jpeg', 'png', 'tiff', 'tif'].includes(lowerExt || '')) fileType = 'image';
+        if (fileExt === 'pdf') fileType = 'pdf';
+        else if (fileExt === 'dwg') fileType = 'dwg';
 
         return {
             id: crypto.randomUUID(),
@@ -36,7 +39,6 @@ class StorageService {
         };
     }
 
-    // Delete file from storage
     async deleteFile(filePath: string): Promise<void> {
         const { error } = await supabase.storage
             .from(this.bucketName)
@@ -45,7 +47,6 @@ class StorageService {
         if (error) throw error;
     }
 
-    // Get file URL from path
     getFileUrl(filePath: string): string {
         const { data } = supabase.storage
             .from(this.bucketName)
@@ -55,7 +56,12 @@ class StorageService {
     }
 
     async uploadProjectImage(file: File, projectId: string): Promise<{ url: string; path: string }> {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+
+        if (!ALLOWED_IMAGE_EXTENSIONS.includes(fileExt)) {
+            throw new Error(`Desteklenmeyen resim türü: .${fileExt}. İzin verilenler: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`);
+        }
+
         const fileName = `project-images/${projectId}/${Date.now()}.${fileExt}`;
 
         const { error } = await supabase.storage

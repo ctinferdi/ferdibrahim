@@ -591,24 +591,79 @@ a:hover {
   .main-wrapper {
     margin-left: 0 !important;
     padding-bottom: 70px;
-    /* Space for bottom nav */
   }
 
+  /* Project Detail: stack main content and sidebar */
   .project-detail-main {
     flex-direction: column !important;
     padding: var(--spacing-sm) !important;
+    gap: var(--spacing-md) !important;
   }
 
+  /* Sidebar fills full width on mobile */
   .floor-plan-column {
     width: 100% !important;
+    max-width: 100% !important;
     border-left: none !important;
-    border-top: 2px solid var(--color-border);
+    border-top: 2px solid var(--color-border) !important;
     padding-left: 0 !important;
-    padding-top: var(--spacing-lg);
+    padding-top: var(--spacing-md) !important;
   }
 
+  /* Toolbar: wrap buttons + tabs */
+  .project-toolbar {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+
+  /* Summary cards: stack or shrink */
+  .summary-cards-row {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .summary-card {
+    min-width: unset !important;
+    width: 100% !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Table: horizontal scroll */
+  .table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Project header: stack */
+  .project-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* Tabs: horizontal scroll */
+  .tabs-row {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Search input full width */
+  .search-input {
+    width: 100% !important;
+  }
+
+  /* Header title */
   header {
     padding: 0 var(--spacing-md) !important;
+  }
+
+  /* Bina planı grid: smaller cells */
+  .floor-plan-cell {
+    font-size: 9px !important;
+    padding: 4px 2px !important;
+    min-width: 36px !important;
   }
 }
 

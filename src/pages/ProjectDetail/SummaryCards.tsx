@@ -32,12 +32,12 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     const totalRemaining = aptStats.totalSoldPrice - aptStats.totalPaidAmount;
 
     return (
-        <div style={{
+        <div className="summary-cards-row" style={{
             display: 'flex',
             gap: 'var(--spacing-sm)',
             alignItems: 'center',
-            width: 'auto', // Don't take full width
-            flexWrap: 'nowrap' // Stay on same line
+            width: 'auto',
+            flexWrap: 'nowrap'
         }}>
             {activeTab === 'expenses' ? (
                 <>

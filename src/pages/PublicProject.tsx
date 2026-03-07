@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { userService } from '../services/userService';
-import { supabase } from '../config/supabase';
-import { Apartment, Project } from '../types';
+import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
     available: { label: 'MÜSAİT', bg: 'linear-gradient(135deg,#22c55e,#16a34a)', glow: '0 0 18px rgba(34,197,94,0.55)', text: '#fff' },
@@ -19,8 +18,8 @@ const PublicProject: React.FC = () => {
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
     const [loading, setLoading] = useState(true);
-    const [userCompany, setUserCompany] = useState<any>(null);
-    const [projectImages, setProjectImages] = useState<any[]>([]);
+    const [userCompany, setUserCompany] = useState<Partial<User> | null>(null);
+    const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
     useEffect(() => {
@@ -54,8 +53,8 @@ const PublicProject: React.FC = () => {
             }
             if (proj?.id) {
                 try {
-                    const { data } = await supabase.from('project_images').select('*').eq('project_id', proj.id).order('created_at', { ascending: true });
-                    setProjectImages(data || []);
+                    const imgs = await projectService.getProjectImages(proj.id);
+                    setProjectImages(imgs);
                 } catch {}
             }
         } catch (error) {
@@ -431,7 +430,7 @@ const PublicProject: React.FC = () => {
                                 <div style={{ marginBottom: '20px' }}>
                                     <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, letterSpacing: 1, marginBottom: '10px' }}>DAİRE PLANLARI</div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {selectedApartment.plan_files.map((file: any) => (
+                                        {selectedApartment.plan_files.map((file: PlanFile) => (
                                             <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer"
                                                 style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', textDecoration: 'none', color: '#e2e8f0' }}>
                                                 <span style={{ fontSize: '20px' }}>{file.type === 'pdf' ? '📄' : file.type === 'dwg' ? '📐' : '🖼️'}</span>
@@ -447,10 +446,12 @@ const PublicProject: React.FC = () => {
                             )}
 
                             <a
-                                href={`https://wa.me/${(whatsappNum || '').replace(/\D/g, '').replace(/^(0|90)?/, '90') || '905555555555'}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`}
-                                target="_blank"
+                                href={whatsappNum
+                                    ? `https://wa.me/${whatsappNum.replace(/\D/g, '').replace(/^(0|90)?/, '90')}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`
+                                    : '#'}
+                                target={whatsappNum ? '_blank' : undefined}
                                 rel="noopener noreferrer"
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', background: 'linear-gradient(135deg,#22c55e,#16a34a)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 800, fontSize: '15px', boxShadow: '0 4px 20px rgba(34,197,94,0.35)' }}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '16px', background: whatsappNum ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#334155', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 800, fontSize: '15px', boxShadow: whatsappNum ? '0 4px 20px rgba(34,197,94,0.35)' : 'none', pointerEvents: whatsappNum ? 'auto' : 'none' }}
                             >
                                 💬 WhatsApp ile İletişime Geç
                             </a>

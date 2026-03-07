@@ -5,7 +5,7 @@
 export const SUPER_ADMIN_EMAILS = [
     'ctinferdi@gmail.com',
     'ibrahim.erhan1@gmail.com'
-];
+].map(e => e.toLowerCase());
 
 /**
  * Checks if a user email belongs to a super admin.

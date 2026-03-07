@@ -59,9 +59,9 @@ const Projects: React.FC = () => {
         init();
 
         const handleRefresh = () => {
-            projectService.getProjects().then(setProjects);
-            checkService.getChecks().then(setChecks);
-            apartmentService.getApartments().then(setApartments);
+            projectService.getProjects().then(setProjects).catch(err => console.error('Refresh error (projects):', err));
+            checkService.getChecks().then(setChecks).catch(err => console.error('Refresh error (checks):', err));
+            apartmentService.getApartments().then(setApartments).catch(err => console.error('Refresh error (apartments):', err));
         };
 
         window.addEventListener('system-refresh', handleRefresh);
@@ -205,157 +205,163 @@ const Projects: React.FC = () => {
                 </div>
 
                 {/* Project Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
-                    gap: 'var(--spacing-md)',
-                    gridAutoRows: '1fr'
-                }}>
-                    {(isSuperAdmin
+                {(() => {
+                    const visibleProjects = isSuperAdmin
                         ? projects
                         : projects.filter(p =>
                             p.partners?.some(partner =>
                                 partner.email?.toLowerCase() === user?.email?.toLowerCase()
                             )
-                        )
-                    ).map((project) => {
-                        const totalPartners = project.partners?.length || 0;
-                        const projectChecks = checks.filter(c => c.project_id === project.id);
-                        const pendingChecks = projectChecks.filter(c => c.status === 'pending').length;
-                        const paidChecks = projectChecks.filter(c => c.status === 'paid').length;
-
-                        return (
-                            <div key={project.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                {/* Proje Kartı */}
-                                <div
-                                    className="card"
-                                    onClick={() => navigate(`/projeler/${project.slug || project.id}`)}
-                                    style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        color: 'white',
-                                        position: 'relative',
-                                        cursor: 'pointer',
-                                        padding: 'var(--spacing-lg)',
-                                        marginBottom: 0,
-                                        minHeight: '180px',
-                                        display: 'flex',
-                                        flexDirection: 'column'
-                                    }}>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleAdminAction(() => {
-                                                triggerDeleteCode({ id: project.id, name: project.name });
-                                            });
-                                        }}
-                                        disabled={sendingCode}
-                                        style={{
-                                            position: 'absolute',
-                                            top: 'var(--spacing-xs)',
-                                            right: 'var(--spacing-xs)',
-                                            background: 'rgba(255,255,255,0.2)',
-                                            border: 'none',
-                                            borderRadius: '50%',
-                                            width: '24px',
-                                            height: '24px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: sendingCode ? 'wait' : 'pointer',
-                                            fontSize: '0.8rem',
-                                            transition: 'all var(--transition-fast)',
-                                            opacity: sendingCode ? 0.5 : 1
-                                        }}
-                                        onMouseEnter={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,0,0,0.6)')}
-                                        onMouseLeave={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
-                                        title="Projeyi Sil"
-                                    >
-                                        {sendingCode ? '...' : '🗑️'}
-                                    </button>
-
-                                    <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '2rem' }}>{project.name}</h3>
-
-                                    <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}>
-                                        {totalPartners > 0 ? (
-                                            <>
-                                                <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: 'var(--spacing-xs)' }}>👥 {totalPartners} Ortak</div>
-                                                {project.partners?.slice(0, 3).map((partner) => (
-                                                    <div key={partner.id} style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>
-                                                        • {partner.name}: %{partner.share_percentage}
-                                                    </div>
-                                                ))}
-                                                {totalPartners > 3 && <div style={{ opacity: 0.8 }}>...</div>}
-                                            </>
-                                        ) : (
-                                            <div style={{ opacity: 0.9 }}>👤 Tek Sahip</div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Çek Durumu Barı */}
-                                <div style={{
-                                    background: 'rgba(102, 126, 234, 0.15)',
-                                    border: '1px solid rgba(102, 126, 234, 0.3)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    padding: '6px 10px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    fontSize: '0.65rem',
-                                    fontWeight: 600,
-                                    color: 'var(--color-text)'
-                                }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <span>💳</span>
-                                        <span>ÇEK: {projectChecks.length}</span>
-                                    </span>
-                                    <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
-                                        {pendingChecks} Bekle. / {paidChecks} Öden.
-                                    </span>
-                                </div>
-
-                                {/* Daire Durumu Barı */}
-                                <div
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigate(`/projeler/${project.slug || project.id}?tab=apartments`);
-                                    }}
-                                    style={{
-                                        background: 'rgba(67, 233, 123, 0.15)',
-                                        border: '1px solid rgba(67, 233, 123, 0.3)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        padding: '6px 10px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        fontSize: '0.65rem',
-                                        fontWeight: 600,
-                                        color: 'var(--color-text)',
-                                        cursor: 'pointer',
-                                        transition: 'all var(--transition-fast)'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.25)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.15)'}
-                                >
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <span>🏠</span>
-                                        <span>DAİRE: {apartments.filter(a => a.project_id === project.id).length}</span>
-                                    </span>
-                                    <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
-                                        {apartments.filter(a => a.project_id === project.id && a.status === 'available').length} Müsait /
-                                        {apartments.filter(a => a.project_id === project.id && a.status === 'sold').length} Satıldı
-                                    </span>
-                                </div>
-                            </div>
                         );
-                    })}
-                </div>
+                    return (
+                        <>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+                                gap: 'var(--spacing-md)',
+                                gridAutoRows: '1fr'
+                            }}>
+                                {visibleProjects.map((project) => {
+                                    const totalPartners = project.partners?.length || 0;
+                                    const projectChecks = checks.filter(c => c.project_id === project.id);
+                                    const pendingChecks = projectChecks.filter(c => c.status === 'pending').length;
+                                    const paidChecks = projectChecks.filter(c => c.status === 'paid').length;
 
-                {projects.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
-                        <p>Henüz proje eklenmemiş. "Yeni Proje" butonuna tıklayarak başlayın.</p>
-                    </div>
-                )}
+                                    return (
+                                        <div key={project.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {/* Proje Kartı */}
+                                            <div
+                                                className="card"
+                                                onClick={() => navigate(`/projeler/${project.slug || project.id}`)}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                                    color: 'white',
+                                                    position: 'relative',
+                                                    cursor: 'pointer',
+                                                    padding: 'var(--spacing-lg)',
+                                                    marginBottom: 0,
+                                                    minHeight: '180px',
+                                                    display: 'flex',
+                                                    flexDirection: 'column'
+                                                }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAdminAction(() => {
+                                                            triggerDeleteCode({ id: project.id, name: project.name });
+                                                        });
+                                                    }}
+                                                    disabled={sendingCode}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 'var(--spacing-xs)',
+                                                        right: 'var(--spacing-xs)',
+                                                        background: 'rgba(255,255,255,0.2)',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        cursor: sendingCode ? 'wait' : 'pointer',
+                                                        fontSize: '0.8rem',
+                                                        transition: 'all var(--transition-fast)',
+                                                        opacity: sendingCode ? 0.5 : 1
+                                                    }}
+                                                    onMouseEnter={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,0,0,0.6)')}
+                                                    onMouseLeave={(e) => !sendingCode && (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
+                                                    title="Projeyi Sil"
+                                                >
+                                                    {sendingCode ? '...' : '🗑️'}
+                                                </button>
+
+                                                <h3 style={{ color: 'white', marginBottom: 'var(--spacing-sm)', paddingRight: '2rem' }}>{project.name}</h3>
+
+                                                <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}>
+                                                    {totalPartners > 0 ? (
+                                                        <>
+                                                            <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: 'var(--spacing-xs)' }}>👥 {totalPartners} Ortak</div>
+                                                            {project.partners?.slice(0, 3).map((partner) => (
+                                                                <div key={partner.id} style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8 }}>
+                                                                    • {partner.name}: %{partner.share_percentage}
+                                                                </div>
+                                                            ))}
+                                                            {totalPartners > 3 && <div style={{ opacity: 0.8 }}>...</div>}
+                                                        </>
+                                                    ) : (
+                                                        <div style={{ opacity: 0.9 }}>👤 Tek Sahip</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Çek Durumu Barı */}
+                                            <div style={{
+                                                background: 'rgba(102, 126, 234, 0.15)',
+                                                border: '1px solid rgba(102, 126, 234, 0.3)',
+                                                borderRadius: 'var(--radius-sm)',
+                                                padding: '6px 10px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                fontSize: '0.65rem',
+                                                fontWeight: 600,
+                                                color: 'var(--color-text)'
+                                            }}>
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <span>💳</span>
+                                                    <span>ÇEK: {projectChecks.length}</span>
+                                                </span>
+                                                <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
+                                                    {pendingChecks} Bekle. / {paidChecks} Öden.
+                                                </span>
+                                            </div>
+
+                                            {/* Daire Durumu Barı */}
+                                            <div
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/projeler/${project.slug || project.id}?tab=apartments`);
+                                                }}
+                                                style={{
+                                                    background: 'rgba(67, 233, 123, 0.15)',
+                                                    border: '1px solid rgba(67, 233, 123, 0.3)',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    padding: '6px 10px',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    fontSize: '0.65rem',
+                                                    fontWeight: 600,
+                                                    color: 'var(--color-text)',
+                                                    cursor: 'pointer',
+                                                    transition: 'all var(--transition-fast)'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.25)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(67, 233, 123, 0.15)'}
+                                            >
+                                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <span>🏠</span>
+                                                    <span>DAİRE: {apartments.filter(a => a.project_id === project.id).length}</span>
+                                                </span>
+                                                <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
+                                                    {apartments.filter(a => a.project_id === project.id && a.status === 'available').length} Müsait /
+                                                    {apartments.filter(a => a.project_id === project.id && a.status === 'sold').length} Satıldı
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {visibleProjects.length === 0 && !loading && (
+                                <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
+                                    <p>Henüz proje eklenmemiş. "Yeni Proje" butonuna tıklayarak başlayın.</p>
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
 
                 {/* Modal */}
                 {showModal && (

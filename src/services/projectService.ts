@@ -54,7 +54,6 @@ class ProjectService {
     }
 
     // Get project by slug (or ID fallback)
-    // Get project by slug (or ID fallback)
     async getProjectBySlug(slugOrId: string): Promise<Project | null> {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slugOrId);
 
@@ -95,7 +94,10 @@ class ProjectService {
             .eq('public_code', publicCode)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            if (error.code === 'PGRST116') return null;
+            throw error;
+        }
         return data;
     }
 
@@ -222,49 +224,6 @@ class ProjectService {
         return () => {
             subscription.unsubscribe();
         };
-    }
-
-    // MIGRATION: Force regenerate all slugs to ensure uniqueness
-    async regenerateAllSlugs() {
-        // 1. Fetch all projects
-        const { data: projects } = await supabase.from('projects').select('*');
-        if (!projects || projects.length === 0) return;
-
-        // 2. Track used slugs to handle duplicates in-memory
-        const usedSlugs = new Set<string>();
-
-        for (const p of projects) {
-            let baseSlug = slugify(p.name);
-            let candidate = baseSlug;
-            let counter = 1;
-
-            // 3. Ensure uniqueness within this batch
-            while (usedSlugs.has(candidate)) {
-                counter++;
-                candidate = `${baseSlug}-${counter}`;
-            }
-
-            usedSlugs.add(candidate);
-
-            // 4. Update if different (or if currently null)
-            if (p.slug !== candidate) {
-                // Try update, ignore error if it clashes with existing DB logic (should be rare if we do this logic)
-                await supabase.from('projects').update({ slug: candidate }).eq('id', p.id);
-            }
-        }
-    }
-
-    // MIGRATION: Fix long public codes (replace UUIDs with 8-char codes)
-    async regeneratePublicCodes() {
-        const { data: projects } = await supabase.from('projects').select('*');
-        if (!projects || projects.length === 0) return;
-
-        for (const p of projects) {
-            if (!p.public_code || p.public_code.length > 12) {
-                const newCode = Math.random().toString(36).substring(2, 10);
-                await supabase.from('projects').update({ public_code: newCode }).eq('id', p.id);
-            }
-        }
     }
 
     // Get facade images for a project
