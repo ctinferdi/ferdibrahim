@@ -755,36 +755,44 @@ const ProjectDetail: React.FC = () => {
                                         <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: 0, marginBottom: '8px' }}>
                                             Binaya asın, müşteriler görsün
                                         </p>
-                                        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
-                                            <a
-                                                href={`https://www.insaathesapp.com/p/${project.public_code}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="btn btn-secondary"
-                                                style={{ fontSize: '9px', padding: '0.3rem 0.6rem', flex: 1 }}
-                                            >
-                                                🔗 Sayfa
-                                            </a>
-                                            <button
-                                                onClick={() => {
-                                                    const link = document.createElement('a');
-                                                    link.download = `${project.name}-qr.png`;
-                                                    const url = `https://www.insaathesapp.com/p/${project.public_code}`;
-                                                    link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
-                                                    link.click();
-                                                }}
-                                                className="btn"
-                                                style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#10b981', color: 'white', flex: 1 }}
-                                            >
-                                                💾 İndir
-                                            </button>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                            <QRCode
-                                                value={`https://www.insaathesapp.com/p/${project.public_code}`}
-                                                size={120}
-                                            />
-                                        </div>
+                                        {(() => {
+                                            const cleanSlug = project.slug ? project.slug.replace(/-/g, '') : '';
+                                            const publicPath = `${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
+                                            const fullUrl = `https://www.insaathesapp.com/${publicPath}`;
+                                            return (
+                                                <>
+                                                    <div style={{ fontSize: '9px', color: 'var(--color-text-light)', marginBottom: '6px', wordBreak: 'break-all', background: '#f1f5f9', borderRadius: '4px', padding: '4px 6px' }}>
+                                                        {publicPath}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                                                        <a
+                                                            href={fullUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="btn btn-secondary"
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', flex: 1 }}
+                                                        >
+                                                            🔗 Sayfa
+                                                        </a>
+                                                        <button
+                                                            onClick={() => {
+                                                                const link = document.createElement('a');
+                                                                link.download = `${project.name}-qr.png`;
+                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(fullUrl)}`;
+                                                                link.click();
+                                                            }}
+                                                            className="btn"
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#10b981', color: 'white', flex: 1 }}
+                                                        >
+                                                            💾 İndir
+                                                        </button>
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                                        <QRCode value={fullUrl} size={120} />
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
                                     </>
                                 )}
                             </div>
