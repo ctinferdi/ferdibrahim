@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase';
-import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput } from '../types';
+import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput, ProjectImage } from '../types';
 import { toTurkishUpperCase } from '../utils/stringUtils';
 
 // Helper: Slugify
@@ -260,12 +260,42 @@ class ProjectService {
         if (!projects || projects.length === 0) return;
 
         for (const p of projects) {
-            // If public_code is missing or looks like a UUID (long)
             if (!p.public_code || p.public_code.length > 12) {
                 const newCode = Math.random().toString(36).substring(2, 10);
                 await supabase.from('projects').update({ public_code: newCode }).eq('id', p.id);
             }
         }
+    }
+
+    // Get facade images for a project
+    async getProjectImages(projectId: string): Promise<ProjectImage[]> {
+        const { data, error } = await supabase
+            .from('project_images')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: true });
+        if (error) throw error;
+        return data || [];
+    }
+
+    // Add facade image
+    async addProjectImage(image: { project_id: string; url: string; storage_path?: string; name?: string }): Promise<ProjectImage> {
+        const { data, error } = await supabase
+            .from('project_images')
+            .insert([image])
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    }
+
+    // Delete facade image
+    async deleteProjectImage(id: string): Promise<void> {
+        const { error } = await supabase
+            .from('project_images')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
     }
 }
 

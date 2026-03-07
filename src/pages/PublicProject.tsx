@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { userService } from '../services/userService';
+import { supabase } from '../config/supabase';
 import { Apartment, Project } from '../types';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
@@ -19,6 +20,8 @@ const PublicProject: React.FC = () => {
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
     const [loading, setLoading] = useState(true);
     const [userCompany, setUserCompany] = useState<any>(null);
+    const [projectImages, setProjectImages] = useState<any[]>([]);
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
     useEffect(() => {
         const style = document.createElement('style');
@@ -48,6 +51,12 @@ const PublicProject: React.FC = () => {
             setApartments(apts);
             if (proj?.user_id) {
                 try { setUserCompany(await userService.getUserProfile(proj.user_id)); } catch {}
+            }
+            if (proj?.id) {
+                try {
+                    const { data } = await supabase.from('project_images').select('*').eq('project_id', proj.id).order('created_at', { ascending: true });
+                    setProjectImages(data || []);
+                } catch {}
             }
         } catch (error) {
             console.error('Proje yuklenemedi:', error);
@@ -100,43 +109,42 @@ const PublicProject: React.FC = () => {
             {/* HERO HEADER */}
             <div style={{
                 background: 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%)',
-                padding: '36px 24px 28px',
+                padding: '14px 24px',
                 textAlign: 'center',
                 position: 'relative',
                 overflow: 'hidden',
-                boxShadow: '0 8px 40px rgba(99,102,241,0.4)',
+                boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
             }}>
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.07,
-                    backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.4) 40px,rgba(255,255,255,.4) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.4) 40px,rgba(255,255,255,.4) 41px)'
-                }} />
-                <div style={{ position: 'relative' }}>
-                    <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏢</div>
-                    <h1 style={{ margin: 0, fontSize: 'clamp(20px,4vw,32px)', fontWeight: 900, color: '#fff', letterSpacing: 1, textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
-                        {companyName}
-                    </h1>
-                    {companyAddress && (
-                        <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>
-                            📍 {companyAddress}
-                        </p>
-                    )}
-                    {companyLocation && (
-                        <a href={companyLocation} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-block', marginTop: '6px', color: 'rgba(255,255,255,0.7)', fontSize: '13px', textDecoration: 'underline' }}>
-                            🗺️ Haritada Gör
-                        </a>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '20px' }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', maxWidth: '1200px', margin: '0 auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
+                        <span style={{ fontSize: '22px' }}>🏢</span>
+                        <div>
+                            <h1 style={{ margin: 0, fontSize: 'clamp(15px,2.5vw,20px)', fontWeight: 900, color: '#fff', letterSpacing: 0.5, textShadow: '0 2px 8px rgba(0,0,0,0.3)', lineHeight: 1.2 }}>
+                                {companyName}
+                            </h1>
+                            {companyAddress && (
+                                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '12px' }}>📍 {companyAddress}</span>
+                            )}
+                            {companyLocation && (
+                                <a href={companyLocation} target="_blank" rel="noopener noreferrer"
+                                    style={{ display: 'inline-block', marginLeft: '8px', color: 'rgba(255,255,255,0.65)', fontSize: '12px', textDecoration: 'underline' }}>
+                                    🗺️ Harita
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                         {statBar.map(s => (
                             <div key={s.label} style={{
                                 background: 'rgba(255,255,255,0.15)',
                                 backdropFilter: 'blur(8px)',
                                 borderRadius: '999px',
-                                padding: '8px 18px',
+                                padding: '5px 12px',
                                 color: '#fff',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 700,
                                 border: '1px solid rgba(255,255,255,0.2)',
-                                display: 'flex', alignItems: 'center', gap: '6px'
+                                display: 'flex', alignItems: 'center', gap: '5px'
                             }}>
                                 <span style={{ color: s.color }}>{s.icon}</span>
                                 {s.label}: <span style={{ color: s.color }}>{s.count}</span>
@@ -145,6 +153,44 @@ const PublicProject: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* IMAGE GALLERY */}
+            {projectImages.length > 0 && (
+                <div style={{ maxWidth: '1200px', margin: '24px auto 0', padding: '0 16px' }}>
+                    <div style={{
+                        overflowX: 'auto',
+                        display: 'flex',
+                        gap: '12px',
+                        paddingBottom: '8px',
+                        scrollSnapType: 'x mandatory',
+                    }}>
+                        {projectImages.map((img, idx) => (
+                            <div
+                                key={img.id}
+                                onClick={() => setLightboxIndex(idx)}
+                                style={{
+                                    flexShrink: 0,
+                                    width: '260px',
+                                    height: '170px',
+                                    borderRadius: '12px',
+                                    overflow: 'hidden',
+                                    cursor: 'pointer',
+                                    scrollSnapAlign: 'start',
+                                    border: '2px solid #334155',
+                                    transition: 'transform 0.18s ease, border-color 0.18s ease',
+                                }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#6366f1'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#334155'; }}
+                            >
+                                <img src={img.url} alt={img.name || `Resim ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </div>
+                        ))}
+                    </div>
+                    <p style={{ color: '#475569', fontSize: '11px', marginTop: '6px', textAlign: 'right' }}>
+                        {projectImages.length} proje resmi — büyütmek için tıkla
+                    </p>
+                </div>
+            )}
 
             {/* BUILDING */}
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px' }}>
@@ -413,6 +459,28 @@ const PublicProject: React.FC = () => {
                             )}
                         </div>
                     </div>
+                </div>
+            )}
+            {/* LIGHTBOX */}
+            {lightboxIndex !== null && projectImages[lightboxIndex] && (
+                <div
+                    onClick={() => setLightboxIndex(null)}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+                >
+                    <button onClick={() => setLightboxIndex(null)} style={{ position: 'absolute', top: '16px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>×</button>
+                    {lightboxIndex > 0 && (
+                        <button onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }} style={{ position: 'absolute', left: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>‹</button>
+                    )}
+                    <img
+                        src={projectImages[lightboxIndex].url}
+                        alt={projectImages[lightboxIndex].name}
+                        onClick={e => e.stopPropagation()}
+                        style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}
+                    />
+                    {lightboxIndex < projectImages.length - 1 && (
+                        <button onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }} style={{ position: 'absolute', right: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>›</button>
+                    )}
+                    <div style={{ position: 'absolute', bottom: '16px', color: '#94a3b8', fontSize: '13px' }}>{lightboxIndex + 1} / {projectImages.length}</div>
                 </div>
             )}
         </div>

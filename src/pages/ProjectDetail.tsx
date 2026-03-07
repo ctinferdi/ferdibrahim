@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import { projectService } from '../services/projectService';
+import { storageService } from '../services/storageService';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
@@ -142,6 +143,17 @@ const ProjectDetail: React.FC = () => {
     // Collapsible Panels State
     const [showQRSection, setShowQRSection] = useState(false);
     const [showCompanySection, setShowCompanySection] = useState(false);
+    const [showImagesSection, setShowImagesSection] = useState(false);
+    const [projectImages, setProjectImages] = useState<any[]>([]);
+    const [imageUploading, setImageUploading] = useState(false);
+
+    // Load project images separately (not in polling loop)
+    useEffect(() => {
+        if (!project?.id) return;
+        projectService.getProjectImages(project.id)
+            .then(imgs => setProjectImages(imgs))
+            .catch(e => console.warn('Project images load failed:', e));
+    }, [project?.id]);
 
     // Firma Bilgileri State (Proje Özel)
     const [companyInfo, setCompanyInfo] = useState({
@@ -728,6 +740,76 @@ const ProjectDetail: React.FC = () => {
                             setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' });
                             setShowApartmentModal(true);
                         }} />
+
+                        {/* Bina Resimleri Section */}
+                        {activeTab === 'apartments' && (
+                            <div style={{ padding: 'var(--spacing-sm)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: 'var(--spacing-md)' }}>
+                                <div onClick={() => setShowImagesSection(!showImagesSection)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showImagesSection ? '8px' : '0' }}>
+                                    <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                        🖼️ Bina Resimleri ({projectImages.length})
+                                    </h3>
+                                    <span style={{ fontSize: '10px' }}>{showImagesSection ? '▼' : '◀'}</span>
+                                </div>
+                                {showImagesSection && (
+                                    <>
+                                        <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: '0 0 8px' }}>
+                                            Cephe ve proje resimleri — müşteriler public sayfada görecek
+                                        </p>
+                                        <label style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                                            padding: '8px', border: '1.5px dashed #cbd5e1', borderRadius: '8px',
+                                            cursor: imageUploading ? 'not-allowed' : 'pointer',
+                                            color: '#64748b', fontSize: '11px', marginBottom: '10px',
+                                            background: '#fff'
+                                        }}>
+                                            {imageUploading ? '⏳ Yükleniyor...' : '📷 Resim Ekle (JPG, PNG)'}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                multiple
+                                                style={{ display: 'none' }}
+                                                disabled={imageUploading}
+                                                onChange={async (e) => {
+                                                    const files = Array.from(e.target.files || []);
+                                                    if (!files.length || !project) return;
+                                                    setImageUploading(true);
+                                                    try {
+                                                        for (const file of files) {
+                                                            const { url, path } = await storageService.uploadProjectImage(file, project.id);
+                                                            const img = await projectService.addProjectImage({ project_id: project.id, url, storage_path: path, name: file.name });
+                                                            setProjectImages(prev => [...prev, img]);
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Image upload failed:', err);
+                                                    } finally {
+                                                        setImageUploading(false);
+                                                        e.target.value = '';
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {projectImages.length > 0 && (
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '6px' }}>
+                                                {projectImages.map(img => (
+                                                    <div key={img.id} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', background: '#e2e8f0' }}>
+                                                        <img src={img.url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!window.confirm('Bu resmi sil?')) return;
+                                                                await projectService.deleteProjectImage(img.id);
+                                                                if (img.storage_path) await storageService.deleteProjectImageFromStorage(img.storage_path);
+                                                                setProjectImages(prev => prev.filter(i => i.id !== img.id));
+                                                            }}
+                                                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(239,68,68,0.85)', border: 'none', color: '#fff', borderRadius: '50%', width: '18px', height: '18px', cursor: 'pointer', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                                                        >×</button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {/* QR Code Section - Only on apartments tab */}
                         {activeTab === 'apartments' && project.public_code && (

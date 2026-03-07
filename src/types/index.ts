@@ -90,6 +90,15 @@ export type ApartmentInput = Omit<Apartment, 'id' | 'user_id' | 'created_at'>;
 // Project types
 export type ProjectStatus = 'active' | 'completed' | 'archived';
 
+export interface ProjectImage {
+    id: string;
+    project_id: string;
+    url: string;
+    storage_path?: string;
+    name?: string;
+    created_at?: string;
+}
+
 export interface ProjectPartner {
     id: string;
     project_id: string;

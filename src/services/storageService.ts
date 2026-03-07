@@ -53,6 +53,31 @@ class StorageService {
 
         return data.publicUrl;
     }
+
+    async uploadProjectImage(file: File, projectId: string): Promise<{ url: string; path: string }> {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `project-images/${projectId}/${Date.now()}.${fileExt}`;
+
+        const { error } = await supabase.storage
+            .from(this.bucketName)
+            .upload(fileName, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from(this.bucketName)
+            .getPublicUrl(fileName);
+
+        return { url: publicUrl, path: fileName };
+    }
+
+    async deleteProjectImageFromStorage(storagePath: string): Promise<void> {
+        try {
+            await supabase.storage.from(this.bucketName).remove([storagePath]);
+        } catch (e) {
+            console.warn('Storage file deletion failed, orphaned object:', storagePath, e);
+        }
+    }
 }
 
 export const storageService = new StorageService();
