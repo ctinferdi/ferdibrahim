@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { userService } from '../services/userService';
 import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
+
+const Building3D = lazy(() => import('../components/Building3D'));
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
     available: { label: 'MÜSAİT', bg: 'linear-gradient(135deg,#22c55e,#16a34a)', glow: '0 0 18px rgba(34,197,94,0.55)', text: '#fff' },
@@ -21,6 +23,7 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<Partial<User> | null>(null);
     const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+    const [view3D, setView3D] = useState(false);
 
     useEffect(() => {
         const style = document.createElement('style');
@@ -205,12 +208,45 @@ const PublicProject: React.FC = () => {
                     <div style={{ flex: 1, height: '2px', background: 'linear-gradient(90deg,transparent,#94a3b8,transparent)' }} />
                     <span style={{ color: '#94a3b8', fontSize: '13px', fontWeight: 700, letterSpacing: 3, whiteSpace: 'nowrap' }}>🏗️ BİNA PLANI</span>
                     <div style={{ flex: 1, height: '2px', background: 'linear-gradient(90deg,transparent,#94a3b8,transparent)' }} />
+
+                    {/* 2D / 3D Toggle */}
+                    <div style={{ display: 'flex', gap: 4, background: '#0f172a', borderRadius: 8, padding: 3, border: '1px solid #334155' }}>
+                        {[{ key: false, label: '2D' }, { key: true, label: '3D' }].map(({ key, label }) => (
+                            <button
+                                key={String(key)}
+                                onClick={() => setView3D(key)}
+                                style={{
+                                    padding: '4px 14px',
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    letterSpacing: 1,
+                                    border: 'none',
+                                    borderRadius: 6,
+                                    cursor: 'pointer',
+                                    background: view3D === key ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : 'transparent',
+                                    color: view3D === key ? '#fff' : '#64748b',
+                                    transition: 'all 0.2s',
+                                    boxShadow: view3D === key ? '0 2px 8px rgba(79,70,229,0.5)' : 'none',
+                                }}
+                            >{label}</button>
+                        ))}
+                    </div>
                 </div>
 
                 <div style={{ background: '#1e293b', border: '1px solid #334155', borderTop: 'none' }}>
                     {apartments.length === 0 ? (
                         <div style={{ padding: '60px', textAlign: 'center', color: '#475569' }}>Henüz daire eklenmemiş.</div>
-                    ) : floors.map((floor, fi) => {
+                    ) : view3D ? (
+                        <Suspense fallback={<div style={{ height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13, letterSpacing: 2 }}>3D YÜKLENİYOR...</div>}>
+                            <Building3D
+                                    apartments={apartments}
+                                    onSelectApartment={setSelectedApartment}
+                                    buildingWidth={(() => { try { const d = JSON.parse(localStorage.getItem(`building_dims_${project?.id}`) || '{}'); return d.w; } catch { return undefined; } })()}
+                                    buildingDepth={(() => { try { const d = JSON.parse(localStorage.getItem(`building_dims_${project?.id}`) || '{}'); return d.d; } catch { return undefined; } })()}
+                                />
+                        </Suspense>
+                    ) : (
+                        floors.map((floor, fi) => {
                         const floorApts = apartments
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
@@ -304,7 +340,7 @@ const PublicProject: React.FC = () => {
                                 </div>
                             </div>
                         );
-                    })}
+                    }))}
                 </div>
 
                 <div style={{
