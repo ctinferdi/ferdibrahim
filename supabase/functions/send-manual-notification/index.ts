@@ -1,9 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const WHATSAPP_TOKEN = Deno.env.get('WHATSAPP_TOKEN') ?? ''
-const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? ''
-const WHATSAPP_TEMPLATE_NAME = Deno.env.get('WHATSAPP_TEMPLATE_NAME') ?? 'cek_odeme_hatirlatmasi'
+const FONNTE_TOKEN = Deno.env.get('FONNTE_TOKEN') ?? ''
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -11,47 +9,39 @@ const corsHeaders = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const normalizePhone = (phone: string): string => {
+const toLocalNumber = (phone: string): { target: string; countryCode: string } => {
     const digits = phone.replace(/\D/g, '')
-    if (digits.startsWith('90') && digits.length === 12) return digits
-    if (digits.startsWith('0') && digits.length === 11) return '90' + digits.substring(1)
-    if (digits.startsWith('5') && digits.length === 10) return '90' + digits
-    return digits
+    if (digits.startsWith('90') && digits.length === 12) return { target: digits.slice(2), countryCode: '90' }
+    if (digits.startsWith('0') && digits.length === 11) return { target: digits.slice(1), countryCode: '90' }
+    if (digits.startsWith('5') && digits.length === 10) return { target: digits, countryCode: '90' }
+    return { target: digits, countryCode: '90' }
 }
 
-const sendWhatsApp = async (phone: string, params: string[]): Promise<{ ok: boolean; error?: string }> => {
-    const normalized = normalizePhone(phone)
-    if (!normalized || normalized.length < 10) return { ok: false, error: `Geçersiz telefon: ${phone}` }
+const sendFonnte = async (phone: string, message: string): Promise<{ ok: boolean; error?: string }> => {
+    const { target, countryCode } = toLocalNumber(phone)
+    if (!target || target.length < 9) return { ok: false, error: `Geçersiz telefon: ${phone}` }
 
-    const res = await fetch(
-        `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-            },
-            body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: normalized,
-                type: 'template',
-                template: {
-                    name: WHATSAPP_TEMPLATE_NAME,
-                    language: { code: 'tr' },
-                    components: [{
-                        type: 'body',
-                        parameters: params.map(text => ({ type: 'text', text })),
-                    }],
-                },
-            }),
-        }
-    )
+    const res = await fetch('https://api.fonnte.com/send', {
+        method: 'POST',
+        headers: {
+            'Authorization': FONNTE_TOKEN,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            target,
+            message,
+            countryCode,
+        }),
+    })
 
-    if (!res.ok) {
-        const errText = await res.text()
-        console.error('WhatsApp API error:', { phone: normalized, status: res.status, body: errText })
-        return { ok: false, error: `Meta API ${res.status}: ${errText}` }
+    const body = await res.json().catch(() => ({}))
+
+    if (!res.ok || body?.status === false) {
+        const errMsg = body?.reason ?? body?.message ?? `HTTP ${res.status}`
+        console.error('Fonnte error:', { phone: normalized, error: errMsg })
+        return { ok: false, error: `Fonnte: ${errMsg}` }
     }
+
     return { ok: true }
 }
 
@@ -71,11 +61,11 @@ serve(async (req) => {
 
         const { data: check, error: checkError } = await supabase
             .from('checks')
-            .select('*, projects(name)')
+            .select('*')
             .eq('id', checkId)
             .single()
 
-        if (checkError || !check) throw new Error(`Check not found: ${checkError?.message}`)
+        if (checkError || !check) throw new Error(`Çek bulunamadı: ${checkError?.message}`)
 
         const phones = [
             check.notification_phone,
@@ -87,20 +77,34 @@ serve(async (req) => {
             throw new Error('Bu çeke tanımlı WhatsApp numarası yok. Çeki düzenleyip numara ekleyin.')
         }
 
-        const projectName = check.projects?.name ?? 'Proje'
-        const params = [
-            check.check_number || '-',
-            check.due_date,
-            new Intl.NumberFormat('tr-TR').format(check.amount) + ' TL',
-            check.company || '-',
-            projectName,
-        ]
+        // Proje adını ayrı çek
+        let projectName = '-'
+        if (check.project_id) {
+            const { data: proj } = await supabase
+                .from('projects').select('name').eq('id', check.project_id).single()
+            if (proj?.name) projectName = proj.name
+        }
+
+        const dueDateFormatted = new Date(check.due_date).toLocaleDateString('tr-TR')
+        const amountFormatted = new Intl.NumberFormat('tr-TR').format(check.amount) + ' ₺'
+
+        const message = `📋 *ÇEK ÖDEME BİLDİRİMİ*
+
+Çek No: ${check.check_number || '-'}
+Vade Tarihi: ${dueDateFormatted}
+Tutar: ${amountFormatted}
+Şirket: ${check.company || '-'}
+Kullanım: ${check.category || '-'}
+Proje: ${projectName}
+
+Bu bildirimi manuel olarak tetiklediniz.`
 
         let sent = 0
         let failed = 0
         const errors: string[] = []
+
         for (const phone of phones) {
-            const result = await sendWhatsApp(phone, params)
+            const result = await sendFonnte(phone, message)
             if (result.ok) {
                 sent++
             } else {

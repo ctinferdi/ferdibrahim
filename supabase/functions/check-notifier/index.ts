@@ -1,52 +1,46 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const WHATSAPP_TOKEN = Deno.env.get('WHATSAPP_TOKEN') ?? ''
-const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID') ?? ''
-const WHATSAPP_TEMPLATE_NAME = Deno.env.get('WHATSAPP_TEMPLATE_NAME') ?? 'cek_odeme_hatirlatmasi'
+const FONNTE_TOKEN = Deno.env.get('FONNTE_TOKEN') ?? ''
 
-const normalizePhone = (phone: string): string => {
+const toLocalNumber = (phone: string): { target: string; countryCode: string } => {
     const digits = phone.replace(/\D/g, '')
-    if (digits.startsWith('90') && digits.length === 12) return digits
-    if (digits.startsWith('0') && digits.length === 11) return '90' + digits.substring(1)
-    if (digits.startsWith('5') && digits.length === 10) return '90' + digits
-    return digits
+    if (digits.startsWith('90') && digits.length === 12) return { target: digits.slice(2), countryCode: '90' }
+    if (digits.startsWith('0') && digits.length === 11) return { target: digits.slice(1), countryCode: '90' }
+    if (digits.startsWith('5') && digits.length === 10) return { target: digits, countryCode: '90' }
+    return { target: digits, countryCode: '90' }
 }
 
-const sendWhatsApp = async (phone: string, params: string[]): Promise<boolean> => {
-    const normalized = normalizePhone(phone)
-    if (!normalized || normalized.length < 10) return false
+const sendFonnte = async (phone: string, message: string): Promise<boolean> => {
+    const { target, countryCode } = toLocalNumber(phone)
+    if (!target || target.length < 9) return false
 
-    const res = await fetch(
-        `https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-        {
+    try {
+        const res = await fetch('https://api.fonnte.com/send', {
             method: 'POST',
             headers: {
+                'Authorization': FONNTE_TOKEN,
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
             },
             body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: normalized,
-                type: 'template',
-                template: {
-                    name: WHATSAPP_TEMPLATE_NAME,
-                    language: { code: 'tr' },
-                    components: [{
-                        type: 'body',
-                        parameters: params.map(text => ({ type: 'text', text })),
-                    }],
-                },
+                target,
+                message,
+                countryCode,
             }),
-        }
-    )
+        })
 
-    if (!res.ok) {
-        const err = await res.text()
-        console.error('WhatsApp send failed:', { phone: normalized, error: err })
+        const body = await res.json().catch(() => ({}))
+
+        if (!res.ok || body?.status === false) {
+            console.error('Fonnte send failed:', { phone: normalized, reason: body?.reason ?? `HTTP ${res.status}` })
+            return false
+        }
+
+        return true
+    } catch (err) {
+        console.error('Fonnte fetch error:', err)
         return false
     }
-    return true
 }
 
 serve(async () => {
@@ -64,7 +58,7 @@ serve(async () => {
 
         const { data: checks, error: checksError } = await supabase
             .from('checks')
-            .select('*, projects(name)')
+            .select('*')
             .eq('due_date', targetDate)
             .eq('status', 'pending')
 
@@ -74,7 +68,7 @@ serve(async () => {
 
         if (!checks || checks.length === 0) {
             return new Response(
-                JSON.stringify({ message: 'No checks due in 10 days.' }),
+                JSON.stringify({ message: 'Vadesi 10 gün içinde olan çek yok.' }),
                 { headers: { 'Content-Type': 'application/json' }, status: 200 }
             )
         }
@@ -83,14 +77,22 @@ serve(async () => {
         let failed = 0
 
         for (const check of checks) {
-            const projectName = check.projects?.name ?? 'Proje'
-            const params = [
-                check.check_number || '-',
-                check.due_date,
-                new Intl.NumberFormat('tr-TR').format(check.amount) + ' TL',
-                check.company || '-',
-                projectName,
-            ]
+            const projectName = check.project_id
+                ? (await supabase.from('projects').select('name').eq('id', check.project_id).single()).data?.name ?? '-'
+                : '-'
+            const dueDateFormatted = new Date(check.due_date).toLocaleDateString('tr-TR')
+            const amountFormatted = new Intl.NumberFormat('tr-TR').format(check.amount) + ' ₺'
+
+            const message = `⏰ *ÇEK VADE HATIRLATMASI*
+
+Çek No: ${check.check_number || '-'}
+Vade Tarihi: ${dueDateFormatted}
+Tutar: ${amountFormatted}
+Şirket: ${check.company || '-'}
+Kullanım: ${check.category || '-'}
+Proje: ${projectName}
+
+*Vadeye 10 gün kaldı.*`
 
             const phones = [
                 check.notification_phone,
@@ -104,13 +106,13 @@ serve(async () => {
             }
 
             for (const phone of phones) {
-                const ok = await sendWhatsApp(phone, params)
+                const ok = await sendFonnte(phone, message)
                 ok ? sent++ : failed++
             }
         }
 
         return new Response(
-            JSON.stringify({ message: 'Notifications processed', sent, failed }),
+            JSON.stringify({ message: 'Bildirimler işlendi', sent, failed }),
             { headers: { 'Content-Type': 'application/json' }, status: 200 }
         )
 

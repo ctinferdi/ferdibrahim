@@ -217,7 +217,7 @@ const Checks = () => {
             if (data?.success === false) {
                 alert('❌ Bildirim gönderilemedi: ' + (data.error || 'Bilinmeyen hata'));
             } else {
-                alert('✅ Bildirim e-postası başarıyla gönderildi.');
+                alert(`✅ WhatsApp mesajı gönderildi! (${data?.sent ?? 1} numara)`);
             }
         } catch (error: any) {
             console.error('Manual notify error details:', error);

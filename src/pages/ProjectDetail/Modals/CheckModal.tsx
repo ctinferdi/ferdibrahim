@@ -2,6 +2,32 @@ import React from 'react';
 import { formatNumberWithDots, parseNumberFromDots } from '../../../utils/formatters';
 import { Project } from '../../../types';
 
+const formatPhoneDisplay = (raw: string): string => {
+    const d = raw.replace(/\D/g, '');
+    if (!d) return '';
+    if (d.startsWith('905') && d.length <= 12) {
+        const n = d.slice(2);
+        let out = '+90(';
+        out += n.slice(0, 3);
+        if (n.length >= 3) out += ') ';
+        out += n.slice(3, 6);
+        if (n.length >= 6) out += ' ';
+        out += n.slice(6, 10);
+        return out;
+    }
+    if (d.startsWith('0') && d.length <= 11) {
+        const n = d.slice(1);
+        let out = '0(';
+        out += n.slice(0, 3);
+        if (n.length >= 3) out += ') ';
+        out += n.slice(3, 6);
+        if (n.length >= 6) out += ' ';
+        out += n.slice(6, 10);
+        return out;
+    }
+    return d;
+};
+
 interface CheckModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -203,29 +229,29 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                     <input
                                         type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_phone || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone: e.target.value })}
-                                        placeholder="1. Numara (05XXXXXXXXX)"
+                                        value={formatPhoneDisplay(checkFormData.notification_phone || '')}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone: e.target.value.replace(/\D/g, '') })}
+                                        placeholder="0(5XX) XXX XXXX"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
                                     <input
                                         type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_phone_2 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_2: e.target.value })}
+                                        value={formatPhoneDisplay(checkFormData.notification_phone_2 || '')}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_2: e.target.value.replace(/\D/g, '') })}
                                         placeholder="2. Numara (Opsiyonel)"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
                                     <input
                                         type="tel"
                                         className="form-input"
-                                        value={checkFormData.notification_phone_3 || ''}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_3: e.target.value })}
+                                        value={formatPhoneDisplay(checkFormData.notification_phone_3 || '')}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_3: e.target.value.replace(/\D/g, '') })}
                                         placeholder="3. Numara (Opsiyonel)"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
                                     <p style={{ fontSize: '10px', color: '#6b7280', margin: '2px 0 0 0' }}>
-                                        Vade 10 gün kala tanımlı numaralara WhatsApp mesajı gönderilir.
+                                        Numara girerken otomatik formatlanır. Vade 10 gün kala WhatsApp mesajı gönderilir.
                                     </p>
                                 </div>
                             )}

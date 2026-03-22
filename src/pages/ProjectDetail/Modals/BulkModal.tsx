@@ -22,45 +22,74 @@ const BulkModal: React.FC<BulkModalProps> = ({
 }) => {
     const [aiLoading, setAiLoading] = React.useState(false);
     const [aiNote, setAiNote] = React.useState<string | null>(null);
-    const [retryCountdown, setRetryCountdown] = React.useState(0);
-    const retryTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
-
-    const startRetryCountdown = (seconds = 60) => {
-        setRetryCountdown(seconds);
-        if (retryTimerRef.current) clearInterval(retryTimerRef.current);
-        retryTimerRef.current = setInterval(() => {
-            setRetryCountdown(prev => {
-                if (prev <= 1) {
-                    clearInterval(retryTimerRef.current!);
-                    setAiNote('Kota sıfırlandı. Tekrar deneyebilirsiniz.');
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-    };
-
-    React.useEffect(() => () => { if (retryTimerRef.current) clearInterval(retryTimerRef.current); }, []);
+    const [quotaError, setQuotaError] = React.useState(false);
 
     const handleAiAnalyze = async () => {
         setAiLoading(true);
         setAiNote(null);
+        setQuotaError(false);
 
-        // Yüklü cephe resmi varsa Gemini ile analiz et
+        // Yüklü cephe resmi varsa Gemini ile direkt analiz et
         const firstImage = projectImages?.[0]?.url;
         if (firstImage) {
             try {
-                const res = await fetch(
-                    'https://bqwqwgcrnrtunwzyajzf.supabase.co/functions/v1/analyze-building-image',
+                const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+                if (!apiKey) throw new Error('VITE_GEMINI_API_KEY .env dosyasında tanımlı değil');
+
+                setAiNote('Bina resmi Gemini ile analiz ediliyor...');
+
+                // Resmi fetch et → base64 çevir
+                const imgRes = await fetch(firstImage);
+                const blob   = await imgRes.blob();
+                const b64: string = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload  = () => resolve((reader.result as string).split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+                const mimeType = blob.type || 'image/jpeg';
+
+                const prompt = `Bu bir bina cephe fotoğrafı veya kat planı resmi. Bina hakkında aşağıdaki JSON formatında yanıt ver.
+SADECE JSON yaz, başka hiçbir şey yazma:
+{"startFloor":-1,"endFloor":6,"basementApts":1,"groundApts":1,"normalApts":4,"hasDuplex":true,"duplexCount":4,"confidence":0.80,"notes":""}
+
+Alan açıklamaları:
+- startFloor: en alt kat no (bodrum=-1 vb)
+- endFloor: en üst normal kat no
+- basementApts: bodrum katta birim sayısı
+- groundApts: zemin katta daire/dükkan sayısı
+- normalApts: tipik normal katta daire sayısı
+- hasDuplex: en üst katta dubleks var mı
+- duplexCount: toplam dubleks daire sayısı
+- confidence: 0.0-1.0 arası güven skoru`;
+
+                const geminiRes = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ imageUrl: firstImage }),
+                        body: JSON.stringify({
+                            contents: [{ parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: mimeType, data: b64 } }
+                            ]}],
+                            generationConfig: { maxOutputTokens: 300, temperature: 0.1 },
+                        }),
                     }
                 );
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
 
+                if (!geminiRes.ok) {
+                    const errText = await geminiRes.text();
+                    if (geminiRes.status === 429) throw new Error('429 quota');
+                    throw new Error(`Gemini ${geminiRes.status}: ${errText}`);
+                }
+
+                const geminiData = await geminiRes.json();
+                const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error('AI yanıtı JSON içermiyor');
+
+                const data = JSON.parse(jsonMatch[0]);
                 setBulkFormData({
                     startFloor:   data.startFloor   ?? bulkFormData.startFloor,
                     endFloor:     data.endFloor     ?? bulkFormData.endFloor,
@@ -73,7 +102,14 @@ const BulkModal: React.FC<BulkModalProps> = ({
                 const conf = Math.round((data.confidence ?? 0) * 100);
                 setAiNote(`Yapay zeka analiz etti (güven: %${conf})${data.notes ? ` — ${data.notes}` : ''}`);
             } catch (e: any) {
-                setAiNote(`Görsel analiz hatası: ${e.message}`);
+                const msg = e.message || '';
+                const isQuota = msg.includes('quota') || msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
+                if (isQuota) {
+                    setAiNote('Gemini kotası doldu. Manuel giriş yapın veya PDF yükleyin.');
+                    setQuotaError(true);
+                } else {
+                    setAiNote(`Görsel analiz hatası: ${msg}`);
+                }
             } finally {
                 setAiLoading(false);
             }
@@ -283,17 +319,55 @@ const BulkModal: React.FC<BulkModalProps> = ({
                                 onChange={async (e) => {
                                     const files = Array.from(e.target.files || []);
                                     if (files.length === 0) return;
+
+                                    // Resimler canvas ile küçültülür; PDF'ler doğrudan gönderilir
+                                    const MAX_IMG_MB = 20;
+                                    const MAX_PDF_MB = 8;
+                                    const tooBig = files.find(f =>
+                                        f.type.startsWith('image/')
+                                            ? f.size > MAX_IMG_MB * 1024 * 1024
+                                            : f.size > MAX_PDF_MB * 1024 * 1024
+                                    );
+                                    if (tooBig) {
+                                        const lim = tooBig.type.startsWith('image/') ? MAX_IMG_MB : MAX_PDF_MB;
+                                        setAiNote(`Dosya çok büyük: "${tooBig.name}" (max ${lim}MB).`);
+                                        e.target.value = '';
+                                        return;
+                                    }
+
                                     setAiLoading(true);
+                                    setQuotaError(false);
                                     setAiNote(`${files.length} dosya okunuyor...`);
                                     try {
                                         const readFile = (f: File) => new Promise<{data: string; mimeType: string}>((resolve, reject) => {
-                                            const reader = new FileReader();
-                                            reader.onload = () => resolve({
-                                                data: (reader.result as string).split(',')[1],
-                                                mimeType: f.type || 'application/octet-stream',
-                                            });
-                                            reader.onerror = reject;
-                                            reader.readAsDataURL(f);
+                                            if (f.type.startsWith('image/')) {
+                                                const img = new Image();
+                                                const url = URL.createObjectURL(f);
+                                                img.onload = () => {
+                                                    const MAX_DIM = 1024;
+                                                    let { width, height } = img;
+                                                    if (width > MAX_DIM || height > MAX_DIM) {
+                                                        if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+                                                        else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
+                                                    }
+                                                    const canvas = document.createElement('canvas');
+                                                    canvas.width = width; canvas.height = height;
+                                                    canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+                                                    URL.revokeObjectURL(url);
+                                                    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                                                    resolve({ data: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                                                };
+                                                img.onerror = reject;
+                                                img.src = url;
+                                            } else {
+                                                const reader = new FileReader();
+                                                reader.onload = () => resolve({
+                                                    data: (reader.result as string).split(',')[1],
+                                                    mimeType: f.type || 'application/octet-stream',
+                                                });
+                                                reader.onerror = reject;
+                                                reader.readAsDataURL(f);
+                                            }
                                         });
                                         const filesArray = await Promise.all(files.map(readFile));
                                         const labels = files.map(f => f.name).join(', ');
@@ -302,7 +376,28 @@ const BulkModal: React.FC<BulkModalProps> = ({
                                         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
                                         if (!apiKey) throw new Error('VITE_GEMINI_API_KEY .env dosyasında tanımlı değil');
 
-                                        const prompt = `Bu ${filesArray.length > 1 ? `${filesArray.length} adet bina kat planı / cephe görseli` : 'bir bina kat planı veya cephe görseli'}. Tüm belgeleri birlikte dikkatlice analiz et.\n\nSADECE şu JSON formatında yanıt ver:\n{"buildingWidth":14.0,"buildingDepth":8.5,"startFloor":-1,"endFloor":6,"basementApts":1,"groundApts":1,"normalApts":4,"hasDuplex":true,"duplexCount":4,"confidence":0.90,"notes":"kısa açıklama"}`;
+                                        const prompt = `Bina kat planı PDF'si. Tüm sayfalardaki ölçü çizgilerini dikkatli oku.
+
+GÖREV: Dış ölçülerden bina boyutlarını bul.
+- Planda en uzun yatay ölçü çizgisi = binanın genişliği (ön cephe)
+- Planda en uzun dikey ölçü çizgisi = binanın derinliği
+- Eğer ölçü cm cinsinden ise (örn: 2810) → 100'e böl → metre (28.10)
+- Eğer ölçü mm cinsinden ise (örn: 28100) → 1000'e böl → metre (28.10)
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+{"buildingWidth":0,"buildingDepth":0,"startFloor":0,"endFloor":0,"basementApts":0,"groundApts":0,"normalApts":0,"hasDuplex":false,"duplexCount":0,"confidence":0.0,"notes":""}
+
+Alan açıklamaları:
+- buildingWidth: dış cephe genişliği METRE cinsinden (plandaki en büyük yatay ölçü)
+- buildingDepth: bina derinliği METRE cinsinden (plandaki en büyük dikey ölçü)
+- startFloor: en alt kat no (bodrum=-1, -2 vb)
+- endFloor: en üst kat no
+- basementApts: bodrum katta birim sayısı
+- groundApts: zemin katta daire/dükkan sayısı
+- normalApts: tipik normal katta daire sayısı
+- hasDuplex: en üst katta dubleks var mı
+- duplexCount: toplam dubleks daire sayısı
+- confidence: 0.0-1.0 arası güven skoru`;
 
                                         const geminiRes = await fetch(
                                             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -324,9 +419,7 @@ const BulkModal: React.FC<BulkModalProps> = ({
                                         if (!geminiRes.ok) {
                                             const errText = await geminiRes.text();
                                             if (geminiRes.status === 429) {
-                                                setAiNote('Gemini API kotası doldu.');
-                                                startRetryCountdown(60);
-                                                return;
+                                                throw new Error('429 quota');
                                             }
                                             throw new Error(`Gemini ${geminiRes.status}: ${errText}`);
                                         }
@@ -347,16 +440,66 @@ const BulkModal: React.FC<BulkModalProps> = ({
                                             duplexCount:  data.duplexCount  ?? bulkFormData.duplexCount,
                                         });
                                         if (data.buildingWidth && id) {
-                                            localStorage.setItem(`building_dims_${id}`, JSON.stringify({ w: data.buildingWidth, d: data.buildingDepth }));
+                                            // Gemini cm (2810), mm (28100) veya metre (28.1) dönebilir
+                                            const toMetres = (v: number) => {
+                                                if (v > 500)  return v / 1000; // mm → m
+                                                if (v > 50)   return v / 100;  // cm → m
+                                                return v;                       // zaten metre
+                                            };
+                                            const wM = toMetres(data.buildingWidth);
+                                            const dM = toMetres(data.buildingDepth ?? data.buildingWidth * 0.46);
+                                            // Metre → sahne birimi (1 sahne birimi ≈ 1.6m)
+                                            const toScene = (m: number) => Math.round(m / 1.61 * 10) / 10;
+                                            const dimsObj = { w: Math.max(8, toScene(wM)), d: Math.max(5, toScene(dM)) };
+                                            localStorage.setItem(`building_dims_${id}`, JSON.stringify(dimsObj));
+                                            // Aynı analizden 3D bina config de kaydet
+                                            const FACADE_MAP: Record<string, number> = { krem: 0xede8d8, beyaz: 0xf5f5f0, gri: 0xd4d4d0, bej: 0xd4c4a8, kahve: 0xc0a880, mavi: 0xc8d8e8 };
+                                            const b3dCfg = {
+                                                facadeHex:    FACADE_MAP[data.facadeSuggestion ?? 'krem'] ?? 0xede8d8,
+                                                balconyDepth: data.hasBalcony ? Math.max(0.4, Math.min(2.0, data.balconyDepth ?? 1.2)) : 0,
+                                                windowCount:  Math.max(1, Math.min(4, data.windowCount  ?? 2)),
+                                                floorHeight:  Math.max(1.0, Math.min(1.8, (data.floorHeight ?? 3.0) / 1.61)),
+                                                roofType:     data.roofType === 'pointed' ? 'pointed' : 'flat',
+                                            };
+                                            localStorage.setItem(`b3d_cfg_${id}`, JSON.stringify(b3dCfg));
                                         }
                                         const conf = Math.round((data.confidence ?? 0) * 100);
                                         const dims = data.buildingWidth ? ` | Bina: ${data.buildingWidth}m × ${data.buildingDepth}m` : '';
                                         setAiNote(`${files.length} dosya analiz tamamlandı (güven: %${conf})${dims}${data.notes ? ` — ${data.notes}` : ''}`);
                                     } catch (err: any) {
                                         const msg = err.message || '';
-                                        if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota') || msg.includes('429')) {
-                                            setAiNote('Gemini API kotası doldu.');
-                                            startRetryCountdown(60);
+                                        const isQuota = msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota') || msg.includes('429');
+                                        if (isQuota && apartments.length > 0) {
+                                            // Gemini kotası doldu — mevcut daire verisinden otomatik analiz yap
+                                            const floors = apartments.map((a: any) => a.floor ?? 0);
+                                            const minFloor = Math.min(...floors);
+                                            const maxFloor = Math.max(...floors);
+                                            const basementFloors = [...new Set(apartments.filter((a: any) => a.floor < 0).map((a: any) => a.floor))];
+                                            const normalFloors   = [...new Set(apartments.filter((a: any) => a.floor > 0 && a.floor < maxFloor).map((a: any) => a.floor))];
+                                            const topFloorApts   = apartments.filter((a: any) => a.floor === maxFloor);
+                                            const basementAptPerFloor = basementFloors.length > 0 ? Math.round(apartments.filter((a: any) => a.floor < 0).length / basementFloors.length) : 1;
+                                            const groundApts = apartments.filter((a: any) => a.floor === 0).length || 1;
+                                            const normalAptPerFloor = normalFloors.length > 0 ? Math.round(apartments.filter((a: any) => a.floor > 0 && a.floor < maxFloor).length / normalFloors.length) : 4;
+                                            const hasDuplex = topFloorApts.some((a: any) => (a.apartment_number?.toUpperCase().includes('DUBLE') || a.apartment_number?.toUpperCase().includes('DBX')) || a.square_meters >= 200);
+                                            setBulkFormData({
+                                                startFloor: minFloor,
+                                                endFloor: maxFloor,
+                                                basementApts: basementAptPerFloor,
+                                                groundApts,
+                                                normalApts: normalAptPerFloor,
+                                                hasDuplex,
+                                                duplexCount: topFloorApts.length || 2,
+                                            });
+                                            // Her proje için kat sayısına göre bina boyutu tahmin et ve kaydet
+                                            if (id) {
+                                                const estW = Math.max(8, normalAptPerFloor * 4.4);
+                                                const estD = 8.1;
+                                                localStorage.setItem(`building_dims_${id}`, JSON.stringify({ w: estW, d: estD }));
+                                            }
+                                            setAiNote(`Mevcut veriden analiz: ${maxFloor - minFloor + 1} kat, ${apartments.length} daire${hasDuplex ? ', üst kat dubleks' : ''}. (boyutlar kaydedildi)`);
+                                        } else if (isQuota) {
+                                            setAiNote('Gemini API kotası doldu. Değerleri manuel girin veya Demo butonunu kullanın.');
+                                            setQuotaError(true);
                                         } else {
                                             setAiNote(`Analiz hatası: ${msg}`);
                                         }
@@ -407,10 +550,14 @@ const BulkModal: React.FC<BulkModalProps> = ({
                     {aiNote && (
                         <p style={{ margin: '8px 0 0', fontSize: 11, color: (aiNote.includes('hata') || aiNote.includes('Hata') || aiNote.includes('kotası') || aiNote.includes('doldu')) ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
                             {aiNote}
-                            {retryCountdown > 0 && (
-                                <span style={{ marginLeft: 6, background: '#fef2f2', color: '#dc2626', borderRadius: 4, padding: '1px 6px', fontSize: 11 }}>
-                                    {retryCountdown}s
-                                </span>
+                            {quotaError && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setQuotaError(false); setAiNote(null); }}
+                                    style={{ marginLeft: 8, background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: 4, padding: '1px 8px', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}
+                                >
+                                    Tekrar Dene
+                                </button>
                             )}
                         </p>
                     )}

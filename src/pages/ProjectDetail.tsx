@@ -23,6 +23,7 @@ import ExpenseModal from './ProjectDetail/Modals/ExpenseModal';
 import CheckModal from './ProjectDetail/Modals/CheckModal';
 import ApartmentModal from './ProjectDetail/Modals/ApartmentModal';
 import BulkModal from './ProjectDetail/Modals/BulkModal';
+import Building3DConfigModal, { Building3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 
 const ProjectDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -52,6 +53,7 @@ const ProjectDetail: React.FC = () => {
     const [showCheckModal, setShowCheckModal] = useState(false);
     const [showApartmentModal, setShowApartmentModal] = useState(false);
     const [showBulkModal, setShowBulkModal] = useState(false);
+    const [show3DConfig,  setShow3DConfig]  = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     // Form States
@@ -618,6 +620,9 @@ const ProjectDetail: React.FC = () => {
                                 <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     🗺️ {apartments.length === 0 ? 'Kat Planı Oluştur' : 'Kat Planı Güncelle'}
                                 </button>
+                                <button className="btn btn-secondary" onClick={() => setShow3DConfig(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', background: '#1e3a5f', borderColor: '#2563eb', color: '#60a5fa' }}>
+                                    🏗️ Bina 3D Tasarımı
+                                </button>
                             </>
                         )}
                     </div>
@@ -841,6 +846,9 @@ const ProjectDetail: React.FC = () => {
                                             const cleanSlug = project.slug ? project.slug.replace(/-/g, '') : '';
                                             const publicPath = `${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
                                             const fullUrl = `https://www.insaathesapp.com/${publicPath}`;
+                                            const storedDims = (() => { try { return JSON.parse(localStorage.getItem(`building_dims_${project.id}`) || '{}'); } catch { return {}; } })();
+                                            const dimParam = (storedDims.w && storedDims.w >= 8) ? `&bw=${storedDims.w}&bd=${storedDims.d}` : '';
+                                            const url3d = `${fullUrl}?view=3d${dimParam}`;
                                             return (
                                                 <>
                                                     <div style={{ fontSize: '9px', color: 'var(--color-text-light)', marginBottom: '6px', wordBreak: 'break-all', background: '#f1f5f9', borderRadius: '4px', padding: '4px 6px' }}>
@@ -868,9 +876,24 @@ const ProjectDetail: React.FC = () => {
                                                         >
                                                             💾 İndir
                                                         </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                const link = document.createElement('a');
+                                                                link.download = `${project.name}-3d-qr.png`;
+                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url3d)}`;
+                                                                link.click();
+                                                            }}
+                                                            className="btn"
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#6366f1', color: 'white', flex: 1 }}
+                                                        >
+                                                            📦 3D QR
+                                                        </button>
                                                     </div>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                                        <div style={{ fontSize: '9px', color: '#475569', fontWeight: 700, letterSpacing: 0.5 }}>2D KAREKOD</div>
                                                         <QRCode value={fullUrl} size={120} />
+                                                        <div style={{ fontSize: '9px', color: '#6366f1', fontWeight: 700, letterSpacing: 0.5, marginTop: '4px' }}>3D KAREKOD</div>
+                                                        <QRCode value={url3d} size={120} />
                                                     </div>
                                                 </>
                                             );
@@ -1036,6 +1059,13 @@ const ProjectDetail: React.FC = () => {
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={project?.id || id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} projectImages={projectImages} />
+            {show3DConfig && project && (
+                <Building3DConfigModal
+                    projectId={project.id}
+                    onClose={() => setShow3DConfig(false)}
+                    onApply={(_cfg: Building3DConfig) => setShow3DConfig(false)}
+                />
+            )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (

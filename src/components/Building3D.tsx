@@ -3,11 +3,24 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Apartment } from '../types';
 
+export interface Building3DConfig {
+    facadeHex:        number;
+    balconyDepth:     number;
+    windowCount:      number;
+    floorHeight:      number;
+    floorProjection?: number;
+    windowSize?:      'small' | 'medium' | 'large';
+    roofType?:        'flat' | 'pointed';
+}
+
 interface Building3DProps {
-    apartments: Apartment[];
-    onSelectApartment?: (apt: Apartment) => void;
-    buildingWidth?: number;
-    buildingDepth?: number;
+    apartments:          Apartment[];
+    onSelectApartment?:  (apt: Apartment) => void;
+    buildingWidth?:      number;
+    buildingDepth?:      number;
+    projectName?:        string;
+    companyName?:        string;
+    config?:             Building3DConfig;
 }
 
 // ── Statü renkleri ────────────────────────────────────────────────────────
@@ -96,7 +109,11 @@ function floorSprite(text: string, duplex = false): THREE.Sprite {
 }
 
 // ── Bileşen ───────────────────────────────────────────────────────────────
-const Building3D: React.FC<Building3DProps> = ({ apartments, onSelectApartment, buildingWidth, buildingDepth }) => {
+const Building3D: React.FC<Building3DProps> = ({
+    apartments, onSelectApartment,
+    buildingWidth, buildingDepth,
+    projectName, companyName, config: _config,
+}) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const rendRef  = useRef<THREE.WebGLRenderer | null>(null);
     const camRef   = useRef<THREE.PerspectiveCamera | null>(null);
@@ -508,11 +525,13 @@ const Building3D: React.FC<Building3DProps> = ({ apartments, onSelectApartment, 
             />
 
             {/* Bina adı */}
+            {(projectName || companyName) && (
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
                 <div style={{ background: '#0d1f35', color: '#fff', fontSize: 13, fontWeight: 800, letterSpacing: 1.5, padding: '6px 24px', borderRadius: '0 0 10px 10px', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
-                    ERHANLAR MİMARLIK MÜHENDİSLİK
+                    {companyName || projectName}
                 </div>
             </div>
+            )}
 
             {/* Legend */}
             <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>

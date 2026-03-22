@@ -1,11 +1,12 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { userService } from '../services/userService';
 import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
 
 const Building3D = lazy(() => import('../components/Building3D'));
+import { loadBuilding3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
     available: { label: 'MÜSAİT', bg: 'linear-gradient(135deg,#22c55e,#16a34a)', glow: '0 0 18px rgba(34,197,94,0.55)', text: '#fff' },
@@ -16,6 +17,9 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; t
 
 const PublicProject: React.FC = () => {
     const { publicCode } = useParams<{ publicCode: string }>();
+    const [searchParams] = useSearchParams();
+    const urlBw = searchParams.get('bw') ? parseFloat(searchParams.get('bw')!) : undefined;
+    const urlBd = searchParams.get('bd') ? parseFloat(searchParams.get('bd')!) : undefined;
     const [project, setProject] = useState<Project | null>(null);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedApartment, setSelectedApartment] = useState<Apartment | null>(null);
@@ -23,7 +27,17 @@ const PublicProject: React.FC = () => {
     const [userCompany, setUserCompany] = useState<Partial<User> | null>(null);
     const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-    const [view3D, setView3D] = useState(false);
+    const [view3D, setView3D] = useState(() => searchParams.get('view') === '3d');
+    const [buildingDims, setBuildingDims] = useState<{ w?: number; d?: number }>({});
+
+    const readDims = (projectId: string) => {
+        try {
+            const raw = localStorage.getItem(`building_dims_${projectId}`);
+            if (!raw) return {};
+            const d = JSON.parse(raw);
+            return { w: (d.w && d.w >= 5) ? d.w : undefined, d: (d.d && d.d >= 4) ? d.d : undefined };
+        } catch { return {}; }
+    };
 
     useEffect(() => {
         const style = document.createElement('style');
@@ -59,6 +73,7 @@ const PublicProject: React.FC = () => {
                     const imgs = await projectService.getProjectImages(proj.id);
                     setProjectImages(imgs);
                 } catch {}
+                setBuildingDims(readDims(proj.id));
             }
         } catch (error) {
             console.error('Proje yuklenemedi:', error);
@@ -214,7 +229,7 @@ const PublicProject: React.FC = () => {
                         {[{ key: false, label: '2D' }, { key: true, label: '3D' }].map(({ key, label }) => (
                             <button
                                 key={String(key)}
-                                onClick={() => setView3D(key)}
+                                onClick={() => { setView3D(key); if (key && project?.id) setBuildingDims(readDims(project.id)); }}
                                 style={{
                                     padding: '4px 14px',
                                     fontSize: 12,
@@ -237,14 +252,19 @@ const PublicProject: React.FC = () => {
                     {apartments.length === 0 ? (
                         <div style={{ padding: '60px', textAlign: 'center', color: '#475569' }}>Henüz daire eklenmemiş.</div>
                     ) : view3D ? (
-                        <Suspense fallback={<div style={{ height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13, letterSpacing: 2 }}>3D YÜKLENİYOR...</div>}>
+                        <div style={{ height: 'min(82vh, 680px)', minHeight: 500 }}>
+                        <Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13, letterSpacing: 2 }}>3D YÜKLENİYOR...</div>}>
                             <Building3D
                                     apartments={apartments}
                                     onSelectApartment={setSelectedApartment}
-                                    buildingWidth={(() => { try { const d = JSON.parse(localStorage.getItem(`building_dims_${project?.id}`) || '{}'); return d.w; } catch { return undefined; } })()}
-                                    buildingDepth={(() => { try { const d = JSON.parse(localStorage.getItem(`building_dims_${project?.id}`) || '{}'); return d.d; } catch { return undefined; } })()}
+                                    projectName={project?.name}
+                                    companyName={userCompany?.company_name || undefined}
+                                    buildingWidth={urlBw ?? buildingDims.w}
+                                    buildingDepth={urlBd ?? buildingDims.d}
+                                    config={project?.id ? loadBuilding3DConfig(project.id) : undefined}
                                 />
                         </Suspense>
+                        </div>
                     ) : (
                         floors.map((floor, fi) => {
                         const floorApts = apartments
