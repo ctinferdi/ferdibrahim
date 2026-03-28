@@ -1,0 +1,99 @@
+import { supabase } from '../config/supabase';
+import { Check, CheckInput } from '../types';
+import { toTurkishUpperCase } from '../utils/stringUtils';
+
+export const subscribeToChecks = (onUpdate: (checks: Check[]) => void) => {
+    getChecks().then(onUpdate);
+
+    const subscription = supabase
+        .channel('public:checks')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'checks' }, async () => {
+            const checks = await getChecks();
+            onUpdate(checks);
+        })
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(subscription);
+    };
+};
+
+export const getChecks = async (projectId?: string): Promise<Check[]> => {
+    let query = supabase
+        .from('checks')
+        .select('*')
+        .order('due_date', { ascending: true });
+
+    if (projectId) {
+        query = query.eq('project_id', projectId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data as Check[];
+};
+
+export const addCheck = async (check: CheckInput, userId: string): Promise<void> => {
+    const checkData: Record<string, unknown> = {
+        check_number: toTurkishUpperCase(check.check_number),
+        amount: check.amount,
+        company: toTurkishUpperCase(check.company),
+        recipient: toTurkishUpperCase(check.company),
+        category: toTurkishUpperCase(check.category),
+        issuer: toTurkishUpperCase(check.issuer),
+        given_date: check.given_date,
+        due_date: check.due_date,
+        status: check.status,
+        description: check.description ? toTurkishUpperCase(check.description) : '',
+        project_id: (check.project_id && check.project_id.trim() !== '') ? check.project_id : null,
+        user_id: (userId && userId.trim() !== '') ? userId : null
+    };
+
+    if (check.vat_status) checkData.vat_status = check.vat_status;
+    if (check.notification_phone) checkData.notification_phone = check.notification_phone;
+    if (check.notification_phone_2) checkData.notification_phone_2 = check.notification_phone_2;
+    if (check.notification_phone_3) checkData.notification_phone_3 = check.notification_phone_3;
+
+    const { error } = await supabase
+        .from('checks')
+        .insert([checkData]);
+
+    if (error) throw error;
+};
+
+export const updateCheck = async (id: string, check: Partial<Check>): Promise<void> => {
+    const updateData: Partial<Check> & { recipient?: string } = { ...check };
+    if (updateData.check_number) updateData.check_number = toTurkishUpperCase(updateData.check_number);
+    if (updateData.company) {
+        updateData.company = toTurkishUpperCase(updateData.company);
+        updateData.recipient = updateData.company;
+    }
+    if (updateData.category) updateData.category = toTurkishUpperCase(updateData.category);
+    if (updateData.issuer) updateData.issuer = toTurkishUpperCase(updateData.issuer);
+    if (updateData.description) updateData.description = toTurkishUpperCase(updateData.description);
+
+    const { error } = await supabase
+        .from('checks')
+        .update(updateData)
+        .eq('id', id);
+
+    if (error) throw error;
+};
+
+export const deleteCheck = async (id: string): Promise<void> => {
+    const { error } = await supabase
+        .from('checks')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+};
+
+export const checkService = {
+    subscribeToChecks,
+    getChecks,
+    addCheck,
+    updateCheck,
+    deleteCheck
+};
