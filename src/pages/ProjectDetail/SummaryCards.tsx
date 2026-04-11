@@ -18,7 +18,9 @@ interface SummaryCardsProps {
         pendingTotal: number;
     };
     formatCurrency: (value: number) => string;
+    onExport?: () => void;
 }
+
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({
     activeTab,
@@ -27,19 +29,38 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({
     getPartnerTotal,
     aptStats,
     checkStats,
-    formatCurrency
+    formatCurrency,
+    onExport
 }) => {
+
     const totalRemaining = aptStats.totalSoldPrice - aptStats.totalPaidAmount;
 
     return (
         <div className="summary-cards-row" style={{
             display: 'flex',
             gap: 'var(--spacing-sm)',
-            alignItems: 'center',
-            width: 'auto',
-            flexWrap: 'nowrap'
         }}>
+            <button className="btn" onClick={onExport} style={{ 
+                height: '40px', 
+                padding: '0 1.2rem', 
+                fontSize: '11px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                background: '#15803d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(21, 128, 61, 0.2)',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+            }}>
+                📥 Excel İndir
+            </button>
             {activeTab === 'expenses' ? (
+
                 <>
                     <div className="card" style={{
                         width: '200px',

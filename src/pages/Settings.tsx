@@ -13,6 +13,9 @@ const Settings: React.FC = () => {
     const [error, setError] = useState('');
     const [users, setUsers] = useState<any[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [updatingUser, setUpdatingUser] = useState<string | null>(null);
+
 
     const { user } = useAuth();
     const isSuperAdmin = isUserSuperAdmin(user?.email);
@@ -20,35 +23,45 @@ const Settings: React.FC = () => {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            // public.users tablosundan tüm kullanıcıları çek
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const [{ data: userData, error: userError }, { data: projData, error: projError }] = await Promise.all([
+                supabase.from('users').select('*').order('created_at', { ascending: false }),
+                supabase.from('projects').select('id, name')
+            ]);
 
-            if (error) {
-                console.warn('Users tablosu bulunamadı, fallback yapılıyor...', error);
-                // Tablo yoksa sadece mevcut kullanıcıyı göster (Fallback)
-                if (user) {
-                    setUsers([{
-                        id: user.id,
-                        email: user.email,
-                        created_at: user.created_at,
-                        user_metadata: { role: 'admin' }
-                    }]);
-                }
-            } else {
-                // Veri geldiyse state'i güncelle
-                setUsers(data.map(u => ({
-                    ...u,
-                    user_metadata: { role: 'admin' } // Herkes yönetici
-                })));
-            }
+            if (userError) throw userError;
+            setUsers(userData.map(u => ({
+                ...u,
+                // Ensure meta is handled if coming from public.users table 
+                // We'll store projects in a column named 'accessible_projects' if possible, or use user_metadata
+                user_metadata: u.user_metadata || { role: 'admin' },
+                accessible_projects: u.accessible_projects || []
+            })));
+            if (projData) setProjects(projData);
         } catch (err) {
-            console.error('Failed to fetch users:', err);
+            console.error('Failed to fetch data:', err);
         } finally {
             setLoadingUsers(false);
         }
+    };
+
+    const handleToggleProject = async (userId: string, projId: string, current: string[]) => {
+        setUpdatingUser(userId);
+        const updated = current.includes(projId) ? current.filter(id => id !== projId) : [...current, projId];
+        try {
+            const { error } = await supabase
+                .from('users')
+                .update({ accessible_projects: updated })
+                .eq('id', userId);
+            
+            if (error) {
+                // Fallback to user_metadata if column doesn't exist
+                await supabase.auth.admin.updateUserById(userId, {
+                    user_metadata: { accessible_projects: updated }
+                });
+            }
+            fetchUsers();
+        } catch (err) { console.error(err); }
+        finally { setUpdatingUser(null); }
     };
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -288,8 +301,37 @@ const Settings: React.FC = () => {
                                                 <div style={{ fontSize: '10px', color: 'var(--color-text-light)', marginTop: '2px' }}>
                                                     👑 Yönetici • {new Date(u.created_at).toLocaleDateString('tr-TR')}
                                                 </div>
+                                                {/* Proje Yetkileri */}
+                                                <div style={{ marginTop: '10px', background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                    <div style={{ fontSize: '11px', fontWeight: 700, marginBottom: '6px', color: '#1e3a8a' }}>📂 PROJE YETKİLERİ</div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                        {projects.map(p => {
+                                                            const hasAccess = (u.accessible_projects || []).includes(p.id);
+                                                            return (
+                                                                <button
+                                                                    key={p.id}
+                                                                    disabled={updatingUser === u.id}
+                                                                    onClick={() => handleToggleProject(u.id, p.id, u.accessible_projects || [])}
+                                                                    style={{
+                                                                        padding: '4px 8px',
+                                                                        fontSize: '10px',
+                                                                        borderRadius: '4px',
+                                                                        border: '1px solid',
+                                                                        borderColor: hasAccess ? '#15803d' : '#cbd5e1',
+                                                                        background: hasAccess ? '#f0fdf4' : 'white',
+                                                                        color: hasAccess ? '#15803d' : '#64748b',
+                                                                        cursor: 'pointer',
+                                                                        fontWeight: hasAccess ? 700 : 400
+                                                                    }}
+                                                                >
+                                                                    {hasAccess ? '✓ ' : '+ '}{p.name}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                            <div style={{ display: 'flex', flexFlow: 'column', gap: '8px' }}>
                                                 <button
                                                     onClick={() => handleResetPassword(u.email)}
                                                     style={{
@@ -305,6 +347,7 @@ const Settings: React.FC = () => {
                                                 >
                                                     🔑 Şifre Sıfırla
                                                 </button>
+
 
                                                 {/* Kendi kendini silemesin */}
                                                 {user?.id !== u.id && (

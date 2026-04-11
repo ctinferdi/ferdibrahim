@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Apartment } from '../types';
+import { BuildingAnalysisResult } from './AIBuildingAnalyzer';
 
 export interface Building3DConfig {
     facadeHex:        number;
@@ -21,6 +22,7 @@ interface Building3DProps {
     projectName?:        string;
     companyName?:        string;
     config?:             Building3DConfig;
+    analysis?:           BuildingAnalysisResult | null;
 }
 
 // ── Statü renkleri ────────────────────────────────────────────────────────
@@ -54,20 +56,21 @@ const GD = 0.07;    // cam kalınlığı
 const WIN_DX = [-(WW + WG), 0, (WW + WG)];  // 3'lü grup X ofsetleri
 
 // Balkon
-const CBKW = 2.5;
-const CBKD = 1.15;
-const CBKH = 0.12;
-const BRH  = 0.88;  // korkuluk yüksekliği
-const BRT  = 0.035; // çubuk kalınlığı
+const CBKW = 2.4;
+const CBKD = 1.25;
+const CBKH = 0.14;
+const BRH  = 1.05;  // korkuluk yüksekliği
+const BRT  = 0.04;  // çubuk kalınlığı
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────
 function mat(
-    color: number, roughness = 0.65, metalness = 0.05,
+    color: number, roughness = 0.72, metalness = 0.12,
     transparent = false, opacity = 1
 ) {
     return new THREE.MeshStandardMaterial({
         color, roughness, metalness, transparent, opacity,
-        side: THREE.FrontSide,
+        envMapIntensity: 0.8,
+        side: THREE.DoubleSide,
     });
 }
 
@@ -115,6 +118,7 @@ const Building3D: React.FC<Building3DProps> = ({
     apartments, onSelectApartment,
     buildingWidth, buildingDepth,
     projectName, companyName, config: _config,
+    analysis
 }) => {
     const mountRef = useRef<HTMLDivElement>(null);
     const rendRef  = useRef<THREE.WebGLRenderer | null>(null);
@@ -150,16 +154,20 @@ const Building3D: React.FC<Building3DProps> = ({
                 a.square_meters === 200
             );
 
-        const floorMap = new Map<number, Apartment[]>();
-        apartments.forEach(a => {
-            const f = a.floor ?? 0;
-            if (!floorMap.has(f)) floorMap.set(f, []);
-            floorMap.get(f)!.push(a);
+        const floors = analysis 
+            ? Array.from({ length: analysis.floors + analysis.basementFloors + 1 }, (_, i) => i - analysis.basementFloors)
+            : Array.from(floorMap.keys()).sort((a, b) => a - b);
+
+        const basementCount = floors.filter(f => f < 0).length;
+        
+        const floorHeights = floors.map(f => {
+            if (analysis) {
+                if (f === analysis.floors && analysis.hasDuplex) return FH * 2;
+                return FH;
+            }
+            return isDuplexFloor(floorMap.get(f) || []) ? FH * 2 : FH;
         });
 
-        const floors        = Array.from(floorMap.keys()).sort((a, b) => a - b);
-        const basementCount = floors.filter(f => f < 0).length;
-        const floorHeights  = floors.map(f => isDuplexFloor(floorMap.get(f)!) ? FH * 2 : FH);
         const totalH        = floorHeights.reduce((s, h) => s + h, 0);
         const groundLevel   = floors.slice(0, basementCount).reduce((s, _, i) => s + floorHeights[i], 0);
 
@@ -167,7 +175,8 @@ const Building3D: React.FC<Building3DProps> = ({
         let cumY = -groundLevel;
         floors.forEach((_, fi) => { yBases.push(cumY); cumY += floorHeights[fi]; });
 
-        const body = new THREE.Mesh(box(bw, totalH, bd), mat(0xf5f6f8, 0.88, 0));
+        const wallCol = analysis ? parseInt(analysis.wallColor.replace('#', '0x')) : 0xf5f6f8;
+        const body = new THREE.Mesh(box(bw, totalH, bd), mat(wallCol, 0.88, 0));
         body.position.set(0, totalH / 2 - groundLevel, 0);
         body.receiveShadow = true;
         scene.add(body);
@@ -190,13 +199,16 @@ const Building3D: React.FC<Building3DProps> = ({
             scene.add(rim);
         }
 
+        const roofCol = analysis ? parseInt(analysis.roofColor.replace('#', '0x')) : 0x0d1f35;
+        const analysisBandCol = analysis ? parseInt(analysis.bandColor.replace('#', '0x')) : 0x1e3a5f;
+
         floors.forEach((floor, fi) => {
             const yBase  = yBases[fi];
             const flH    = floorHeights[fi];
             const duplex = flH > FH;
-            const apts   = floorMap.get(floor)!.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+            const apts   = (floorMap.get(floor) || []).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 
-            const bandColor = fi === 0 ? 0x0d1f35 : duplex ? 0x5b21b6 : 0x1e3a5f;
+            const bandColor = fi === 0 ? roofCol : duplex ? 0x5b21b6 : analysisBandCol;
             const band = new THREE.Mesh(box(bw + 0.1, BAND, bd + 0.1), mat(bandColor, 0.6, 0.05));
             band.position.set(0, yBase + BAND / 2, 0);
             scene.add(band);
@@ -255,16 +267,17 @@ const Building3D: React.FC<Building3DProps> = ({
 
                         const frame = new THREE.Mesh(
                             box(WW + FT * 2, winH + FT * 2, FD),
-                            mat(0x1e3a5f, 0.55, 0.08)
+                            mat(0x2d3748, 0.45, 0.2) // Sleek anthracite frame
                         );
-                        frame.position.set(wx, winY, zFace + zo * (FD / 2 + 0.01));
+                        frame.position.set(wx, winY, zFace + zo * (FD / 2 - 0.02));
                         scene.add(frame);
 
                         const glass = new THREE.Mesh(
                             box(WW, winH, GD),
-                            mat(col, 0.08, 0.45, true, op * (wi === 1 ? 1 : 0.85))
+                            mat(col, 0.05, 0.6, true, op * (wi === 1 ? 0.95 : 0.75))
                         );
-                        glass.position.set(wx, winY, zFace + zo * (FD / 2 + GD / 2 + 0.02));
+                        // Inset glass for depth
+                        glass.position.set(wx, winY, zFace + zo * (FD / 2 - 0.05));
                         scene.add(glass);
 
                         if (wi === 1) {
@@ -292,47 +305,48 @@ const Building3D: React.FC<Building3DProps> = ({
                     nose.position.set(bkX, slabY - 0.025, zFace + zo * (CBKD + 0.05));
                     scene.add(nose);
 
-                    const topRail = new THREE.Mesh(box(CBKW, BRT, BRT), mat(0x1e3a5f, 0.35, 0.55));
-                    topRail.position.set(bkX, slabY + CBKH + BRH, zFace + zo * (CBKD + 0.01));
-                    scene.add(topRail);
+                    // Modern Glass Railing
+                    const railG = new THREE.Mesh(box(CBKW - 0.05, BRH, 0.04), mat(0x94a3b8, 0.05, 0.6, true, 0.3));
+                    railG.position.set(bkX, slabY + CBKH + BRH / 2, zFace + zo * (CBKD - 0.02));
+                    scene.add(railG);
 
-                    const botRail = new THREE.Mesh(box(CBKW, BRT, BRT), mat(0x1e3a5f, 0.35, 0.55));
-                    botRail.position.set(bkX, slabY + CBKH + BRH * 0.2, zFace + zo * (CBKD + 0.01));
-                    scene.add(botRail);
-
-                    const barCount = 10;
-                    for (let bi = 0; bi < barCount; bi++) {
-                        const bx = bkX - CBKW / 2 + (bi / (barCount - 1)) * CBKW;
-                        const bar = new THREE.Mesh(box(BRT, BRH, BRT), mat(0x1e3a5f, 0.35, 0.55));
-                        bar.position.set(bx, slabY + CBKH + BRH / 2, zFace + zo * (CBKD + 0.01));
-                        scene.add(bar);
-                    }
-
-                    [0, CBKD].forEach(offset => {
-                        const sideRail = new THREE.Mesh(box(BRT, BRH, BRT), mat(0x1e3a5f, 0.35, 0.55));
-                        sideRail.position.set(bkX - CBKW / 2, slabY + CBKH + BRH / 2, zFace + zo * offset);
-                        scene.add(sideRail);
-
-                        const sideRail2 = new THREE.Mesh(box(BRT, BRH, BRT), mat(0x1e3a5f, 0.35, 0.55));
-                        sideRail2.position.set(bkX + CBKW / 2, slabY + CBKH + BRH / 2, zFace + zo * offset);
-                        scene.add(sideRail2);
+                    // Support Posts
+                    [-(CBKW / 2 - 0.04), (CBKW / 2 - 0.04)].forEach(px => {
+                        const post = new THREE.Mesh(box(0.06, BRH, 0.06), mat(0x2d3748, 0.45, 0.25));
+                        post.position.set(bkX + px, slabY + CBKH + BRH / 2, zFace + zo * (CBKD - 0.02));
+                        scene.add(post);
                     });
+
+                    // Side railings (simplified math)
+                    [-(CBKW / 2), (CBKW / 2)].forEach(sx => {
+                        const sideG = new THREE.Mesh(box(0.04, BRH, CBKD), mat(0x94a3b8, 0.05, 0.6, true, 0.25));
+                        const posX = bkX + sx;
+                        const posY = slabY + CBKH + BRH / 2;
+                        const posZ = zFace + (zo * CBKD) / 2;
+                        sideG.position.set(posX, posY, posZ);
+                        scene.add(sideG);
+                    });
+                    
+                    if (ai === 1) { railG.userData = { apt }; }
 
                     if (duplex) {
                         const slabY2 = yBase + FH + BAND + 0.06;
                         const CBKW2  = CBKW * 0.65;
-                        const slab2  = new THREE.Mesh(box(CBKW2, CBKH, CBKD), mat(0xedf0f4, 0.82, 0));
-                        slab2.position.set(bkX, slabY2, zFace + zo * (CBKD / 2));
+                        const posZ2  = zFace + (zo * CBKD) / 2;
+                        
+                        const slab2 = new THREE.Mesh(box(CBKW2, CBKH, CBKD), mat(0xedf0f4, 0.82, 0));
+                        slab2.position.set(bkX, slabY2, posZ2);
                         scene.add(slab2);
 
+                        const posZ_Rail = zFace + zo * (CBKD + 0.01);
                         const tr2 = new THREE.Mesh(box(CBKW2, BRT, BRT), mat(0x5b21b6, 0.35, 0.55));
-                        tr2.position.set(bkX, slabY2 + CBKH + BRH, zFace + zo * (CBKD + 0.01));
+                        tr2.position.set(bkX, slabY2 + CBKH + BRH, posZ_Rail);
                         scene.add(tr2);
 
                         for (let bi = 0; bi < 6; bi++) {
                             const bx = bkX - CBKW2 / 2 + (bi / 5) * CBKW2;
                             const bar2 = new THREE.Mesh(box(BRT, BRH, BRT), mat(0x5b21b6, 0.35, 0.55));
-                            bar2.position.set(bx, slabY2 + CBKH + BRH / 2, zFace + zo * (CBKD + 0.01));
+                            bar2.position.set(bx, slabY2 + CBKH + BRH / 2, posZ_Rail);
                             scene.add(bar2);
                         }
                     }
@@ -342,7 +356,7 @@ const Building3D: React.FC<Building3DProps> = ({
 
         const roofH   = 0.55;
         const roofTop = totalH - groundLevel;
-        const parapet = new THREE.Mesh(box(bw + 2.6, roofH, bd + 2.6), mat(0x0d1f35, 0.55, 0.08));
+        const parapet = new THREE.Mesh(box(bw + 2.6, roofH, bd + 2.6), mat(roofCol, 0.55, 0.08));
         parapet.position.set(0, roofTop + roofH / 2, 0);
         parapet.castShadow = true;
         scene.add(parapet);
@@ -375,21 +389,31 @@ const Building3D: React.FC<Building3DProps> = ({
         const H  = el.clientHeight || 560;
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87ceeb);
-        scene.fog = new THREE.Fog(0xbfdbfe, 80, 220);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        scene.background = new THREE.Color(0xf1f5f9); // Modern White-Gray
+        scene.fog = new THREE.Fog(0xf1f5f9, 90, 250);
+        
+        // Premium Lighting System
+        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+        
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.65);
+        scene.add(hemi);
 
-        const sun = new THREE.DirectionalLight(0xfff8e7, 1.35);
-        sun.position.set(25, 38, 22);
+        const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+        sun.position.set(30, 50, 30);
         sun.castShadow = true;
         sun.shadow.mapSize.set(2048, 2048);
-        sun.shadow.camera.near   = 0.5;  sun.shadow.camera.far    = 150;
-        sun.shadow.camera.left   = -50;  sun.shadow.camera.right  =  50;
-        sun.shadow.camera.top    =  50;  sun.shadow.camera.bottom = -50;
+        sun.shadow.camera.near   = 0.5;  sun.shadow.camera.far    = 180;
+        sun.shadow.camera.left   = -60;  sun.shadow.camera.right  =  60;
+        sun.shadow.camera.top    =  60;  sun.shadow.camera.bottom = -60;
+        sun.shadow.bias = -0.0001; 
         scene.add(sun);
 
-        const fill = new THREE.DirectionalLight(0xdbeafe, 0.42);
-        fill.position.set(-18, 14, -22);
+        const rim = new THREE.DirectionalLight(0x667eea, 0.35); 
+        rim.position.set(-20, 15, -20);
+        scene.add(rim);
+
+        const fill = new THREE.DirectionalLight(0xffffff, 0.4);
+        fill.position.set(-15, 10, 15);
         scene.add(fill);
 
         const roofTop = buildScene(scene);

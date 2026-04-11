@@ -1,82 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { subscribeToApartments, addApartment, updateApartment } from '../services/apartmentService';
 import { useAuth } from '../contexts/AuthContext';
-// --- 3D İÇİN GEREKLİ KÜTÜPHANELER ---
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Html } from '@react-three/drei';
 
-// --- DİNAMİK 3D BİNA BİLEŞENİ ---
-const Building3D = ({ apartments }) => {
-    // Verileri katlara göre grupla
-    const floors = useMemo(() => {
-        const grouped = {};
-        apartments.forEach(apt => {
-            if (!grouped[apt.floor]) grouped[apt.floor] = [];
-            grouped[apt.floor].push(apt);
-        });
-        return grouped;
-    }, [apartments]);
-
-    const floorNumbers = Object.keys(floors).map(Number).sort((a, b) => a - b);
-    
-    // Renk belirleme fonksiyonu
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'available': return '#43e97b'; // Yeşil (Müsait)
-            case 'sold': return '#fa709a'; // Kırmızımsı (Satıldı)
-            case 'owner': return '#f6d365'; // Sarı (Mal Sahibi)
-            case 'common': return '#818cf8'; // Mor (Ortak Alan)
-            default: return '#cccccc';
-        }
-    };
-
-    return (
-        <group position={[0, -floorNumbers.length * 0.5, 0]}>
-            {floorNumbers.map((floorLevel, index) => {
-                const floorApts = floors[floorLevel];
-                const yPos = index * 1.2; // Katlar arası yükseklik
-                
-                return floorApts.map((apt, aptIndex) => {
-                    // Aynı kattaki daireleri yan yana diz
-                    const xPos = (aptIndex - (floorApts.length - 1) / 2) * 1.5;
-                    const color = getStatusColor(apt.status);
-
-                    return (
-                        <mesh key={apt.id} position={[xPos, yPos, 0]} castShadow>
-                            <boxGeometry args={[1.4, 1, 1.4]} />
-                            <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
-                            
-                            {/* Daire Bilgi Etiketi (Üstüne gelince görünen) */}
-                            <Html distanceFactor={10} position={[0, 0, 0.71]} transform center>
-                                <div style={{
-                                    background: 'rgba(0,0,0,0.8)',
-                                    color: 'white',
-                                    padding: '5px 10px',
-                                    borderRadius: '5px',
-                                    fontSize: '12px',
-                                    pointerEvents: 'none',
-                                    whiteSpace: 'nowrap',
-                                    border: `1px solid ${color}`
-                                }}>
-                                    <strong style={{ display: 'block' }}>Daire {apt.apartment_number}</strong>
-                                    <span>{apt.square_meters} m² - {apt.status === 'available' ? 'MÜSAİT' : 'SATILDI'}</span>
-                                </div>
-                            </Html>
-                        </mesh>
-                    );
-                });
-            })}
-        </group>
-    );
-};
 
 
 const Apartments = () => {
     const [apartments, setApartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [show3DModal, setShow3DModal] = useState(false); // 3D MODAL STATE
+
     const [editingApartment, setEditingApartment] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -207,25 +140,7 @@ const Apartments = () => {
                         🏢 <span style={{ fontSize: '1.2em' }}>Daire Yönetimi</span> 
                     </h1>
                     
-                    {/* BİNA 3D TASARIM BUTONU */}
-                    <button 
-                        onClick={() => setShow3DModal(true)}
-                        style={{
-                            background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-                            color: 'white',
-                            padding: '10px 20px',
-                            borderRadius: '8px',
-                            fontWeight: 'bold',
-                            border: 'none',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                        }}
-                    >
-                        🧊 BİNA 3D TASARIM
-                    </button>
+
                 </div>
 
                 {/* Summary Cards */}
@@ -358,43 +273,6 @@ const Apartments = () => {
                     )}
                 </div>
 
-                {/* --- 3D GÖRÜNÜM MODALI --- */}
-                {show3DModal && (
-                    <div className="modal-overlay" style={{ backdropFilter: 'blur(10px)', zIndex: 9999 }}>
-                        <div className="modal" style={{ width: '90vw', height: '80vh', maxWidth: '1200px', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header" style={{ padding: '15px 20px', borderBottom: '1px solid #eee' }}>
-                                <h2 className="modal-title">Sanal Tur - 3D Bina Görüntüsü</h2>
-                                <button onClick={() => setShow3DModal(false)} style={{ background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', color: '#666' }}>×</button>
-                            </div>
-                            <div style={{ flex: 1, position: 'relative', background: 'linear-gradient(to top, #87CEEB, #f0f8ff)' }}>
-                                {/* THREE.JS CANVAS ALANI */}
-                                <Canvas camera={{ position: [5, 5, 10], fov: 45 }}>
-                                    <ambientLight intensity={0.5} />
-                                    <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-                                    <Environment preset="city" />
-                                    
-                                    <Building3D apartments={filteredApartments} />
-                                    
-                                    <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-                                </Canvas>
-
-                                {/* LEJANT (Renk Açıklamaları) */}
-                                <div style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.9)', padding: '10px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                                        <div style={{ width: '15px', height: '15px', background: '#43e97b', borderRadius: '3px' }}></div> <span>Müsait</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                                        <div style={{ width: '15px', height: '15px', background: '#fa709a', borderRadius: '3px' }}></div> <span>Satıldı</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div style={{ width: '15px', height: '15px', background: '#f6d365', borderRadius: '3px' }}></div> <span>M. Sahibi</span>
-                                    </div>
-                                    <p style={{ margin: '10px 0 0 0', fontSize: '11px', color: '#666' }}>* Modeli döndürmek için sürükleyin.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Form Modalı (Aynı Kalan Kısım) */}
                 {showModal && (

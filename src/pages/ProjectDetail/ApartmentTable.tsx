@@ -54,7 +54,6 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                 </thead>
                 <tbody>
                     {apartments
-                        .filter(a => a.status === 'sold')
                         .sort((a, b) => {
                             if (b.floor !== a.floor) return b.floor - a.floor;
                             const numA = parseInt(a.apartment_number);
@@ -66,37 +65,48 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                             const soldPrice = apartment.sold_price || 0;
                             const paidAmount = apartment.paid_amount || 0;
                             const remaining = soldPrice - paidAmount;
+                            
+                            const getStatusBadge = (status: string) => {
+                                switch (status) {
+                                    case 'sold': return { text: 'SATILDI', bg: '#dcfce7', color: '#15803d' };
+                                    case 'owner': return { text: 'M.SAHİBİ', bg: '#fef3c7', color: '#92400e' };
+                                    case 'common': return { text: 'ORTAK', bg: '#f1f5f9', color: '#475569' };
+                                    default: return { text: 'BOŞ', bg: '#e0f2fe', color: '#0369a1' };
+                                }
+                            };
+                            const badge = getStatusBadge(apartment.status);
+
                             return (
                                 <tr key={apartment.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontWeight: 700 }}>
                                         {apartment.apartment_number}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {formatCurrency(apartment.price)}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {formatCurrency(soldPrice)}
+                                        {apartment.status === 'sold' ? formatCurrency(soldPrice) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {formatCurrency(paidAmount)}
+                                        {apartment.status === 'sold' ? formatCurrency(paidAmount) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {formatCurrency(remaining)}
+                                        {apartment.status === 'sold' ? formatCurrency(remaining) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                                         <span style={{
                                             padding: '2px 8px',
                                             borderRadius: '4px',
-                                            fontSize: '10px',
-                                            fontWeight: 700,
-                                            background: '#dcfce7',
-                                            color: '#15803d'
+                                            fontSize: '9px',
+                                            fontWeight: 800,
+                                            background: badge.bg,
+                                            color: badge.color
                                         }}>
-                                            SATILDI
+                                            {badge.text}
                                         </span>
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center' }}>
-                                        <div>{apartment.customer_name || '-'}</div>
+                                        <div style={{ fontWeight: 600 }}>{apartment.customer_name || '-'}</div>
                                         {apartment.customer_phone && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>{apartment.customer_phone}</div>}
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
@@ -108,28 +118,31 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                             >
                                                 ✏️
                                             </button>
-                                            <button
-                                                onClick={() => onReset(apartment)}
-                                                disabled={sendingCode}
-                                                style={{
-                                                    padding: '4px 8px',
-                                                    fontSize: '12px',
-                                                    background: '#fff7ed',
-                                                    color: '#c2410c',
-                                                    border: '1px solid #ffedd5',
-                                                    borderRadius: '4px',
-                                                    cursor: sendingCode ? 'wait' : 'pointer',
-                                                    opacity: sendingCode ? 0.5 : 1
-                                                }}
-                                                title="Satışı İptal Et (Daireyi Boşa Çıkar)"
-                                            >
-                                                {sendingCode ? '...' : '🔄'}
-                                            </button>
+                                            {apartment.status === 'sold' && (
+                                                <button
+                                                    onClick={() => onReset(apartment)}
+                                                    disabled={sendingCode}
+                                                    style={{
+                                                        padding: '4px 8px',
+                                                        fontSize: '12px',
+                                                        background: '#fff7ed',
+                                                        color: '#c2410c',
+                                                        border: '1px solid #ffedd5',
+                                                        borderRadius: '4px',
+                                                        cursor: sendingCode ? 'wait' : 'pointer',
+                                                        opacity: sendingCode ? 0.5 : 1
+                                                    }}
+                                                    title="Satışı İptal Et"
+                                                >
+                                                    {sendingCode ? '...' : '🔄'}
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
                             );
                         })}
+
                 </tbody>
             </table>
         </div>

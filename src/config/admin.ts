@@ -3,8 +3,7 @@
  * Centralized list of support and super admin emails.
  */
 export const SUPER_ADMIN_EMAILS = [
-    'ctinferdi@gmail.com',
-    'ibrahim.erhan1@gmail.com'
+    'ctinferdi@gmail.com'
 ].map(e => e.toLowerCase());
 
 /**

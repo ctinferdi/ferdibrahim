@@ -16,7 +16,20 @@ const Projects: React.FC = () => {
 
     const isSuperAdmin = isUserSuperAdmin(user?.email);
 
+    const [userPerms, setUserPerms] = useState<string[]>([]);
+    useEffect(() => {
+        if (user?.id && !isSuperAdmin) {
+            supabase.from('users').select('accessible_projects').eq('id', user.id).single()
+                .then(({ data }) => {
+                    const metaPerms = user?.user_metadata?.accessible_projects || [];
+                    const dbPerms = data?.accessible_projects || [];
+                    setUserPerms([...new Set([...metaPerms, ...dbPerms])]);
+                });
+        }
+    }, [user?.id, isSuperAdmin, user?.user_metadata]);
+
     const handleAdminAction = (action: () => void) => {
+
         if (!isSuperAdmin) {
             alert(`Bu işlem için yönetici onayına ihtiyaç var.`);
             return;
@@ -209,10 +222,13 @@ const Projects: React.FC = () => {
                     const visibleProjects = isSuperAdmin
                         ? projects
                         : projects.filter(p =>
+                            userPerms.includes(p.id) ||
                             p.partners?.some(partner =>
                                 partner.email?.toLowerCase() === user?.email?.toLowerCase()
                             )
                         );
+
+
                     return (
                         <>
                             <div style={{

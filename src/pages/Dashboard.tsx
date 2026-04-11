@@ -192,39 +192,41 @@ const Dashboard = () => {
 
                 </div>
 
-                {/* Vadesi Yaklaşan Çekler Uyarısı */}
-                {checks.filter(c => c.status === 'pending' && new Date(c.due_date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length > 0 && (
-                    <div className="card shadow-md" style={{
-                        background: 'linear-gradient(135deg, #FFF5F5 0%, #FFF 100%)',
-                        border: '2px solid var(--color-danger)',
-                        marginBottom: 'var(--spacing-lg)',
-                        padding: 'var(--spacing-lg)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                                <span style={{ fontSize: '2rem' }}>⚠️</span>
-                                <div>
-                                    <h3 style={{ margin: 0, color: 'var(--color-danger)' }}>Vadesi Yaklaşan Çekler!</h3>
-                                    <p style={{ margin: '5px 0 0 0', color: 'var(--color-text-light)' }}>
-                                        Önümüzdeki 7 gün içinde <strong>{checks.filter(c => c.status === 'pending' && new Date(c.due_date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length} adet</strong> çekin vadesi doluyor.
-                                    </p>
+                {(() => {
+                    const upcomingChecks = checks.filter(c => c.status === 'pending' && new Date(c.due_date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+                    if (upcomingChecks.length === 0) return null;
+                    return (
+                        <div className="card shadow-md" style={{
+                            background: 'linear-gradient(135deg, #FFF5F5 0%, #FFF 100%)',
+                            border: '2px solid var(--color-danger)',
+                            marginBottom: 'var(--spacing-lg)',
+                            padding: 'var(--spacing-lg)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                                    <span style={{ fontSize: '2rem' }}>⚠️</span>
+                                    <div>
+                                        <h3 style={{ margin: 0, color: 'var(--color-danger)' }}>Vadesi Yaklaşan Çekler!</h3>
+                                        <p style={{ margin: '5px 0 0 0', color: 'var(--color-text-light)' }}>
+                                            Önümüzdeki 7 gün içinde <strong>{upcomingChecks.length} adet</strong> çekin vadesi doluyor.
+                                        </p>
+                                    </div>
                                 </div>
+                                <a href="/cekler" className="btn btn-danger" style={{ padding: '8px 20px', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>
+                                    Çekleri Gör
+                                </a>
                             </div>
-                            <a
-                                href="/cekler"
-                                className="btn btn-danger"
-                                style={{ padding: '8px 20px', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}
-                            >
-                                Çekleri Gör
-                            </a>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-lg)', alignItems: 'stretch', marginBottom: 'var(--spacing-xl)' }}>
                     {/* Son Hareketler */}
                     <div className="card" style={{ height: '100%', margin: 0, display: 'flex', flexDirection: 'column' }}>
-                        <h2 className="mb-lg">SON HAREKETLER</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+                            <h2 style={{ margin: 0 }}>SON HAREKETLER</h2>
+                            <Link to="/projeler" style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-primary)' }}>TÜMÜNE GİT →</Link>
+                        </div>
 
                         {expenses.length === 0 && checks.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)', flex: 1 }}>
@@ -241,43 +243,51 @@ const Dashboard = () => {
                                         const dateB = new Date('date' in b ? b.date : b.given_date).getTime();
                                         return dateB - dateA;
                                     })
-                                    .slice(0, 8)
-                                    .map((item) => (
-                                        <div key={item.id} style={{
-                                            padding: 'var(--spacing-md)',
-                                            background: 'var(--color-bg)',
-                                            borderRadius: 'var(--radius-md)',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            borderLeft: `4px solid ${item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)'}`,
-                                            opacity: item.type === 'check' && (item as any).status === 'paid' ? 0.7 : 1
-                                        }}>
-                                            <div>
-                                                <div style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: 'var(--font-size-sm)' }}>
-                                                    {item.type === 'expense'
-                                                        ? `💰 Gider: ${(item as any).category} - ${(item as any).description || (item as any).recipient}`
-                                                        : `💳 Çek: ${(item as any).company} - ${(item as any).category}`
-                                                    }
+                                    .slice(0, 10)
+                                    .map((item) => {
+                                        const project = projects.find(p => p.id === item.project_id);
+                                        return (
+                                            <div key={item.id} style={{
+                                                padding: '12px var(--spacing-md)',
+                                                background: 'var(--color-bg)',
+                                                borderRadius: 'var(--radius-md)',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                borderLeft: `4px solid ${item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)'}`,
+                                                opacity: item.type === 'check' && (item as any).status === 'paid' ? 0.7 : 1
+                                            }}>
+                                                <div style={{ overflow: 'hidden' }}>
+                                                    <div style={{ fontWeight: 700, marginBottom: '0.2rem', fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {item.type === 'expense'
+                                                            ? `💰 ${(item as any).category} - ${(item as any).description || (item as any).recipient}`
+                                                            : `💳 ${(item as any).company} - ${(item as any).category}`
+                                                        }
+                                                    </div>
+                                                    <div style={{ fontSize: '10px', color: 'var(--color-text-light)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                        <span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{project?.name || 'GENEL'}</span>
+                                                        <span>•</span>
+                                                        <span>{new Date('date' in item ? item.date : item.given_date).toLocaleDateString('tr-TR')}</span>
+                                                        {item.created_by_email && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span style={{ fontStyle: 'italic', opacity: 0.7 }}>{item.created_by_email}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '10px', color: 'var(--color-text-light)', display: 'flex', gap: 'var(--spacing-sm)' }}>
-                                                    <span>{new Date('date' in item ? item.date : item.given_date).toLocaleDateString('tr-TR')}</span>
-                                                    {item.created_by_email && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span style={{ fontStyle: 'italic', opacity: 0.8 }}>{item.created_by_email}</span>
-                                                        </>
-                                                    )}
+                                                <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '12px' }}>
+                                                    <div style={{ fontWeight: 800, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
+                                                        {item.type === 'expense' ? '-' : ''}{formatCurrency(item.amount)}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div style={{ fontWeight: 700, color: item.type === 'expense' ? 'var(--color-danger)' : 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
-                                                {item.type === 'expense' ? '-' : ''}{formatCurrency(item.amount)}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                             </div>
                         )}
                     </div>
+
 
                     {/* Hızlı Notlar */}
                     <div className="card" style={{ padding: 0, height: '100%', margin: 0, display: 'flex', flexDirection: 'column', background: 'white' }}>

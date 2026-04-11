@@ -10,7 +10,6 @@ import { apartmentService } from '../services/apartmentService';
 import { Project, Expense, Check, Apartment } from '../types';
 import { supabase } from '../config/supabase';
 
-// Components
 import FloorPlan from './ProjectDetail/FloorPlan';
 import ExpenseTable from './ProjectDetail/ExpenseTable';
 import CheckTable from './ProjectDetail/CheckTable';
@@ -24,6 +23,7 @@ import CheckModal from './ProjectDetail/Modals/CheckModal';
 import ApartmentModal from './ProjectDetail/Modals/ApartmentModal';
 import BulkModal from './ProjectDetail/Modals/BulkModal';
 import Building3DConfigModal, { Building3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
+import FloorPlanEditor from '../components/FloorPlanEditor';
 
 const ProjectDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -55,6 +55,10 @@ const ProjectDetail: React.FC = () => {
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [show3DConfig,  setShow3DConfig]  = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showFloorEditor, setShowFloorEditor] = useState(false);
+    const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
+
+    const Building3D = React.lazy(() => import('../components/Building3D'));
 
     // Form States
     const [selectedPartner, setSelectedPartner] = useState('');
@@ -131,6 +135,9 @@ const ProjectDetail: React.FC = () => {
     });
 
     const filteredApartments = apartments.filter(a => {
+        // Sadece satılan (sold) daireleri göster. Mal sahibi (owner) veya ortak (common) alanlar tabloda gözükmesin.
+        if (a.status !== 'sold') return false;
+
         if (!searchTerm) return true;
         const term = searchTerm.toLowerCase();
         return (
@@ -364,7 +371,9 @@ const ProjectDetail: React.FC = () => {
     };
 
     const getPartnerTotal = (partnerId: string) => {
-        return expenses.filter(e => e.partner_id === partnerId).reduce((sum, e) => sum + e.amount, 0);
+        return expenses
+            .filter(e => e.partner_id === partnerId)
+            .reduce((sum, e) => sum + (e.amount || 0), 0);
     };
 
     const resetExpenseForm = () => {
@@ -545,7 +554,12 @@ const ProjectDetail: React.FC = () => {
     if (loading || !project) {
         return <Layout><div className="loading-container"><div className="spinner"></div></div></Layout>;
     }
-
+    
+    const generalTotal = activeTab === 'expenses'
+        ? expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+        : activeTab === 'checks'
+            ? checks.reduce((sum, c) => sum + (c.amount || 0), 0)
+            : 0;
     const aptStats = apartments.reduce((stats, apt) => {
         stats.total++;
         if (apt.status === 'sold') {
@@ -567,11 +581,109 @@ const ProjectDetail: React.FC = () => {
         return stats;
     }, { paidTotal: 0, pendingTotal: 0 });
 
-    const generalTotal = activeTab === 'checks'
-        ? (checkStats.paidTotal + checkStats.pendingTotal)
-        : expenses.reduce((sum, e) => sum + e.amount, 0);
+    const exportToExcel = () => {
+        let data = [];
+        let filename = "";
+        if (activeTab === 'expenses') {
+            data = filteredExpenses.map(e => ({
+                'Tarih': new Date(e.date).toLocaleDateString('tr-TR'),
+                'Kim İçin': project?.partners?.find(p => p.id === e.partner_id)?.name || '',
+                'Ödeme Şekli': e.payment_method || '-',
+                'Verilen Kişi': e.recipient || '-',
+                'İş Adı': e.category || '-',
+                'Açıklama': e.description || '-',
+                'Tutar': formatCurrency(e.amount)
+            }));
+            filename = "giderler.csv";
+        } else if (activeTab === 'checks') {
+            data = filteredChecks.map(c => ({
+                'Çek No': c.check_number,
+                'Tutar': formatCurrency(c.amount),
+                'Firma': c.company,
+                'Kategori': c.category,
+                'Keşideci': c.issuer,
+                'Veriliş Tarihi': new Date(c.given_date).toLocaleDateString('tr-TR'),
+                'Vade Tarihi': new Date(c.due_date).toLocaleDateString('tr-TR'),
+                'Durum': c.status === 'paid' ? 'Ödendi' : 'Bekliyor',
+                'Açıklama': c.description || '-'
+            }));
+            filename = "cekler.csv";
+        } else {
+            data = filteredApartments.map(a => ({
+                'Blok/Bina': a.building_name || '-',
+                'Daire No': a.apartment_number,
+                'Durum': a.status === 'sold' ? 'Satıldı' : (a.status === 'owner' ? 'M.Sahibi' : 'Müsait'),
+                'Müşteri': a.customer_name || '-',
+                'Telefon': a.customer_phone || '-',
+                'Liste Fiyatı': formatCurrency(a.price),
+                'Satış Fiyatı': formatCurrency(a.sold_price || 0),
+                'Alınan Ödeme': formatCurrency(a.paid_amount || 0),
+                'Kalan Alacak': formatCurrency((a.sold_price || 0) - (a.paid_amount || 0))
+            }));
+            filename = "daireler.csv";
+        }
+
+        if (data.length === 0) {
+            alert('İndirilecek veri bulunamadı.');
+            return;
+        }
+
+        const headers = Object.keys(data[0]);
+        
+        // Profesyonel Excel Görünümü için HTML Table yapısı (Zengin Format)
+        let tableHtml = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <!--[if gte mso 9]>
+                <xml>
+                    <x:ExcelWorkbook>
+                        <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>${activeTab === 'expenses' ? 'Giderler' : activeTab === 'checks' ? 'Çekler' : 'Daireler'}</x:Name>
+                                <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                        </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+                <style>
+                    table { border-collapse: collapse; }
+                    th { background-color: #15803d; color: white; font-weight: bold; border: 1pt solid #166534; text-align: left; }
+                    td { border: 1pt solid #e2e8f0; }
+                </style>
+            </head>
+            <body>
+                <table border="1">
+                    <thead>
+                        <tr>
+                            ${headers.map(h => `<th style="padding: 10px; font-size: 11px;">${h}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(row => `
+                            <tr>
+                                ${headers.map(h => `<td style="padding: 5px; font-size: 11px;">${(row as any)[h]}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+        
+        const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${project?.name || 'proje'}_${filename.replace('.csv', '.xls')}`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
+
         <Layout>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
 
@@ -615,14 +727,18 @@ const ProjectDetail: React.FC = () => {
                             <button className={`btn`} onClick={() => setActiveTab('apartments')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'apartments' ? 'white' : 'transparent', color: activeTab === 'apartments' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'apartments' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Daireler</button>
                         </div>
 
+
                         {activeTab === 'apartments' && (
+
                             <>
                                 <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     🗺️ {apartments.length === 0 ? 'Kat Planı Oluştur' : 'Kat Planı Güncelle'}
                                 </button>
-                                <button className="btn btn-secondary" onClick={() => setShow3DConfig(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', background: '#1e3a5f', borderColor: '#2563eb', color: '#60a5fa' }}>
-                                    🏗️ Bina 3D Tasarımı
+                                <button className="btn btn-secondary" onClick={() => setShowFloorEditor(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', background: '#0f172a', borderColor: '#334155', color: '#94a3b8' }}>
+                                    📐 Kat Planı Çiz
                                 </button>
+
+
                             </>
                         )}
                     </div>
@@ -636,7 +752,9 @@ const ProjectDetail: React.FC = () => {
                         aptStats={aptStats}
                         checkStats={checkStats}
                         formatCurrency={formatCurrency}
+                        onExport={exportToExcel}
                     />
+
                 </div>
 
 
@@ -738,13 +856,41 @@ const ProjectDetail: React.FC = () => {
                                 <div style={{ fontSize: '10px', color: 'var(--color-primary)', fontWeight: 800, letterSpacing: '0.5px', marginBottom: '2px' }}>{project.name.toUpperCase()}</div>
                                 <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>🏢 Bina Planı</h3>
                             </div>
-                            <span style={{ fontSize: '9px', color: 'var(--color-text-light)' }}>Tıklayarak düzenle</span>
+                            
+                            {/* View Toggle */}
+                            <div style={{ display: 'flex', gap: '2px', background: '#f1f5f9', padding: '2px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                <button 
+                                    onClick={() => setViewMode('2d')}
+                                    style={{ padding: '3px 10px', fontSize: '10px', fontWeight: 700, border: 'none', borderRadius: '4px', cursor: 'pointer', background: viewMode === '2d' ? 'white' : 'transparent', boxShadow: viewMode === '2d' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', color: viewMode === '2d' ? 'var(--color-primary)' : '#64748b' }}
+                                >2D</button>
+                                <button 
+                                    onClick={() => setViewMode('3d')}
+                                    style={{ padding: '3px 10px', fontSize: '10px', fontWeight: 700, border: 'none', borderRadius: '4px', cursor: 'pointer', background: viewMode === '3d' ? 'white' : 'transparent', boxShadow: viewMode === '3d' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', color: viewMode === '3d' ? 'var(--color-primary)' : '#64748b' }}
+                                >3D</button>
+                            </div>
                         </div>
-                        <FloorPlan apartments={apartments} onApartmentClick={(a) => {
-                            setEditingApartmentId(a.id);
-                            setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' });
-                            setShowApartmentModal(true);
-                        }} />
+
+                        {viewMode === '2d' ? (
+                            <FloorPlan apartments={apartments} onApartmentClick={(a) => {
+                                setEditingApartmentId(a.id);
+                                setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' });
+                                setShowApartmentModal(true);
+                            }} />
+                        ) : (
+                            <div style={{ height: '500px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                                <React.Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: '#64748b', letterSpacing: '1px' }}>3D YÜKLENİYOR...</div>}>
+                                    <Building3D 
+                                        apartments={apartments}
+                                        projectName={project.name}
+                                        onSelectApartment={(a) => {
+                                            setEditingApartmentId(a.id);
+                                            setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], project_id: a.project_id || id || '' });
+                                            setShowApartmentModal(true);
+                                        }}
+                                    />
+                                </React.Suspense>
+                            </div>
+                        )}
 
                         {/* Bina Resimleri Section */}
                         {activeTab === 'apartments' && (
@@ -1059,6 +1205,7 @@ const ProjectDetail: React.FC = () => {
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={project?.id || id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} projectImages={projectImages} />
+            <FloorPlanEditor isOpen={showFloorEditor} onClose={() => setShowFloorEditor(false)} projectName={project?.name} />
             {show3DConfig && project && (
                 <Building3DConfigModal
                     projectId={project.id}
