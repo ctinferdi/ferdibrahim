@@ -436,8 +436,8 @@ const Checks = () => {
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: 'var(--font-size-xs)' }}>
                                             {check.issuer}
                                         </td>
-                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 800, color: '#059669' }}>
-                                            {check.status === 'paid' ? 'ÖDENDİ' : ''}
+                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 800, color: check.status === 'paid' ? '#059669' : '#d97706' }}>
+                                            {check.status === 'paid' ? 'ÖDENDİ' : 'BEKLEMEDE'}
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
