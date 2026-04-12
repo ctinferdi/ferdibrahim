@@ -1,48 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const FONNTE_TOKEN = Deno.env.get('FONNTE_TOKEN') ?? ''
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
-
-const toLocalNumber = (phone: string): { target: string; countryCode: string } => {
-    const digits = phone.replace(/\D/g, '')
-    if (digits.startsWith('90') && digits.length === 12) return { target: digits.slice(2), countryCode: '90' }
-    if (digits.startsWith('0') && digits.length === 11) return { target: digits.slice(1), countryCode: '90' }
-    if (digits.startsWith('5') && digits.length === 10) return { target: digits, countryCode: '90' }
-    return { target: digits, countryCode: '90' }
-}
-
-const sendFonnte = async (phone: string, message: string): Promise<boolean> => {
-    const { target, countryCode } = toLocalNumber(phone)
-    if (!target || target.length < 9) return false
-
-    try {
-        const res = await fetch('https://api.fonnte.com/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': FONNTE_TOKEN,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                target,
-                message,
-                countryCode,
-            }),
-        })
-
-        const body = await res.json().catch(() => ({}))
-
-        if (!res.ok || body?.status === false) {
-            console.error('Fonnte send failed:', { phone, reason: body?.reason ?? `HTTP ${res.status}` })
-            return false
-        }
-
-        return true
-    } catch (err) {
-        console.error('Fonnte fetch error:', err)
-        return false
-    }
-}
 
 const sendEmail = async (emails: string[], subject: string, html: string): Promise<boolean> => {
     if (!RESEND_API_KEY || emails.length === 0) return false
@@ -99,9 +58,7 @@ serve(async () => {
             )
         }
 
-        let sentSms = 0
         let sentEmail = 0
-        let failedSms = 0
         let failedEmail = 0
 
         for (const check of checks) {
@@ -110,17 +67,6 @@ serve(async () => {
                 : '-'
             const dueDateFormatted = new Date(check.due_date).toLocaleDateString('tr-TR')
             const amountFormatted = new Intl.NumberFormat('tr-TR').format(check.amount) + ' ₺'
-
-            const whatsappMessage = `⏰ *ÇEK VADE HATIRLATMASI*
-
-Çek No: ${check.check_number || '-'}
-Vade Tarihi: ${dueDateFormatted}
-Tutar: ${amountFormatted}
-Şirket: ${check.company || '-'}
-Kullanım: ${check.category || '-'}
-Proje: ${projectName}
-
-*Vadeye 10 gün kaldı.*`
 
             const emailHtml = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -143,18 +89,6 @@ Proje: ${projectName}
             </div>
             `
 
-            // Handle WhatsApp
-            const phones = [
-                check.notification_phone,
-                check.notification_phone_2,
-                check.notification_phone_3,
-            ].filter((p: string | null) => p && p.trim() !== '') as string[]
-
-            for (const phone of phones) {
-                const ok = await sendFonnte(phone, whatsappMessage)
-                ok ? sentSms++ : failedSms++
-            }
-
             // Handle Email
             const emails = [
                 check.notification_email,
@@ -171,7 +105,6 @@ Proje: ${projectName}
         return new Response(
             JSON.stringify({ 
                 message: 'Bildirimler işlendi', 
-                whatsapp: { sent: sentSms, failed: failedSms },
                 email: { sent: sentEmail, failed: failedEmail }
             }),
             { headers: { 'Content-Type': 'application/json' }, status: 200 }

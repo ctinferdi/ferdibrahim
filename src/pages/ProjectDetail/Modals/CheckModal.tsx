@@ -2,31 +2,6 @@ import React from 'react';
 import { formatNumberWithDots, parseNumberFromDots } from '../../../utils/formatters';
 import { Project } from '../../../types';
 
-const formatPhoneDisplay = (raw: string): string => {
-    const d = raw.replace(/\D/g, '');
-    if (!d) return '';
-    if (d.startsWith('905') && d.length <= 12) {
-        const n = d.slice(2);
-        let out = '+90(';
-        out += n.slice(0, 3);
-        if (n.length >= 3) out += ') ';
-        out += n.slice(3, 6);
-        if (n.length >= 6) out += ' ';
-        out += n.slice(6, 10);
-        return out;
-    }
-    if (d.startsWith('0') && d.length <= 11) {
-        const n = d.slice(1);
-        let out = '0(';
-        out += n.slice(0, 3);
-        if (n.length >= 3) out += ') ';
-        out += n.slice(3, 6);
-        if (n.length >= 6) out += ' ';
-        out += n.slice(6, 10);
-        return out;
-    }
-    return d;
-};
 
 interface CheckModalProps {
     isOpen: boolean;
@@ -44,9 +19,6 @@ interface CheckModalProps {
         status: string;
         given_date: string;
         description?: string;
-        notification_phone?: string;
-        notification_phone_2?: string;
-        notification_phone_3?: string;
         notification_email?: string;
         notification_email_2?: string;
         notification_email_3?: string;
@@ -63,7 +35,6 @@ const CheckModal: React.FC<CheckModalProps> = ({
     checkFormData, setCheckFormData,
     saving, errorMsg, projects = []
 }) => {
-    const [showPhones, setShowPhones] = React.useState(false);
     const [showEmails, setShowEmails] = React.useState(false);
 
     if (!isOpen) return null;

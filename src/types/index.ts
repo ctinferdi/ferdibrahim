@@ -45,9 +45,6 @@ export interface Check {
     status: CheckStatus;
     description?: string;
     project_id?: string;
-    notification_phone?: string;
-    notification_phone_2?: string;
-    notification_phone_3?: string;
     notification_email?: string;
     notification_email_2?: string;
     notification_email_3?: string;
