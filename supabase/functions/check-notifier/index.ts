@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const FONNTE_TOKEN = Deno.env.get('FONNTE_TOKEN') ?? ''
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 
 const toLocalNumber = (phone: string): { target: string; countryCode: string } => {
     const digits = phone.replace(/\D/g, '')
@@ -32,13 +33,38 @@ const sendFonnte = async (phone: string, message: string): Promise<boolean> => {
         const body = await res.json().catch(() => ({}))
 
         if (!res.ok || body?.status === false) {
-            console.error('Fonnte send failed:', { phone: normalized, reason: body?.reason ?? `HTTP ${res.status}` })
+            console.error('Fonnte send failed:', { phone, reason: body?.reason ?? `HTTP ${res.status}` })
             return false
         }
 
         return true
     } catch (err) {
         console.error('Fonnte fetch error:', err)
+        return false
+    }
+}
+
+const sendEmail = async (emails: string[], subject: string, html: string): Promise<boolean> => {
+    if (!RESEND_API_KEY || emails.length === 0) return false
+
+    try {
+        const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+                from: 'InsaatHesapp <onboarding@resend.dev>',
+                to: emails,
+                subject,
+                html,
+            }),
+        })
+
+        return res.ok
+    } catch (err) {
+        console.error('Resend fetch error:', err)
         return false
     }
 }
@@ -73,8 +99,10 @@ serve(async () => {
             )
         }
 
-        let sent = 0
-        let failed = 0
+        let sentSms = 0
+        let sentEmail = 0
+        let failedSms = 0
+        let failedEmail = 0
 
         for (const check of checks) {
             const projectName = check.project_id
@@ -83,7 +111,7 @@ serve(async () => {
             const dueDateFormatted = new Date(check.due_date).toLocaleDateString('tr-TR')
             const amountFormatted = new Intl.NumberFormat('tr-TR').format(check.amount) + ' ₺'
 
-            const message = `⏰ *ÇEK VADE HATIRLATMASI*
+            const whatsappMessage = `⏰ *ÇEK VADE HATIRLATMASI*
 
 Çek No: ${check.check_number || '-'}
 Vade Tarihi: ${dueDateFormatted}
@@ -94,25 +122,58 @@ Proje: ${projectName}
 
 *Vadeye 10 gün kaldı.*`
 
+            const emailHtml = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #4338ca; border-bottom: 2px solid #4338ca; padding-bottom: 10px;">⏰ Çek Vade Hatırlatması</h2>
+                <p>Merhaba,</p>
+                <p>Vadesine 10 gün kalan bir çek ödemeniz bulunmaktadır:</p>
+                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>Vade Tarihi:</strong> <span style="color: #dc2626; font-weight: bold;">${dueDateFormatted}</span></p>
+                    <p style="margin: 5px 0;"><strong>Tutar:</strong> <span style="font-size: 18px; font-weight: bold;">${amountFormatted}</span></p>
+                    <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 15px 0;">
+                    <p style="margin: 5px 0;"><strong>Şirket:</strong> ${check.company || '-'}</p>
+                    <p style="margin: 5px 0;"><strong>Çek No:</strong> ${check.check_number || '-'}</p>
+                    <p style="margin: 5px 0;"><strong>Kullanım Alanı:</strong> ${check.category || '-'}</p>
+                    <p style="margin: 5px 0;"><strong>Proje:</strong> ${projectName}</p>
+                    <p style="margin: 5px 0;"><strong>Çeki Veren:</strong> ${check.issuer || '-'}</p>
+                </div>
+                <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
+                    Bu e-posta sistem tarafından otomatik olarak gönderilmiştir.
+                </p>
+            </div>
+            `
+
+            // Handle WhatsApp
             const phones = [
                 check.notification_phone,
                 check.notification_phone_2,
                 check.notification_phone_3,
             ].filter((p: string | null) => p && p.trim() !== '') as string[]
 
-            if (phones.length === 0) {
-                console.warn(`Check ${check.check_number} has no notification phones, skipping.`)
-                continue
+            for (const phone of phones) {
+                const ok = await sendFonnte(phone, whatsappMessage)
+                ok ? sentSms++ : failedSms++
             }
 
-            for (const phone of phones) {
-                const ok = await sendFonnte(phone, message)
-                ok ? sent++ : failed++
+            // Handle Email
+            const emails = [
+                check.notification_email,
+                check.notification_email_2,
+                check.notification_email_3,
+            ].filter((e: string | null) => e && e.trim() !== '') as string[]
+
+            if (emails.length > 0) {
+                const ok = await sendEmail(emails, `⏰ ÇEK VADE HATIRLATMASI: ${dueDateFormatted}`, emailHtml)
+                ok ? sentEmail += emails.length : failedEmail += emails.length
             }
         }
 
         return new Response(
-            JSON.stringify({ message: 'Bildirimler işlendi', sent, failed }),
+            JSON.stringify({ 
+                message: 'Bildirimler işlendi', 
+                whatsapp: { sent: sentSms, failed: failedSms },
+                email: { sent: sentEmail, failed: failedEmail }
+            }),
             { headers: { 'Content-Type': 'application/json' }, status: 200 }
         )
 

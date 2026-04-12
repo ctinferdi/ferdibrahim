@@ -48,6 +48,9 @@ export interface Check {
     notification_phone?: string;
     notification_phone_2?: string;
     notification_phone_3?: string;
+    notification_email?: string;
+    notification_email_2?: string;
+    notification_email_3?: string;
     created_by_email?: string;
     user_id?: string;
     created_at?: string;

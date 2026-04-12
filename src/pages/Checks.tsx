@@ -50,6 +50,9 @@ const Checks = () => {
         notification_phone: '',
         notification_phone_2: '',
         notification_phone_3: '',
+        notification_email: '',
+        notification_email_2: '',
+        notification_email_3: '',
         project_id: ''
     });
 
@@ -118,6 +121,9 @@ const Checks = () => {
             notification_phone: '',
             notification_phone_2: '',
             notification_phone_3: '',
+            notification_email: '',
+            notification_email_2: '',
+            notification_email_3: '',
             project_id: ''
         });
     };
@@ -138,6 +144,9 @@ const Checks = () => {
             notification_phone: check.notification_phone || '',
             notification_phone_2: check.notification_phone_2 || '',
             notification_phone_3: check.notification_phone_3 || '',
+            notification_email: check.notification_email || '',
+            notification_email_2: check.notification_email_2 || '',
+            notification_email_3: check.notification_email_3 || '',
             project_id: check.project_id || ''
         });
         setErrorMsg(null);
@@ -195,13 +204,23 @@ const Checks = () => {
             check.notification_phone_3,
         ].filter(p => p && p.trim() !== '');
 
-        if (phones.length === 0) {
-            alert('Bu çek için tanımlı bir WhatsApp numarası bulunamadı. Lütfen önce numara ekleyin.');
+        const emails = [
+            check.notification_email,
+            check.notification_email_2,
+            check.notification_email_3,
+        ].filter(e => e && e.trim() !== '');
+
+        if (phones.length === 0 && emails.length === 0) {
+            alert('Bu çek için tanımlı bir WhatsApp numarası veya e-posta adresi bulunamadı. Lütfen önce iletişim bilgisi ekleyin.');
             handleEdit(check);
             return;
         }
 
-        if (!window.confirm(`${check.check_number} numaralı çek için WhatsApp bildirimi şimdi gönderilsin mi?\n\nNumaralar: ${phones.join(', ')}`)) return;
+        let confirmMsg = `${check.check_number} numaralı çek için bildirimler şimdi gönderilsin mi?`;
+        if (phones.length > 0) confirmMsg += `\n- WhatsApp: ${phones.join(', ')}`;
+        if (emails.length > 0) confirmMsg += `\n- E-posta: ${emails.join(', ')}`;
+
+        if (!window.confirm(confirmMsg)) return;
 
         setSendingCode(true);
         try {
@@ -217,7 +236,10 @@ const Checks = () => {
             if (data?.success === false) {
                 alert('❌ Bildirim gönderilemedi: ' + (data.error || 'Bilinmeyen hata'));
             } else {
-                alert(`✅ WhatsApp mesajı gönderildi! (${data?.sent ?? 1} numara)`);
+                const parts = [];
+                if (data?.sentSms) parts.push(`WhatsApp (${data.sentSms})`);
+                if (data?.sentEmail) parts.push(`E-posta (${data.sentEmail})`);
+                alert(`✅ Bildirim gönderildi! ${parts.join(' ve ')}`);
             }
         } catch (error: any) {
             console.error('Manual notify error details:', error);
@@ -377,9 +399,9 @@ const Checks = () => {
                                                 onClick={() => handleManualNotify(check)}
                                                 style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1 }}
                                                 className="hover-scale"
-                                                title={(check.notification_phone || check.notification_phone_2 || check.notification_phone_3) ? "Şimdi WhatsApp bildirimi gönder" : "WhatsApp numarası eklemek için tıkla"}
+                                                title={(check.notification_phone || check.notification_phone_2 || check.notification_phone_3 || check.notification_email || check.notification_email_2 || check.notification_email_3) ? "Şimdi bildirim gönder (WhatsApp & E-posta)" : "Bildirim bilgilerini eklemek için tıkla"}
                                             >
-                                                {(check.notification_phone || check.notification_phone_2 || check.notification_phone_3) ? '🔔' : '🔕'}
+                                                {(check.notification_phone || check.notification_phone_2 || check.notification_phone_3 || check.notification_email || check.notification_email_2 || check.notification_email_3) ? '🔔' : '🔕'}
                                             </div>
                                         </td>
                                         <td style={{

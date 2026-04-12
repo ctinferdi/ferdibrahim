@@ -32,3 +32,19 @@ BEGIN
         ALTER TABLE projects ADD COLUMN notification_emails text[];
     END IF;
 END $$;
+
+-- Add new columns to checks table
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'checks' AND column_name = 'notification_email') THEN
+        ALTER TABLE checks ADD COLUMN notification_email text;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'checks' AND column_name = 'notification_email_2') THEN
+        ALTER TABLE checks ADD COLUMN notification_email_2 text;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'checks' AND column_name = 'notification_email_3') THEN
+        ALTER TABLE checks ADD COLUMN notification_email_3 text;
+    END IF;
+END $$;

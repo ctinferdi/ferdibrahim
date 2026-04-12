@@ -47,6 +47,9 @@ interface CheckModalProps {
         notification_phone?: string;
         notification_phone_2?: string;
         notification_phone_3?: string;
+        notification_email?: string;
+        notification_email_2?: string;
+        notification_email_3?: string;
         project_id?: string;
     };
     setCheckFormData: (data: any) => void;
@@ -61,6 +64,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
     saving, errorMsg, projects = []
 }) => {
     const [showPhones, setShowPhones] = React.useState(false);
+    const [showEmails, setShowEmails] = React.useState(false);
 
     if (!isOpen) return null;
 
@@ -250,8 +254,57 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                         placeholder="3. Numara (Opsiyonel)"
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
                                     />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Email Bildirimleri - Collapsible */}
+                        <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '2px', marginTop: '4px' }}>
+                            <div
+                                onClick={() => setShowEmails(!showEmails)}
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    padding: '4px 0',
+                                    borderBottom: '1px solid #e0e7ff'
+                                }}
+                            >
+                                <label className="form-label" style={{ fontSize: '10px', cursor: 'pointer', marginBottom: 0, color: '#4338ca', fontWeight: 800 }}>
+                                    📧 E-POSTA BİLDİRİM ADRESLERİ
+                                </label>
+                                <span style={{ fontSize: '10px', color: '#4338ca' }}>{showEmails ? '▲' : '▼'}</span>
+                            </div>
+
+                            {showEmails && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
+                                    <input
+                                        type="email"
+                                        className="form-input"
+                                        value={checkFormData.notification_email || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email: e.target.value })}
+                                        placeholder="E-posta adresi (1)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#c7d2fe' }}
+                                    />
+                                    <input
+                                        type="email"
+                                        className="form-input"
+                                        value={checkFormData.notification_email_2 || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_2: e.target.value })}
+                                        placeholder="E-posta adresi (2)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#c7d2fe' }}
+                                    />
+                                    <input
+                                        type="email"
+                                        className="form-input"
+                                        value={checkFormData.notification_email_3 || ''}
+                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_email_3: e.target.value })}
+                                        placeholder="E-posta adresi (3)"
+                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#c7d2fe' }}
+                                    />
                                     <p style={{ fontSize: '10px', color: '#6b7280', margin: '2px 0 0 0' }}>
-                                        Numara girerken otomatik formatlanır. Vade 10 gün kala WhatsApp mesajı gönderilir.
+                                        Vade 10 gün kala girilen e-postaların tümüne bilgilendirme gönderilir.
                                     </p>
                                 </div>
                             )}

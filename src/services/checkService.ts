@@ -54,6 +54,9 @@ export const addCheck = async (check: CheckInput, userId: string): Promise<void>
     if (check.notification_phone) checkData.notification_phone = check.notification_phone;
     if (check.notification_phone_2) checkData.notification_phone_2 = check.notification_phone_2;
     if (check.notification_phone_3) checkData.notification_phone_3 = check.notification_phone_3;
+    if (check.notification_email) checkData.notification_email = check.notification_email;
+    if (check.notification_email_2) checkData.notification_email_2 = check.notification_email_2;
+    if (check.notification_email_3) checkData.notification_email_3 = check.notification_email_3;
 
     const { error } = await supabase
         .from('checks')
