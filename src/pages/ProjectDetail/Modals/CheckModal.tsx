@@ -209,54 +209,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                             </select>
                         </div>
 
-                        {/* WhatsApp Bildirimleri - Collapsible */}
-                        <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '2px' }}>
-                            <div
-                                onClick={() => setShowPhones(!showPhones)}
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    cursor: 'pointer',
-                                    padding: '4px 0',
-                                    borderBottom: '1px solid #d1fae5'
-                                }}
-                            >
-                                <label className="form-label" style={{ fontSize: '10px', cursor: 'pointer', marginBottom: 0, color: '#059669', fontWeight: 800 }}>
-                                    📱 WHATSAPP BİLDİRİM NUMARALARI
-                                </label>
-                                <span style={{ fontSize: '10px', color: '#059669' }}>{showPhones ? '▲' : '▼'}</span>
-                            </div>
 
-                            {showPhones && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
-                                    <input
-                                        type="tel"
-                                        className="form-input"
-                                        value={formatPhoneDisplay(checkFormData.notification_phone || '')}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="0(5XX) XXX XXXX"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
-                                    />
-                                    <input
-                                        type="tel"
-                                        className="form-input"
-                                        value={formatPhoneDisplay(checkFormData.notification_phone_2 || '')}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_2: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="2. Numara (Opsiyonel)"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
-                                    />
-                                    <input
-                                        type="tel"
-                                        className="form-input"
-                                        value={formatPhoneDisplay(checkFormData.notification_phone_3 || '')}
-                                        onChange={(e) => setCheckFormData({ ...checkFormData, notification_phone_3: e.target.value.replace(/\D/g, '') })}
-                                        placeholder="3. Numara (Opsiyonel)"
-                                        style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#6ee7b7' }}
-                                    />
-                                </div>
-                            )}
-                        </div>
 
                         {/* Email Bildirimleri - Collapsible */}
                         <div className="form-group" style={{ gridColumn: 'span 2', marginBottom: '2px', marginTop: '4px' }}>
