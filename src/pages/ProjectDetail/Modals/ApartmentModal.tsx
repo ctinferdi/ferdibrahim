@@ -55,18 +55,29 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const cleanInstallments = installments.map(ins => ({
+                ...ins,
+                amount: typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount
+            }));
+
+            // Ödenen taksitlerin toplamını hesapla
+            const paidInstallmentsTotal = cleanInstallments
+                .filter(ins => ins.status === 'paid')
+                .reduce((sum, ins) => sum + (ins.amount || 0), 0);
+
+            // Ana peşinat/ara ödeme miktarı
+            const basePaidAmount = parseNumberFromDots(apartmentFormData.paid_amount);
+
             const cleanData = {
                 ...apartmentFormData,
                 price: parseNumberFromDots(apartmentFormData.price),
                 sold_price: parseNumberFromDots(apartmentFormData.sold_price),
-                paid_amount: parseNumberFromDots(apartmentFormData.paid_amount),
+                // Toplam alınan ödeme = Peşinat + Ödenen Taksitler
+                paid_amount: basePaidAmount + paidInstallmentsTotal,
                 square_meters: Number(apartmentFormData.square_meters) || 0,
                 floor: Number(apartmentFormData.floor) || 0,
                 sort_order: Number(apartmentFormData.sort_order) || 0,
-                installments: installments.map(ins => ({
-                    ...ins,
-                    amount: typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount
-                }))
+                installments: cleanInstallments
             };
 
             if (editingApartmentId) {
@@ -257,9 +268,13 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fff5f5', borderRadius: '4px', border: '1px dashed #feb2b2' }}>
-                                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: '#c53030' }}>KALAN ALACAK:</span>
+                                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: '#c53030' }}>GERÇEK KALAN ALACAK:</span>
                                     <span style={{ fontWeight: 'bold', color: '#c53030' }}>
-                                        {formatCurrency(parseNumberFromDots(apartmentFormData.sold_price) - parseNumberFromDots(apartmentFormData.paid_amount))}
+                                        {formatCurrency(
+                                            parseNumberFromDots(apartmentFormData.sold_price) - 
+                                            (parseNumberFromDots(apartmentFormData.paid_amount) + 
+                                            installments.filter(ins => ins.status === 'paid').reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))
+                                        )}
                                     </span>
                                 </div>
 
