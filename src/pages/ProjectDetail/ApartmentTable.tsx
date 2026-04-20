@@ -17,7 +17,7 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                     <thead>
                         <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
-                            {['DAİRE NO', 'LİSTE FİYATI', 'SATIŞ FİYATI', 'ALINAN ÖDEME', 'KALAN ALACAK', 'DURUM', 'MÜŞTERİ BİLGİSİ', 'İŞLEM'].map(h => (
+                            {['DAİRE NO', 'LİSTE FİYATI', 'SATIŞ FİYATI', 'ALINAN ÖDEME', 'KALAN ALACAK', 'TAKSİT PLANI', 'DURUM', 'MÜŞTERİ BİLGİSİ', 'İŞLEM'].map(h => (
                                 <th key={h} style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: h === 'DAİRE NO' ? '80px' : (h === 'İŞLEM' || h === 'DURUM' ? '100px' : 'auto') }}>{h}</th>
                             ))}
                         </tr>
@@ -25,7 +25,7 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                     <tbody>
                         {[1, 2, 3, 4, 5].map(i => (
                             <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(j => (
                                     <td key={j} style={{ padding: 'var(--spacing-md)' }}>
                                         <div style={{ height: '20px', background: '#f1f5f9', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
                                     </td>
@@ -43,10 +43,11 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                 <thead>
                     <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>DAİRE NO</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>LİSTE FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>SATIŞ FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>ALINAN ÖDEME</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>KALAN ALACAK</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>LİSTE FİYATI</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>SATIŞ FİYATI</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>ALINAN ÖDEME</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>KALAN ALACAK</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>TAKSİT PLANI</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '100px' }}>DURUM</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)' }}>MÜŞTERİ BİLGİSİ</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', width: '100px' }}>İŞLEM</th>
@@ -96,12 +97,17 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                         {apartment.status === 'sold' ? formatCurrency(paidAmount) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' ? (
+                                        {apartment.status === 'sold' ? formatCurrency(remaining) : '-'}
+                                    </td>
+                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#6366f1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {apartment.status === 'sold' && apartment.installments && apartment.installments.length > 0 ? (
                                             <div>
-                                                <div>{formatCurrency(remaining)}</div>
+                                                <div style={{ fontWeight: 700 }}>
+                                                    {apartment.installments.filter(i => i.status === 'paid').length} / {apartment.installments.length} Ödendi
+                                                </div>
                                                 {nextInstallment && (
-                                                    <div style={{ fontSize: '9px', color: '#6366f1', marginTop: '2px', fontWeight: 600 }}>
-                                                        🗓️ {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}
+                                                    <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px' }}>
+                                                        Sıradaki: {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}
                                                     </div>
                                                 )}
                                             </div>
