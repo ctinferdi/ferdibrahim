@@ -24,6 +24,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
     if (!isOpen) return null;
 
     const [installments, setInstallments] = useState<any[]>([]);
+    const [showInstallments, setShowInstallments] = useState(false);
 
     useEffect(() => {
         setInstallments(apartmentFormData.installments || []);
@@ -278,63 +279,84 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     </span>
                                 </div>
 
-                                {/* Taksitler Bölümü */}
-                                <div style={{ marginTop: 'var(--spacing-sm)', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <h5 style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#475569' }}>TAKSİT PLANI</h5>
-                                        <button 
-                                            type="button" 
-                                            onClick={addInstallment}
-                                            style={{ padding: '2px 8px', fontSize: '10px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            + Taksit Ekle
-                                        </button>
-                                    </div>
-                                    
-                                    <div style={{ display: 'grid', gap: '6px' }}>
-                                        {installments.map((ins, idx) => (
-                                            <div key={ins.id} style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '6px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
-                                                <input 
-                                                    type="text"
-                                                    placeholder="Tutar"
-                                                    value={formatNumberWithDots(ins.amount)}
-                                                    onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
-                                                    style={{ width: '80px', padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                                                />
-                                                <input 
-                                                    type="date"
-                                                    value={ins.due_date}
-                                                    onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
-                                                    style={{ flex: 1, padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                                                />
-                                                <select 
-                                                    value={ins.status}
-                                                    onChange={(e) => updateInstallment(ins.id, 'status', e.target.value)}
-                                                    style={{ padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', color: ins.status === 'paid' ? '#10b981' : '#f59e0b' }}
-                                                >
-                                                    <option value="pending">Bekliyor</option>
-                                                    <option value="paid">Ödendi</option>
-                                                </select>
-                                                <button 
-                                                    type="button"
-                                                    onClick={() => removeInstallment(ins.id)}
-                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px' }}
-                                                >✕</button>
-                                            </div>
-                                        ))}
-                                        {installments.length === 0 && (
-                                            <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', padding: '10px', fontStyle: 'italic' }}>
-                                                Taksit planı oluşturulmadı.
-                                            </div>
+                                {/* Taksitler Bölümü Header (Gizle/Göster) */}
+                                <div style={{ 
+                                    marginTop: 'var(--spacing-sm)', 
+                                    padding: '10px', 
+                                    background: '#fff', 
+                                    borderRadius: '6px', 
+                                    border: '1px solid #e2e8f0' 
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={showInstallments} 
+                                                onChange={(e) => setShowInstallments(e.target.checked)}
+                                                id="chkInstallments"
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                            <label htmlFor="chkInstallments" style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#475569', cursor: 'pointer' }}>
+                                                TAKSİT PLANI {showInstallments ? '' : '(Gizli)'}
+                                            </label>
+                                        </div>
+                                        {showInstallments && (
+                                            <button 
+                                                type="button" 
+                                                onClick={addInstallment}
+                                                style={{ padding: '2px 8px', fontSize: '10px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                + Taksit Ekle
+                                            </button>
                                         )}
                                     </div>
                                     
-                                    {installments.length > 0 && (
-                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                                            <span style={{ fontWeight: 600 }}>Taksit Toplamı:</span>
-                                            <span style={{ fontWeight: 700, color: '#6366f1' }}>
-                                                {formatCurrency(installments.reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))}
-                                            </span>
+                                    {showInstallments && (
+                                        <div style={{ marginTop: '12px', display: 'grid', gap: '6px' }}>
+                                            {installments.map((ins, idx) => (
+                                                <div key={ins.id} style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '6px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="Tutar"
+                                                        value={formatNumberWithDots(ins.amount)}
+                                                        onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
+                                                        style={{ width: '80px', padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                                    />
+                                                    <input 
+                                                        type="date"
+                                                        value={ins.due_date}
+                                                        onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
+                                                        style={{ flex: 1, padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                                    />
+                                                    <select 
+                                                        value={ins.status}
+                                                        onChange={(e) => updateInstallment(ins.id, 'status', e.target.value)}
+                                                        style={{ padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', color: ins.status === 'paid' ? '#10b981' : '#f59e0b' }}
+                                                    >
+                                                        <option value="pending">Bekliyor</option>
+                                                        <option value="paid">Ödendi</option>
+                                                    </select>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => removeInstallment(ins.id)}
+                                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px' }}
+                                                    >✕</button>
+                                                </div>
+                                            ))}
+                                            {installments.length === 0 && (
+                                                <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', padding: '10px', fontStyle: 'italic' }}>
+                                                    Taksit planı oluşturulmadı.
+                                                </div>
+                                            )}
+                                            
+                                            {installments.length > 0 && (
+                                                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                                                    <span style={{ fontWeight: 600 }}>Taksit Toplamı:</span>
+                                                    <span style={{ fontWeight: 700, color: '#6366f1' }}>
+                                                        {formatCurrency(installments.reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
