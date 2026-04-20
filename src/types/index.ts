@@ -66,6 +66,15 @@ export interface PlanFile {
     uploaded_at: string;
 }
 
+export interface Installment {
+    id: string;
+    amount: number;
+    due_date: string;
+    status: 'pending' | 'paid';
+    description?: string;
+    paid_at?: string;
+}
+
 export interface Apartment {
     id: string;
     building_name: string;
@@ -80,6 +89,7 @@ export interface Apartment {
     customer_phone?: string;
     sort_order?: number;
     plan_files?: PlanFile[];
+    installments?: Installment[];
     project_id?: string;
     user_id?: string;
     created_at?: string;

@@ -66,6 +66,11 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                             const paidAmount = apartment.paid_amount || 0;
                             const remaining = soldPrice - paidAmount;
                             
+                            const pendingInstallments = apartment.installments?.filter(ins => ins.status === 'pending') || [];
+                            const nextInstallment = pendingInstallments.length > 0 
+                                ? pendingInstallments.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0]
+                                : null;
+                            
                             const getStatusBadge = (status: string) => {
                                 switch (status) {
                                     case 'sold': return { text: 'SATILDI', bg: '#dcfce7', color: '#15803d' };
@@ -91,7 +96,16 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                         {apartment.status === 'sold' ? formatCurrency(paidAmount) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' ? formatCurrency(remaining) : '-'}
+                                        {apartment.status === 'sold' ? (
+                                            <div>
+                                                <div>{formatCurrency(remaining)}</div>
+                                                {nextInstallment && (
+                                                    <div style={{ fontSize: '9px', color: '#6366f1', marginTop: '2px', fontWeight: 600 }}>
+                                                        🗓️ {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : '-'}
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                                         <span style={{

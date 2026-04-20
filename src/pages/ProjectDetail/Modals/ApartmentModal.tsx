@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { apartmentService } from '../../../services/apartmentService';
 import { formatNumberWithDots, parseNumberFromDots } from '../../../utils/formatters';
 import FileUploadSection from './FileUploadSection';
@@ -22,6 +23,35 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 }) => {
     if (!isOpen) return null;
 
+    const [installments, setInstallments] = useState<any[]>([]);
+
+    useEffect(() => {
+        setInstallments(apartmentFormData.installments || []);
+    }, [apartmentFormData.installments]);
+
+    const addInstallment = () => {
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + installments.length + 1);
+        const newInstallment = {
+            id: crypto.randomUUID(),
+            amount: 0,
+            due_date: nextMonth.toISOString().split('T')[0],
+            status: 'pending',
+            description: `${installments.length + 1}. Taksit`
+        };
+        setInstallments([...installments, newInstallment]);
+    };
+
+    const updateInstallment = (id: string, field: string, value: any) => {
+        setInstallments(installments.map(ins => 
+            ins.id === id ? { ...ins, [field]: value } : ins
+        ));
+    };
+
+    const removeInstallment = (id: string) => {
+        setInstallments(installments.filter(ins => ins.id !== id));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -32,7 +62,11 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 paid_amount: parseNumberFromDots(apartmentFormData.paid_amount),
                 square_meters: Number(apartmentFormData.square_meters) || 0,
                 floor: Number(apartmentFormData.floor) || 0,
-                sort_order: Number(apartmentFormData.sort_order) || 0
+                sort_order: Number(apartmentFormData.sort_order) || 0,
+                installments: installments.map(ins => ({
+                    ...ins,
+                    amount: typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount
+                }))
             };
 
             if (editingApartmentId) {
@@ -227,6 +261,67 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     <span style={{ fontWeight: 'bold', color: '#c53030' }}>
                                         {formatCurrency(parseNumberFromDots(apartmentFormData.sold_price) - parseNumberFromDots(apartmentFormData.paid_amount))}
                                     </span>
+                                </div>
+
+                                {/* Taksitler Bölümü */}
+                                <div style={{ marginTop: 'var(--spacing-sm)', padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <h5 style={{ margin: 0, fontSize: '11px', fontWeight: 700, color: '#475569' }}>TAKSİT PLANI</h5>
+                                        <button 
+                                            type="button" 
+                                            onClick={addInstallment}
+                                            style={{ padding: '2px 8px', fontSize: '10px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                        >
+                                            + Taksit Ekle
+                                        </button>
+                                    </div>
+                                    
+                                    <div style={{ display: 'grid', gap: '6px' }}>
+                                        {installments.map((ins, idx) => (
+                                            <div key={ins.id} style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '6px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Tutar"
+                                                    value={formatNumberWithDots(ins.amount)}
+                                                    onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
+                                                    style={{ width: '80px', padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                                />
+                                                <input 
+                                                    type="date"
+                                                    value={ins.due_date}
+                                                    onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
+                                                    style={{ flex: 1, padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                                                />
+                                                <select 
+                                                    value={ins.status}
+                                                    onChange={(e) => updateInstallment(ins.id, 'status', e.target.value)}
+                                                    style={{ padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1', color: ins.status === 'paid' ? '#10b981' : '#f59e0b' }}
+                                                >
+                                                    <option value="pending">Bekliyor</option>
+                                                    <option value="paid">Ödendi</option>
+                                                </select>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => removeInstallment(ins.id)}
+                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px' }}
+                                                >✕</button>
+                                            </div>
+                                        ))}
+                                        {installments.length === 0 && (
+                                            <div style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', padding: '10px', fontStyle: 'italic' }}>
+                                                Taksit planı oluşturulmadı.
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {installments.length > 0 && (
+                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
+                                            <span style={{ fontWeight: 600 }}>Taksit Toplamı:</span>
+                                            <span style={{ fontWeight: 700, color: '#6366f1' }}>
+                                                {formatCurrency(installments.reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
