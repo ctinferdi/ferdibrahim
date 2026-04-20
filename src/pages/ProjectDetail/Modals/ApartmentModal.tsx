@@ -25,10 +25,20 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
     const [installments, setInstallments] = useState<any[]>([]);
     const [showInstallments, setShowInstallments] = useState(false);
+    const [baseDownpayment, setBaseDownpayment] = useState<string>('0');
 
     useEffect(() => {
-        setInstallments(apartmentFormData.installments || []);
-    }, [apartmentFormData.installments]);
+        const initialInstallments = apartmentFormData.installments || [];
+        setInstallments(initialInstallments);
+
+        // İlk açılışta ana peşinatı hesapla: Toplam Alınan - Ödenmiş Taksitler
+        const totalPaid = apartmentFormData.paid_amount || 0;
+        const paidInstallmentsSum = initialInstallments
+            .filter((ins: any) => ins.status === 'paid')
+            .reduce((sum: number, ins: any) => sum + (Number(ins.amount) || 0), 0);
+        
+        setBaseDownpayment(formatNumberWithDots(totalPaid - paidInstallmentsSum));
+    }, [apartmentFormData.installments, apartmentFormData.paid_amount]);
 
     const addInstallment = () => {
         const nextMonth = new Date();
@@ -66,15 +76,15 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 .filter(ins => ins.status === 'paid')
                 .reduce((sum, ins) => sum + (ins.amount || 0), 0);
 
-            // Ana peşinat/ara ödeme miktarı
-            const basePaidAmount = parseNumberFromDots(apartmentFormData.paid_amount);
+            // Ana peşinat (input'tan gelen)
+            const currentBaseDownpayment = parseNumberFromDots(baseDownpayment);
 
             const cleanData = {
                 ...apartmentFormData,
                 price: parseNumberFromDots(apartmentFormData.price),
                 sold_price: parseNumberFromDots(apartmentFormData.sold_price),
-                // Toplam alınan ödeme = Peşinat + Ödenen Taksitler
-                paid_amount: basePaidAmount + paidInstallmentsTotal,
+                // Toplam alınan ödeme = Ana Peşinat + Ödenen Taksitler
+                paid_amount: currentBaseDownpayment + paidInstallmentsTotal,
                 square_meters: Number(apartmentFormData.square_meters) || 0,
                 floor: Number(apartmentFormData.floor) || 0,
                 sort_order: Number(apartmentFormData.sort_order) || 0,
@@ -262,8 +272,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                         <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Aldığım (Peşinat/Ara Öd.)</label>
                                         <input
                                             type="text"
-                                            value={formatNumberWithDots(apartmentFormData.paid_amount)}
-                                            onChange={(e) => setApartmentFormData({ ...apartmentFormData, paid_amount: e.target.value })}
+                                            value={baseDownpayment}
+                                            onChange={(e) => setBaseDownpayment(e.target.value)}
                                             style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#10b981' }}
                                         />
                                     </div>
@@ -273,7 +283,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     <span style={{ fontWeight: 'bold', color: '#c53030' }}>
                                         {formatCurrency(
                                             parseNumberFromDots(apartmentFormData.sold_price) - 
-                                            (parseNumberFromDots(apartmentFormData.paid_amount) + 
+                                            (parseNumberFromDots(baseDownpayment) + 
                                             installments.filter(ins => ins.status === 'paid').reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))
                                         )}
                                     </span>
