@@ -11,6 +11,8 @@ interface ApartmentTableProps {
 }
 
 const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, formatCurrency, sendingCode, loading }) => {
+    const [showFinancials, setShowFinancials] = React.useState(false);
+
     if (loading) {
         return (
             <div style={{ flex: 1, overflowX: 'auto' }}>
@@ -42,12 +44,27 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
             <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
                     <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>DAİRE NO</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>LİSTE FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>SATIŞ FİYATI</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>ALINAN ÖDEME</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>KALAN ALACAK</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>TAKSİT PLANI</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                DAİRE NO
+                                <button 
+                                    onClick={() => setShowFinancials(!showFinancials)}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: 0, display: 'flex', alignItems: 'center' }}
+                                    title={showFinancials ? "Finansal Bilgileri Gizle" : "Finansal Bilgileri Göster"}
+                                >
+                                    {showFinancials ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+                        </th>
+                        {showFinancials && (
+                            <>
+                                <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>LİSTE FİYATI</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>SATIŞ FİYATI</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>ALINAN ÖDEME</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '12%' }}>KALAN ALACAK</th>
+                                <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '15%' }}>TAKSİT PLANI</th>
+                            </>
+                        )}
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '100px' }}>DURUM</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)' }}>MÜŞTERİ BİLGİSİ</th>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', width: '100px' }}>İŞLEM</th>
@@ -87,32 +104,36 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                     <td style={{ padding: '6px 10px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontWeight: 700 }}>
                                         {apartment.apartment_number}
                                     </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {formatCurrency(apartment.price)}
-                                    </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' ? formatCurrency(soldPrice) : '-'}
-                                    </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' ? formatCurrency(paidAmount) : '-'}
-                                    </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' ? formatCurrency(remaining) : '-'}
-                                    </td>
-                                    <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#6366f1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {apartment.status === 'sold' && apartment.installments && apartment.installments.length > 0 ? (
-                                            <div>
-                                                <div style={{ fontWeight: 700 }}>
-                                                    {apartment.installments.filter(i => i.status === 'paid').length} / {apartment.installments.length} Ödendi
-                                                </div>
-                                                {nextInstallment && (
-                                                    <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px' }}>
-                                                        Sıradaki: {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}
+                                    {showFinancials && (
+                                        <>
+                                            <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {formatCurrency(apartment.price)}
+                                            </td>
+                                            <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#1e40af', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {apartment.status === 'sold' ? formatCurrency(soldPrice) : '-'}
+                                            </td>
+                                            <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {apartment.status === 'sold' ? formatCurrency(paidAmount) : '-'}
+                                            </td>
+                                            <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {apartment.status === 'sold' ? formatCurrency(remaining) : '-'}
+                                            </td>
+                                            <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: '#6366f1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {apartment.status === 'sold' && apartment.installments && apartment.installments.length > 0 ? (
+                                                    <div>
+                                                        <div style={{ fontWeight: 700 }}>
+                                                            {apartment.installments.filter(i => i.status === 'paid').length} / {apartment.installments.length} Ödendi
+                                                        </div>
+                                                        {nextInstallment && (
+                                                            <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px' }}>
+                                                                Sıradaki: {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        ) : '-'}
-                                    </td>
+                                                ) : '-'}
+                                            </td>
+                                        </>
+                                    )}
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                                         <span style={{
                                             padding: '2px 8px',
