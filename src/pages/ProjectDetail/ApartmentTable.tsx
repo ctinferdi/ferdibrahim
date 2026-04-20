@@ -20,10 +20,16 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
         setVisibleAptIds(next);
     };
 
+    const tableStyle: React.CSSProperties = { 
+        width: '100%', 
+        borderCollapse: 'collapse', 
+        tableLayout: 'fixed' 
+    };
+
     if (loading) {
         return (
-            <div style={{ flex: 1, overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+                <table style={tableStyle}>
                     <thead>
                         <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                             {['DAİRE NO', 'LİSTE FİYATI', 'SATIŞ FİYATI', 'ALINAN ÖDEME', 'KALAN ALACAK', 'TAKSİT PLANI', 'DURUM', 'MÜŞTERİ BİLGİSİ', 'İŞLEM'].map(h => (
@@ -47,8 +53,8 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
         );
     }
     return (
-        <div style={{ flex: 1, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+            <table style={tableStyle}>
                 <thead>
                     <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap', width: '80px' }}>
