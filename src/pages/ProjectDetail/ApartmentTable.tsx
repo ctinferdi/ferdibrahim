@@ -97,16 +97,7 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                             return (
                                 <tr key={apartment.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                                     <td style={{ padding: '6px 10px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center', fontWeight: 700 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                            {apartment.apartment_number}
-                                            <button 
-                                                onClick={() => toggleFinancials(apartment.id)}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: 0, display: 'flex', alignItems: 'center' }}
-                                                title={isVisible ? "Finansal Bilgileri Gizle" : "Finansal Bilgileri Göster"}
-                                            >
-                                                {isVisible ? '👁️' : '👁️‍🗨️'}
-                                            </button>
-                                        </div>
+                                        {apartment.apartment_number}
                                     </td>
                                     
                                     <td style={{ padding: '6px 10px', fontSize: '11px', textAlign: 'center', color: 'var(--color-text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -156,6 +147,13 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                                     </td>
                                     <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                            <button 
+                                                onClick={() => toggleFinancials(apartment.id)}
+                                                style={{ padding: '4px 8px', fontSize: '12px', background: isVisible ? '#f1f5f9' : '#fff', border: '1px solid #e2e8f0', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                                title={isVisible ? "Finansal Bilgileri Gizle" : "Finansal Bilgileri Göster"}
+                                            >
+                                                {isVisible ? '👁️' : '👁️‍🗨️'}
+                                            </button>
                                             <button
                                                 onClick={() => onEdit(apartment)}
                                                 style={{ padding: '4px 8px', fontSize: '12px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #e0f2fe', borderRadius: '4px', cursor: 'pointer' }}
