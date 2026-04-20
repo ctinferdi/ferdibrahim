@@ -25,6 +25,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
     const [installments, setInstallments] = useState<any[]>([]);
     const [showInstallments, setShowInstallments] = useState(false);
+    const [showSalesDetails, setShowSalesDetails] = useState(false);
+    const [showPlans, setShowPlans] = useState(false);
     const [baseDownpayment, setBaseDownpayment] = useState<string>('0');
 
     useEffect(() => {
@@ -256,38 +258,53 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
                         {apartmentFormData.status === 'sold' && (
                             <div style={{ padding: 'var(--spacing-md)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'grid', gap: 'var(--spacing-sm)' }}>
-                                <h4 style={{ margin: 0, fontSize: 'var(--font-size-xs)', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Satış Detayları</h4>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showSalesDetails} 
+                                        onChange={(e) => setShowSalesDetails(e.target.checked)}
+                                        id="chkSalesDetails"
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="chkSalesDetails" style={{ margin: 0, fontSize: 'var(--font-size-xs)', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                                        Satış Detayları {showSalesDetails ? '' : '(Gizli)'}
+                                    </label>
+                                </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Kaça Satıldı?</label>
-                                        <input
-                                            type="text"
-                                            value={formatNumberWithDots(apartmentFormData.sold_price)}
-                                            onChange={(e) => setApartmentFormData({ ...apartmentFormData, sold_price: e.target.value })}
-                                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#1e40af' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Aldığım (Peşinat/Ara Öd.)</label>
-                                        <input
-                                            type="text"
-                                            value={baseDownpayment}
-                                            onChange={(e) => setBaseDownpayment(e.target.value)}
-                                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#10b981' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fff5f5', borderRadius: '4px', border: '1px dashed #feb2b2' }}>
-                                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: '#c53030' }}>GERÇEK KALAN ALACAK:</span>
-                                    <span style={{ fontWeight: 'bold', color: '#c53030' }}>
-                                        {formatCurrency(
-                                            parseNumberFromDots(apartmentFormData.sold_price) - 
-                                            (parseNumberFromDots(baseDownpayment) + 
-                                            installments.filter(ins => ins.status === 'paid').reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))
-                                        )}
-                                    </span>
-                                </div>
+                                {showSalesDetails && (
+                                    <>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)', marginTop: '8px' }}>
+                                            <div>
+                                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Kaça Satıldı?</label>
+                                                <input
+                                                    type="text"
+                                                    value={formatNumberWithDots(apartmentFormData.sold_price)}
+                                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, sold_price: e.target.value })}
+                                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#1e40af' }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>Aldığım (Peşinat/Ara Öd.)</label>
+                                                <input
+                                                    type="text"
+                                                    value={baseDownpayment}
+                                                    onChange={(e) => setBaseDownpayment(e.target.value)}
+                                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#10b981' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fff5f5', borderRadius: '4px', border: '1px dashed #feb2b2' }}>
+                                            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: '#c53030' }}>GERÇEK KALAN ALACAK:</span>
+                                            <span style={{ fontWeight: 'bold', color: '#c53030' }}>
+                                                {formatCurrency(
+                                                    parseNumberFromDots(apartmentFormData.sold_price) - 
+                                                    (parseNumberFromDots(baseDownpayment) + 
+                                                    installments.filter(ins => ins.status === 'paid').reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : ins.amount), 0))
+                                                )}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* Taksitler Bölümü Header (Gizle/Göster) */}
                                 <div style={{ 
@@ -373,14 +390,28 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             </div>
                         )}
 
-                        {/* File Upload Section */}
-                        <FileUploadSection
-                            editingApartmentId={editingApartmentId}
-                            apartmentFormData={apartmentFormData}
-                            setApartments={setApartments}
-                            setApartmentFormData={setApartmentFormData}
-                            projectId={id}
-                        />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showPlans} 
+                                        onChange={(e) => setShowPlans(e.target.checked)}
+                                        id="chkPlans"
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                    <label htmlFor="chkPlans" style={{ margin: 0, fontSize: 'var(--font-size-xs)', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
+                                        Daire Planları {showPlans ? '' : '(Gizli)'}
+                                    </label>
+                                </div>
+
+                                {showPlans && (
+                                    <FileUploadSection
+                                        editingApartmentId={editingApartmentId}
+                                        apartmentFormData={apartmentFormData}
+                                        setApartments={setApartments}
+                                        setApartmentFormData={setApartmentFormData}
+                                        projectId={id}
+                                    />
+                                )}
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
                             <div>
