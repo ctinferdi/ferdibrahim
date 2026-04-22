@@ -557,23 +557,36 @@ const ProjectDetail: React.FC = () => {
     }
     
     const generalTotal = activeTab === 'expenses'
-        ? expenses.reduce((sum, e) => sum + (e.amount || 0), 0)
+        ? filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
         : activeTab === 'checks'
-            ? checks.reduce((sum, c) => sum + (c.amount || 0), 0)
+            ? filteredChecks.reduce((sum, c) => sum + (c.amount || 0), 0)
             : 0;
+
+    const filteredAptStats = filteredApartments.reduce((stats, apt) => {
+        stats.totalSoldPrice += (apt.sold_price || 0);
+        stats.totalPaidAmount += (apt.paid_amount || 0);
+        return stats;
+    }, { totalSoldPrice: 0, totalPaidAmount: 0 });
+
     const aptStats = apartments.reduce((stats, apt) => {
         stats.total++;
         if (apt.status === 'sold') {
             stats.soldCount++;
-            stats.totalSoldPrice += (apt.sold_price || 0);
-            stats.totalPaidAmount += (apt.paid_amount || 0);
+            // stats.totalSoldPrice ve stats.totalPaidAmount artık genel state'den değil, 
+            // arama durumuna göre (filteredAptStats) SummaryCards'a gidecek.
         } else if (apt.status === 'owner') {
             stats.ownerCount++;
         }
         return stats;
-    }, { total: 0, soldCount: 0, ownerCount: 0, totalSoldPrice: 0, totalPaidAmount: 0 });
+    }, { total: 0, soldCount: 0, ownerCount: 0 });
 
-    const checkStats = checks.reduce((stats, check) => {
+    const summaryAptStats = {
+        ...aptStats,
+        totalSoldPrice: searchTerm ? filteredAptStats.totalSoldPrice : apartments.reduce((s, a) => s + (a.sold_price || 0), 0),
+        totalPaidAmount: searchTerm ? filteredAptStats.totalPaidAmount : apartments.reduce((s, a) => s + (a.paid_amount || 0), 0),
+    };
+
+    const checkStats = filteredChecks.reduce((stats, check) => {
         if (check.status === 'paid') {
             stats.paidTotal += check.amount;
         } else {
@@ -750,7 +763,7 @@ const ProjectDetail: React.FC = () => {
                         generalTotal={generalTotal}
                         project={project}
                         getPartnerTotal={getPartnerTotal}
-                        aptStats={aptStats}
+                        aptStats={summaryAptStats}
                         checkStats={checkStats}
                         formatCurrency={formatCurrency}
                         onExport={exportToExcel}
