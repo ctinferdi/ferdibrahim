@@ -284,27 +284,106 @@ const Settings: React.FC = () => {
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    {users.map((u: any) => (
-                                        <div key={u.id} style={{
-                                            padding: '10px 15px',
-                                            background: 'var(--color-bg)',
-                                            borderRadius: 'var(--radius-sm)',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            border: '1px solid var(--color-border)'
-                                        }}>
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '13px' }}>
-                                                    {u.email}
+                                    {users.map((u: any) => {
+                                        const isSuper = isUserSuperAdmin(u.email);
+                                        const hasProjects = (u.accessible_projects || []).length > 0;
+                                        
+                                        return (
+                                            <div key={u.id} style={{
+                                                padding: '16px',
+                                                background: 'white',
+                                                borderRadius: '12px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px',
+                                                border: '1px solid #e2e8f0',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
+                                                            {u.email}
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                                                            <span style={{ 
+                                                                fontSize: '10px', 
+                                                                padding: '2px 8px', 
+                                                                borderRadius: '20px', 
+                                                                background: isSuper ? '#fef3c7' : (hasProjects ? '#dcfce7' : '#f1f5f9'),
+                                                                color: isSuper ? '#92400e' : (hasProjects ? '#166534' : '#64748b'),
+                                                                fontWeight: 800,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '4px'
+                                                            }}>
+                                                                {isSuper ? '👑 SÜPER YÖNETİCİ' : (hasProjects ? '👤 PROJE YÖNETİCİSİ' : '🚫 YETKİSİZ')}
+                                                            </span>
+                                                            <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                                                • {new Date(u.created_at).toLocaleDateString('tr-TR')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                        <button
+                                                            onClick={() => handleResetPassword(u.email)}
+                                                            title="Şifre Sıfırlama Linki Gönder"
+                                                            style={{
+                                                                padding: '6px',
+                                                                fontSize: '14px',
+                                                                background: '#fff7ed',
+                                                                color: '#f59e0b',
+                                                                border: '1px solid #ffedd5',
+                                                                borderRadius: '6px',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            🔑
+                                                        </button>
+                                                        {user?.id !== u.id && (
+                                                            <button
+                                                                onClick={() => handleDeleteUser(u.id, u.email)}
+                                                                disabled={sendingCode}
+                                                                title="Kullanıcıyı Sil"
+                                                                style={{
+                                                                    padding: '6px',
+                                                                    fontSize: '14px',
+                                                                    background: '#fef2f2',
+                                                                    color: '#ef4444',
+                                                                    border: '1px solid #fee2e2',
+                                                                    borderRadius: '6px',
+                                                                    cursor: sendingCode ? 'wait' : 'pointer',
+                                                                    opacity: sendingCode ? 0.5 : 1
+                                                                }}
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '10px', color: 'var(--color-text-light)', marginTop: '2px' }}>
-                                                    👑 Yönetici • {new Date(u.created_at).toLocaleDateString('tr-TR')}
-                                                </div>
-                                                {/* Proje Yetkileri */}
-                                                <div style={{ marginTop: '10px', background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                    <div style={{ fontSize: '11px', fontWeight: 700, marginBottom: '6px', color: '#1e3a8a' }}>📂 PROJE YETKİLERİ</div>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+
+                                                {/* Proje Yetkileri Alanı */}
+                                                <div style={{ 
+                                                    background: '#f8fafc', 
+                                                    padding: '12px', 
+                                                    borderRadius: '8px', 
+                                                    border: '1px dashed #e2e8f0' 
+                                                }}>
+                                                    <div style={{ 
+                                                        fontSize: '11px', 
+                                                        fontWeight: 800, 
+                                                        marginBottom: '10px', 
+                                                        color: '#475569',
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between'
+                                                    }}>
+                                                        <span>📂 YÖNETİM YETKİSİ VERİLEN PROJELER</span>
+                                                        <span style={{ color: hasProjects ? '#10b981' : '#94a3b8' }}>
+                                                            {u.accessible_projects?.length || 0} Proje
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                                         {projects.map(p => {
                                                             const hasAccess = (u.accessible_projects || []).includes(p.id);
                                                             return (
@@ -313,65 +392,37 @@ const Settings: React.FC = () => {
                                                                     disabled={updatingUser === u.id}
                                                                     onClick={() => handleToggleProject(u.id, p.id, u.accessible_projects || [])}
                                                                     style={{
-                                                                        padding: '4px 8px',
-                                                                        fontSize: '10px',
-                                                                        borderRadius: '4px',
+                                                                        padding: '6px 12px',
+                                                                        fontSize: '11px',
+                                                                        borderRadius: '8px',
                                                                         border: '1px solid',
-                                                                        borderColor: hasAccess ? '#15803d' : '#cbd5e1',
-                                                                        background: hasAccess ? '#f0fdf4' : 'white',
-                                                                        color: hasAccess ? '#15803d' : '#64748b',
+                                                                        borderColor: hasAccess ? '#22c55e' : '#cbd5e1',
+                                                                        background: hasAccess ? '#22c55e' : 'white',
+                                                                        color: hasAccess ? 'white' : '#64748b',
                                                                         cursor: 'pointer',
-                                                                        fontWeight: hasAccess ? 700 : 400
+                                                                        fontWeight: hasAccess ? 700 : 500,
+                                                                        transition: 'all 0.2s',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px',
+                                                                        boxShadow: hasAccess ? '0 2px 4px rgba(34, 197, 94, 0.2)' : 'none'
                                                                     }}
                                                                 >
-                                                                    {hasAccess ? '✓ ' : '+ '}{p.name}
+                                                                    {hasAccess ? '✅' : '➕'} {p.name}
                                                                 </button>
                                                             );
                                                         })}
                                                     </div>
+                                                    
+                                                    {hasProjects && (
+                                                        <div style={{ marginTop: '10px', fontSize: '10px', color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <span>ℹ️</span> Bu kullanıcı yukarıdaki projeleri yönetebilir.
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div style={{ display: 'flex', flexFlow: 'column', gap: '8px' }}>
-                                                <button
-                                                    onClick={() => handleResetPassword(u.email)}
-                                                    style={{
-                                                        padding: '6px 12px',
-                                                        fontSize: '11px',
-                                                        background: '#f59e0b',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '4px',
-                                                        cursor: 'pointer',
-                                                        fontWeight: 600
-                                                    }}
-                                                >
-                                                    🔑 Şifre Sıfırla
-                                                </button>
-
-
-                                                {/* Kendi kendini silemesin */}
-                                                {user?.id !== u.id && (
-                                                    <button
-                                                        onClick={() => handleDeleteUser(u.id, u.email)}
-                                                        disabled={sendingCode}
-                                                        style={{
-                                                            padding: '6px 12px',
-                                                            fontSize: '11px',
-                                                            background: '#ef4444', // Kırmızı
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            cursor: sendingCode ? 'wait' : 'pointer',
-                                                            fontWeight: 600,
-                                                            opacity: sendingCode ? 0.5 : 1
-                                                        }}
-                                                    >
-                                                        {sendingCode ? '...' : '🗑️ Sil'}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
 
                                     {users.length === 0 && (
                                         <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', color: 'var(--color-text-light)' }}>
