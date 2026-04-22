@@ -194,7 +194,7 @@ const Settings: React.FC = () => {
             <Layout>
                 <div className="card">
                     <h2>Kişisel Bilgiler</h2>
-                    <p>Email: {user?.email}</p>
+                    <p className="lowercase" style={{ textTransform: 'lowercase' }}>Email: {user?.email?.toLowerCase()}</p>
                     <p style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
                         Bu sayfada sadece yöneticiler işlem yapabilir.
                     </p>
@@ -313,8 +313,8 @@ const Settings: React.FC = () => {
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                                     <div style={{ flex: 1 }}>
-                                                        <div className="lowercase" style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
-                                                            {u.email}
+                                                        <div className="lowercase" style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b', textTransform: 'lowercase' }}>
+                                                            {u.email?.toLowerCase()}
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                                                             <span style={{ 
@@ -462,8 +462,8 @@ const Settings: React.FC = () => {
                         }}>
                             <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                                 <h2 className="mb-md">Kullanıcıyı Sil</h2>
-                                <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                    <strong>{deletingUser?.email}</strong> kullanıcısını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
+                                <p className="mb-lg lowercase" style={{ color: 'var(--color-text-light)', fontSize: '14px', textTransform: 'lowercase' }}>
+                                    <strong>{deletingUser?.email?.toLowerCase()}</strong> kullanıcısını silmek için e-posta adresinize ({user?.email?.toLowerCase()}) gönderilen 4 haneli kodu girin.
                                 </p>
 
                                 <div className="form-group">

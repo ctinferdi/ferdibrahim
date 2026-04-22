@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { isUserSuperAdmin } from '../config/admin';
+import { supabase } from '../config/supabase';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { projectService } from '../services/projectService';
@@ -20,34 +22,61 @@ const Dashboard = () => {
     const [savingNote, setSavingNote] = useState(false);
 
     useEffect(() => {
-        const loadInitialData = async () => {
+        let authCtx = { accessibleIds: [] as string[], isSuperAdmin: false };
+
+        const applyFilter = (items: any[], type: 'project'|'expense'|'check', accessibleIds: string[], isSuper: boolean) => {
+            if (isSuper) return items;
+            if (type === 'project') return items.filter(i => accessibleIds.includes(i.id));
+            return items.filter(i => i.project_id && accessibleIds.includes(i.project_id));
+        };
+
+        const loadData = async () => {
+            let accessibleIds: string[] = [];
+            const isSuperAdmin = isUserSuperAdmin(user?.email);
+            
+            if (!isSuperAdmin && user?.id) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('accessible_projects')
+                    .eq('id', user.id)
+                    .single();
+                accessibleIds = profile?.accessible_projects || [];
+            }
+
             const [exps, chks, projs, nts] = await Promise.all([
                 expenseService.getExpenses(),
                 checkService.getChecks(),
                 projectService.getProjects(),
                 noteService.getNotes()
             ]);
-            setExpenses(exps);
-            setChecks(chks);
-            setProjects(projs);
+
+            setExpenses(applyFilter(exps, 'expense', accessibleIds, isSuperAdmin));
+            setChecks(applyFilter(chks, 'check', accessibleIds, isSuperAdmin));
+            setProjects(applyFilter(projs, 'project', accessibleIds, isSuperAdmin));
             setNotes(nts);
             setLoading(false);
+            
+            authCtx = { accessibleIds, isSuperAdmin };
+            return authCtx;
         };
 
-        loadInitialData();
+        loadData();
 
         const handleRefresh = () => {
-            expenseService.getExpenses().then(setExpenses);
-            checkService.getChecks().then(setChecks);
-            projectService.getProjects().then(setProjects);
-            noteService.getNotes().then(setNotes);
+            loadData();
         };
 
         window.addEventListener('system-refresh', handleRefresh);
 
-        const unsubExpenses = expenseService.subscribeToExpenses(setExpenses);
-        const unsubChecks = checkService.subscribeToChecks(setChecks);
-        const unsubProjects = projectService.subscribeToProjects(setProjects);
+        const unsubExpenses = expenseService.subscribeToExpenses((allExps) => {
+            setExpenses(applyFilter(allExps, 'expense', authCtx.accessibleIds, authCtx.isSuperAdmin));
+        });
+        const unsubChecks = checkService.subscribeToChecks((allChecks) => {
+            setChecks(applyFilter(allChecks, 'check', authCtx.accessibleIds, authCtx.isSuperAdmin));
+        });
+        const unsubProjects = projectService.subscribeToProjects((allProjs) => {
+            setProjects(applyFilter(allProjs, 'project', authCtx.accessibleIds, authCtx.isSuperAdmin));
+        });
         const unsubNotes = noteService.subscribeToNotes(setNotes);
 
         return () => {
@@ -57,7 +86,7 @@ const Dashboard = () => {
             unsubProjects();
             unsubNotes();
         };
-    }, []);
+    }, [user?.id, user?.email]);
 
     const handleAddNote = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();

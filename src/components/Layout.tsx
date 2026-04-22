@@ -291,10 +291,11 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                                     fontSize: '9px',
                                     color: 'var(--color-text-light)',
                                     margin: '1px 0 0 0',
-                                    fontWeight: 500
+                                    fontWeight: 500,
+                                    textTransform: 'lowercase'
                                 }}
                             >
-                                {user?.email}
+                                {user?.email?.toLowerCase()}
                             </p>
                         </Link>
                     </div>
