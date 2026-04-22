@@ -58,26 +58,49 @@ const Checks = () => {
 
 
     useEffect(() => {
-        const handleRefresh = () => {
-            getChecks().then(allChecks => {
-                if (isSuperAdmin) {
-                    setChecks(allChecks);
-                } else {
-                    // Sadece yetkisi olan projelerin çeklerini filtrele
-                    const accessibleIds = user?.user_metadata?.accessible_projects || [];
-                    setChecks(allChecks.filter(c => c.project_id && accessibleIds.includes(c.project_id)));
-                }
-            });
+        const handleRefresh = async () => {
+            if (!user?.id) return;
+
+            // 1. Kullanıcının yetkili olduğu projeleri al
+            let accessibleIds: string[] = [];
+            if (!isSuperAdmin) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('accessible_projects')
+                    .eq('id', user.id)
+                    .single();
+                accessibleIds = profile?.accessible_projects || [];
+            }
+
+            // 2. Çekleri al ve yetkiye göre filtrele
+            const allChecks = await getChecks();
+            if (isSuperAdmin) {
+                setChecks(allChecks);
+            } else {
+                setChecks(allChecks.filter(c => c.project_id && accessibleIds.includes(c.project_id)));
+            }
+            
             projectService.getProjects().then(setProjects);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
 
-        const unsubscribe = subscribeToChecks((allChecks) => {
+        const unsubscribe = subscribeToChecks(async (allChecks) => {
+            if (!user?.id) return;
+
+            let accessibleIds: string[] = [];
+            if (!isSuperAdmin) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('accessible_projects')
+                    .eq('id', user.id)
+                    .single();
+                accessibleIds = profile?.accessible_projects || [];
+            }
+
             if (isSuperAdmin) {
                 setChecks(allChecks);
             } else {
-                const accessibleIds = user?.user_metadata?.accessible_projects || [];
                 setChecks(allChecks.filter(c => c.project_id && accessibleIds.includes(c.project_id)));
             }
         });
@@ -89,7 +112,7 @@ const Checks = () => {
             window.removeEventListener('system-refresh', handleRefresh);
             unsubscribe();
         };
-    }, [isSuperAdmin, user?.user_metadata?.accessible_projects]);
+    }, [isSuperAdmin, user?.id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -237,6 +237,22 @@ const ProjectDetail: React.FC = () => {
 
             if (!proj) throw new Error('Proje bulunamadı');
 
+            // --- YETKİ KONTROLÜ ---
+            const isSuper = isUserSuperAdmin(user?.email);
+            if (!isSuper) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('accessible_projects')
+                    .eq('id', user?.id)
+                    .single();
+                
+                const accessibleIds = profile?.accessible_projects || [];
+                if (!accessibleIds.includes(proj.id)) {
+                    throw new Error('Bu projeyi görüntüleme yetkiniz yok.');
+                }
+            }
+            // ----------------------
+
             // Store ID-Slug mapping for future fast-paths
             if (proj.slug) {
                 localStorage.setItem(`project_uuid_${proj.slug}`, proj.id);

@@ -118,8 +118,12 @@ a {
   text-transform: uppercase !important;
 }
 
-input[type="email"],
-.lowercase {
+/* E-posta ve küçük harf zorunluluğu olan yerler için özel kural */
+.lowercase, 
+p.lowercase, 
+span.lowercase, 
+div.lowercase,
+input[type="email"] {
   text-transform: lowercase !important;
 }
 

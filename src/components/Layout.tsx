@@ -285,12 +285,15 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                             }}>
                                 İnşaat Yönetim
                             </p>
-                            <p style={{
-                                fontSize: '9px',
-                                color: 'var(--color-text-light)',
-                                margin: '1px 0 0 0',
-                                fontWeight: 500
-                            }}>
+                            <p 
+                                className="lowercase"
+                                style={{
+                                    fontSize: '9px',
+                                    color: 'var(--color-text-light)',
+                                    margin: '1px 0 0 0',
+                                    fontWeight: 500
+                                }}
+                            >
                                 {user?.email}
                             </p>
                         </Link>

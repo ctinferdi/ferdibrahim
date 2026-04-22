@@ -313,7 +313,7 @@ const Settings: React.FC = () => {
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
+                                                        <div className="lowercase" style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
                                                             {u.email}
                                                         </div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
