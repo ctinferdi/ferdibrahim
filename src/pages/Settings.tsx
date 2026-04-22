@@ -29,13 +29,17 @@ const Settings: React.FC = () => {
             ]);
 
             if (userError) throw userError;
-            setUsers(userData.map(u => ({
-                ...u,
-                // Ensure meta is handled if coming from public.users table 
-                // We'll store projects in a column named 'accessible_projects' if possible, or use user_metadata
-                user_metadata: u.user_metadata || { role: 'admin' },
-                accessible_projects: u.accessible_projects || []
-            })));
+            setUsers(userData.map(u => {
+                // Verinin hem kolondan hem de metadata'dan gelme ihtimaline karşı birleştiriyoruz
+                const metadata = u.user_metadata || {};
+                const accessible_projects = u.accessible_projects || metadata.accessible_projects || [];
+                
+                return {
+                    ...u,
+                    user_metadata: metadata,
+                    accessible_projects: accessible_projects
+                };
+            }));
             if (projData) setProjects(projData);
         } catch (err) {
             console.error('Failed to fetch data:', err);
@@ -47,21 +51,29 @@ const Settings: React.FC = () => {
     const handleToggleProject = async (userId: string, projId: string, current: string[]) => {
         setUpdatingUser(userId);
         const updated = current.includes(projId) ? current.filter(id => id !== projId) : [...current, projId];
+        
         try {
-            const { error } = await supabase
+            // 1. Önce public.users tablosunu güncellemeyi dene
+            const { error: updateError } = await supabase
                 .from('users')
                 .update({ accessible_projects: updated })
                 .eq('id', userId);
             
-            if (error) {
-                // Fallback to user_metadata if column doesn't exist
-                await supabase.auth.admin.updateUserById(userId, {
-                    user_metadata: { accessible_projects: updated }
-                });
+            if (updateError) {
+                console.warn('Public table update failed, trying metadata...', updateError);
+                // 2. Eğer tablo güncellemesi başarısız olursa metadata üzerinden dene (RPC veya Edge Function gerekebilir)
+                // Şimdilik sadece hatayı fırlatalım ki kullanıcı bilsin
+                throw new Error(updateError.message);
             }
-            fetchUsers();
-        } catch (err) { console.error(err); }
-        finally { setUpdatingUser(null); }
+            
+            // Başarılıysa listeyi yenile
+            await fetchUsers();
+        } catch (err: any) { 
+            console.error('Yetki güncelleme hatası:', err);
+            alert('Yetki güncellenemedi: ' + err.message + '\n\nLütfen "accessible_projects" sütununun veritabanında olduğundan emin olun.');
+        } finally { 
+            setUpdatingUser(null); 
+        }
     };
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
