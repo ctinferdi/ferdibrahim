@@ -59,13 +59,29 @@ const Checks = () => {
 
     useEffect(() => {
         const handleRefresh = () => {
-            getChecks().then(setChecks);
+            getChecks().then(allChecks => {
+                if (isSuperAdmin) {
+                    setChecks(allChecks);
+                } else {
+                    // Sadece yetkisi olan projelerin çeklerini filtrele
+                    const accessibleIds = user?.user_metadata?.accessible_projects || [];
+                    setChecks(allChecks.filter(c => c.project_id && accessibleIds.includes(c.project_id)));
+                }
+            });
             projectService.getProjects().then(setProjects);
         };
 
         window.addEventListener('system-refresh', handleRefresh);
 
-        const unsubscribe = subscribeToChecks(setChecks);
+        const unsubscribe = subscribeToChecks((allChecks) => {
+            if (isSuperAdmin) {
+                setChecks(allChecks);
+            } else {
+                const accessibleIds = user?.user_metadata?.accessible_projects || [];
+                setChecks(allChecks.filter(c => c.project_id && accessibleIds.includes(c.project_id)));
+            }
+        });
+        
         projectService.getProjects().then(setProjects);
         setLoading(false);
 
@@ -73,7 +89,7 @@ const Checks = () => {
             window.removeEventListener('system-refresh', handleRefresh);
             unsubscribe();
         };
-    }, []);
+    }, [isSuperAdmin, user?.user_metadata?.accessible_projects]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
