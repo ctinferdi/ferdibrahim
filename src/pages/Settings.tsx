@@ -22,7 +22,7 @@ const Settings: React.FC = () => {
     const fetchUsers = async () => {
         setLoadingUsers(true);
         try {
-            const [{ data: userData, error: userError }, { data: projData, error: projError }] = await Promise.all([
+            const [{ data: userData, error: userError }, { data: projData }] = await Promise.all([
                 supabase.from('users').select('*').order('created_at', { ascending: false }),
                 supabase.from('projects').select('id, name')
             ]);

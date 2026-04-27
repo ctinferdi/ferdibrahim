@@ -1,40 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { subscribeToApartments, addApartment, updateApartment } from '../services/apartmentService';
+import { apartmentService } from '../services/apartmentService';
 import { useAuth } from '../contexts/AuthContext';
+import { Apartment, ApartmentStatus } from '../types';
 
-
+const DEFAULT_FORM = {
+    building_name: '',
+    apartment_number: '',
+    floor: 0,
+    square_meters: 0,
+    price: 0,
+    status: 'available' as ApartmentStatus,
+    customer_name: '',
+    customer_phone: '',
+};
 
 const Apartments = () => {
-    const [apartments, setApartments] = useState([]);
+    const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-
-    const [editingApartment, setEditingApartment] = useState(null);
+    const [editingApartment, setEditingApartment] = useState<Apartment | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [errorMsg, setErrorMsg] = useState(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { user } = useAuth();
-    
-    const [formData, setFormData] = useState({
-        building_name: '',
-        apartment_number: '',
-        floor: 0,
-        square_meters: 0,
-        price: 0,
-        status: 'available',
-        customer_name: '',
-        customer_phone: '',
-    });
+
+    const [formData, setFormData] = useState(DEFAULT_FORM);
 
     useEffect(() => {
-        let unsubscribe = null;
+        let unsubscribe: (() => void) | null = null;
         const handleRefresh = () => {
             if (unsubscribe) unsubscribe();
-            unsubscribe = subscribeToApartments(setApartments);
+            unsubscribe = apartmentService.subscribeToApartments(setApartments);
         };
         window.addEventListener('system-refresh', handleRefresh);
-        unsubscribe = subscribeToApartments(setApartments);
+        unsubscribe = apartmentService.subscribeToApartments(setApartments);
         setLoading(false);
         return () => {
             window.removeEventListener('system-refresh', handleRefresh);
@@ -42,38 +42,26 @@ const Apartments = () => {
         };
     }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setErrorMsg(null);
             if (editingApartment) {
-                await updateApartment(editingApartment.id, formData);
+                await apartmentService.updateApartment(editingApartment.id, formData);
             } else {
-                await addApartment(formData, user.id);
+                if (!user?.id) throw new Error('Oturum bulunamadı');
+                await apartmentService.addApartment(formData, user.id);
             }
             setShowModal(false);
             setEditingApartment(null);
-            resetForm();
-        } catch (error) {
+            setFormData(DEFAULT_FORM);
+        } catch (error: unknown) {
             console.error('Error saving apartment:', error);
-            setErrorMsg(error.message || 'Daire kaydedilemedi. Lütfen tekrar deneyin.');
+            setErrorMsg(error instanceof Error ? error.message : 'Daire kaydedilemedi.');
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            building_name: '',
-            apartment_number: '',
-            floor: 0,
-            square_meters: 0,
-            price: 0,
-            status: 'available',
-            customer_name: '',
-            customer_phone: '',
-        });
-    };
-
-    const handleEdit = (apartment) => {
+    const handleEdit = (apartment: Apartment) => {
         setEditingApartment(apartment);
         setFormData({
             building_name: apartment.building_name,
@@ -92,7 +80,7 @@ const Apartments = () => {
         const matchesSearch =
             (apt.building_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (apt.apartment_number || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' ? true : apt.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' || apt.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
@@ -102,20 +90,15 @@ const Apartments = () => {
     const soldCount = filteredApartments.filter(a => a.status === 'sold').length;
     const commonCount = filteredApartments.filter(a => a.status === 'common').length;
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('tr-TR', {
-            style: 'currency',
-            currency: 'TRY',
-            minimumFractionDigits: 0
-        }).format(amount);
-    };
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(amount);
 
-    const getStatusBadge = (status) => {
-        const badges = {
+    const getStatusBadge = (status: ApartmentStatus) => {
+        const badges: Record<ApartmentStatus, { className: string; label: string }> = {
             available: { className: 'badge-success', label: 'Müsait' },
             owner: { className: 'badge-warning', label: 'M. Sahibi' },
             sold: { className: 'badge-info', label: 'Satıldı' },
-            common: { className: 'badge-secondary', label: 'Ortak Alan' }
+            common: { className: 'badge-secondary', label: 'Ortak Alan' },
         };
         const badge = badges[status] || badges.available;
         const style = status === 'common' ? { background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' } : {};
@@ -137,11 +120,15 @@ const Apartments = () => {
             <div className="animate-fadeIn">
                 <div className="flex justify-between items-center mb-md">
                     <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase' }}>
-                        🏢 <span style={{ fontSize: '1.2em' }}>Daire Yönetimi</span> 
+                        🏢 <span style={{ fontSize: '1.2em' }}>Daire Yönetimi</span>
                     </h1>
-                    
-
                 </div>
+
+                {errorMsg && (
+                    <div style={{ padding: '10px', background: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>
+                        ⚠️ {errorMsg}
+                    </div>
+                )}
 
                 {/* Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)' }}>
@@ -203,12 +190,7 @@ const Apartments = () => {
                 </div>
 
                 {/* Apartments Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
-                    gap: '12px',
-                    gridAutoRows: 'auto'
-                }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '12px', gridAutoRows: 'auto' }}>
                     {filteredApartments.length === 0 ? (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)' }}>
                             Kayıt bulunamadı.
@@ -216,56 +198,26 @@ const Apartments = () => {
                     ) : (
                         filteredApartments.map((apartment) => (
                             <div key={apartment.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                {/* Daire Kartı */}
                                 <div
                                     className="card"
                                     onClick={() => handleEdit(apartment)}
-                                    style={{
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        color: 'white',
-                                        position: 'relative',
-                                        cursor: 'pointer',
-                                        padding: '12px 15px',
-                                        marginBottom: 0,
-                                        minHeight: '130px',
-                                        display: 'flex',
-                                        flexDirection: 'column'
-                                    }}>
+                                    style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', position: 'relative', cursor: 'pointer', padding: '12px 15px', marginBottom: 0, minHeight: '130px', display: 'flex', flexDirection: 'column' }}
+                                >
                                     <h3 style={{ color: 'white', fontSize: '1rem', marginBottom: '8px', paddingRight: '2.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {apartment.building_name}
                                     </h3>
                                     <div style={{ marginTop: 'auto', fontSize: '11px' }}>
-                                        <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: '2px' }}>
-                                            🏠 Daire: {apartment.apartment_number}
-                                        </div>
-                                        <div style={{ fontSize: '10px', opacity: 0.8 }}>
-                                            📏 {apartment.square_meters} m² 🏢 | {apartment.floor}. Kat
-                                        </div>
+                                        <div style={{ fontWeight: 600, opacity: 0.9, marginBottom: '2px' }}>🏠 Daire: {apartment.apartment_number}</div>
+                                        <div style={{ fontSize: '10px', opacity: 0.8 }}>📏 {apartment.square_meters} m² 🏢 | {apartment.floor}. Kat</div>
                                     </div>
                                 </div>
-                                {/* Durum Barı */}
-                                <div style={{
-                                    background: 'rgba(102, 126, 234, 0.15)',
-                                    border: '1px solid rgba(102, 126, 234, 0.3)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    padding: '6px 10px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    fontSize: '0.65rem',
-                                    fontWeight: 600,
-                                    color: 'var(--color-text)'
-                                }}>
+                                <div style={{ background: 'rgba(102, 126, 234, 0.15)', border: '1px solid rgba(102, 126, 234, 0.3)', borderRadius: 'var(--radius-sm)', padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem', fontWeight: 600, color: 'var(--color-text)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {getStatusBadge(apartment.status)}
-                                        <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>
-                                            {formatCurrency(apartment.price)}
-                                        </span>
+                                        <span style={{ fontWeight: 700, color: 'var(--color-success)' }}>{formatCurrency(apartment.price)}</span>
                                     </div>
                                     {apartment.customer_name && (
-                                        <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>
-                                            👤 {apartment.customer_name}
-                                        </span>
+                                        <span style={{ opacity: 0.7, fontSize: '0.6rem' }}>👤 {apartment.customer_name}</span>
                                     )}
                                 </div>
                             </div>
@@ -273,8 +225,7 @@ const Apartments = () => {
                     )}
                 </div>
 
-
-                {/* Form Modalı (Aynı Kalan Kısım) */}
+                {/* Modal */}
                 {showModal && (
                     <div className="modal-overlay" style={{ backdropFilter: 'blur(5px)' }}>
                         <div className="modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
@@ -283,7 +234,6 @@ const Apartments = () => {
                                 <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
                             </div>
                             <form onSubmit={handleSubmit}>
-                                {/* (Senin modal içi form kodların tamamen aynı) */}
                                 <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                     <div className="form-group" style={{ gridColumn: 'span 2' }}>
                                         <label className="form-label">BİNA ADI</label>
@@ -307,7 +257,7 @@ const Apartments = () => {
                                     </div>
                                     <div className="form-group" style={{ gridColumn: 'span 2' }}>
                                         <label className="form-label">DURUM</label>
-                                        <select className="form-select" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
+                                        <select className="form-select" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as ApartmentStatus })}>
                                             <option value="available">Müsait</option>
                                             <option value="owner">M. Sahibi</option>
                                             <option value="sold">Satıldı</option>

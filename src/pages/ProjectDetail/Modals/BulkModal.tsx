@@ -18,7 +18,6 @@ const BulkModal: React.FC<BulkModalProps> = ({
     isOpen, onClose, id, project, apartments,
     bulkFormData, setBulkFormData,
     setLoading, loadAllData,
-    projectImages = [],
 }) => {
 
     // Kat planı modalı her açıldığında mevcut daireleri analiz edip sayıları günceller

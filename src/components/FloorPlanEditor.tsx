@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text, Grid as ThreeGrid } from '@react-three/drei';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import DxfParser from 'dxf-parser';
 
@@ -33,7 +33,7 @@ const GRID      = 20;   // px per 0.5m
 const PX_TO_M   = 0.5 / GRID;  // 0.025 m/px
 const FLOOR_H   = 3.0;  // metres per storey (3D)
 const SLAB_H    = 0.25;
-const MAX_FILES = 5;
+
 
 const ROOM_FILL: Record<RoomType, string>  = {
     salon:'#bfdbfe', yatak:'#fbcfe8', mutfak:'#fef08a', banyo:'#6ee7b7',
@@ -499,7 +499,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
         } else if (tool === 'door' && (w >= GRID || h >= GRID)) {
             // Snapping door
             let snappedX = x1 + w/2, snappedY = y1 + h/2;
-            let bestWall = null, minDist = 40, wallAngle = 0;
+            let bestWall: Wall | null = null, minDist = 40, wallAngle = 0;
             fd.walls.forEach(wa => {
                 const d = distToSegment(snappedX, snappedY, wa.x1, wa.y1, wa.x2, wa.y2);
                 if (d < minDist) { minDist = d; bestWall = wa; }
@@ -518,7 +518,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
         } else if (tool === 'window' && (w >= GRID || h >= GRID)) {
             // Snapping window
             let snappedX = x1 + w/2, snappedY = y1 + h/2;
-            let bestWall = null, minDist = 40, wallAngle = 0;
+            let bestWall: Wall | null = null, minDist = 40, wallAngle = 0;
             let side: any = 'top';
             fd.walls.forEach(wa => {
                 const d = distToSegment(snappedX, snappedY, wa.x1, wa.y1, wa.x2, wa.y2);

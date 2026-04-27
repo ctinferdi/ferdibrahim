@@ -340,7 +340,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     
                                     {showInstallments && (
                                         <div style={{ marginTop: '12px', display: 'grid', gap: '6px' }}>
-                                            {installments.map((ins, idx) => (
+                                            {installments.map((ins, _idx) => (
                                                 <div key={ins.id} style={{ display: 'flex', gap: '4px', alignItems: 'center', padding: '6px', background: '#f8fafc', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
                                                     <input 
                                                         type="text"

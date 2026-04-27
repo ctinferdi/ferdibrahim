@@ -37,7 +37,6 @@ const ProjectDetail: React.FC = () => {
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
-    const [pageError, setPageError] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const tabParam = searchParams.get('tab');
@@ -45,7 +44,7 @@ const ProjectDetail: React.FC = () => {
         tabParam === 'apartments' ? 'apartments' : (tabParam === 'checks' ? 'checks' : 'expenses')
     );
 
-    const [orphanedCache, setOrphanedCache] = useState(false);
+    const [orphanedCache] = useState(false);
 
     const setActiveTab = (tab: 'expenses' | 'checks' | 'apartments') => {
         setActiveTabState(tab);
@@ -85,9 +84,6 @@ const ProjectDetail: React.FC = () => {
         due_date: new Date().toISOString().split('T')[0],
         status: 'pending',
         description: '',
-        notification_phone: '',
-        notification_phone_2: '',
-        notification_phone_3: '',
         project_id: id || ''
     });
     const [editingCheckId, setEditingCheckId] = useState<string | null>(null);
@@ -339,7 +335,7 @@ const ProjectDetail: React.FC = () => {
                 navigate(`/projeler/${proj.slug}${currentSearch}`, { replace: true });
             }
 
-        } catch (err: any) { console.error('Proje hata:', err); setPageError(err.message || 'Hata'); setLoading(false); setLoadingExpenses(false); setLoadingChecks(false); setLoadingApartments(false); }
+        } catch (err: any) { console.error('Proje hata:', err); setErrorMsg(err.message || 'Hata'); setLoading(false); setLoadingExpenses(false); setLoadingChecks(false); setLoadingApartments(false); }
     }, [id, navigate, selectedPartner, showCompanySection]);
 
     // Cache Saving Logic
@@ -472,9 +468,6 @@ const ProjectDetail: React.FC = () => {
             due_date: new Date().toISOString().split('T')[0],
             status: 'pending',
             description: '',
-            notification_phone: '',
-            notification_phone_2: '',
-            notification_phone_3: '',
             project_id: id || ''
         });
         setEditingCheckId(null);
@@ -924,9 +917,9 @@ const ProjectDetail: React.FC = () => {
                                 due_date: c.due_date,
                                 status: c.status,
                                 description: c.description || '',
-                                notification_phone: c.notification_phone || '',
-                                notification_phone_2: c.notification_phone_2 || '',
-                                notification_phone_3: c.notification_phone_3 || '',
+                                notification_email: c.notification_email || '',
+                                notification_email_2: c.notification_email_2 || '',
+                                notification_email_3: c.notification_email_3 || '',
                                 project_id: c.project_id || id || ''
                             });
                             setShowCheckModal(true);
