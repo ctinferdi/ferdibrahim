@@ -11,7 +11,8 @@
   "dependencies": {
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
-    "@supabase/supabase-js": "^2.90.1",
+    "@supabase/supabase-js": "^2.104.1",
+    "dotenv": "^17.4.2",
     "dxf-parser": "^1.1.2",
     "pdfjs-dist": "^5.5.207",
     "react": "18.2.0",
