@@ -254,31 +254,25 @@ const ProjectDetail: React.FC = () => {
             // ----------------------
 
             // --- ORPHANED DATA RECOVERY ---
-            // If the PC had a stale targetUUID from a deleted project, it was fetching 155 orphaned items.
+            // If the PC had a stale targetUUID from a deleted or hidden old project,
             // We need to link those orphaned items to the new project so they appear on all devices.
             if (targetUUID && targetUUID !== proj.id) {
                 try {
-                    const { data: oldProj, error: oldError } = await supabase
-                        .from('projects')
-                        .select('id')
-                        .eq('id', targetUUID)
-                        .maybeSingle();
-
-                    if (!oldProj && !oldError) {
-                        // The old project was deleted! Recover orphaned data to the new project.
-                        console.log('Recovering orphaned data from', targetUUID, 'to', proj.id);
-                        await Promise.all([
-                            supabase.from('expenses').update({ project_id: proj.id }).eq('project_id', targetUUID),
-                            supabase.from('checks').update({ project_id: proj.id }).eq('project_id', targetUUID),
-                            supabase.from('apartments').update({ project_id: proj.id }).eq('project_id', targetUUID)
-                        ]);
-                    }
+                    console.log('Recovering data from old project ID', targetUUID, 'to', proj.id);
+                    await Promise.all([
+                        supabase.from('expenses').update({ project_id: proj.id }).eq('project_id', targetUUID),
+                        supabase.from('checks').update({ project_id: proj.id }).eq('project_id', targetUUID),
+                        supabase.from('apartments').update({ project_id: proj.id }).eq('project_id', targetUUID)
+                    ]);
                 } catch (e) {
                     console.warn('Orphan check failed', e);
                 }
                 
                 // Fix the stale cache
                 localStorage.setItem(`project_uuid_${id}`, proj.id);
+                if (proj.slug) {
+                    localStorage.setItem(`project_uuid_${proj.slug}`, proj.id);
+                }
                 
                 // Force results length to 1 so it fetches fresh data for proj.id
                 results.length = 1;
