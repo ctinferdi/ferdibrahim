@@ -6,7 +6,7 @@ import { supabase } from '../config/supabase';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import CheckModal from './ProjectDetail/Modals/CheckModal';
-import { isUserSuperAdmin } from '../config/admin';
+
 
 const Checks = () => {
     const [checks, setChecks] = useState<Check[]>([]);
@@ -25,8 +25,7 @@ const Checks = () => {
     const [deletingCheckInfo, setDeletingCheckInfo] = useState<{ id: string, name: string } | null>(null);
     const [sendingCode, setSendingCode] = useState(false);
 
-    const { user } = useAuth();
-    const isSuperAdmin = isUserSuperAdmin(user?.email);
+    const { user, isSuperAdmin } = useAuth();
 
     const handleAdminAction = (action: () => void) => {
         if (!isSuperAdmin) {

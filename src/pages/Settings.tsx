@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
-import { isUserSuperAdmin } from '../config/admin';
+
 
 const Settings: React.FC = () => {
     const [loading, setLoading] = useState(false);
@@ -17,8 +17,7 @@ const Settings: React.FC = () => {
     const [updatingUser, setUpdatingUser] = useState<string | null>(null);
 
 
-    const { user } = useAuth();
-    const isSuperAdmin = isUserSuperAdmin(user?.email);
+    const { user, isSuperAdmin } = useAuth();
 
     const fetchUsers = async () => {
         setLoadingUsers(true);
@@ -297,7 +296,7 @@ const Settings: React.FC = () => {
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     {users.map((u: any) => {
-                                        const isSuper = isUserSuperAdmin(u.email);
+                                        const isSuper = ['ctinferdi@gmail.com'].includes((u.email || '').toLowerCase());
                                         const hasProjects = (u.accessible_projects || []).length > 0;
                                         
                                         return (

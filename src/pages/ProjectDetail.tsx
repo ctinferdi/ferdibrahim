@@ -10,6 +10,7 @@ import { apartmentService } from '../services/apartmentService';
 import { Project, Expense, Check, Apartment } from '../types';
 import { supabase } from '../config/supabase';
 
+
 import FloorPlan from './ProjectDetail/FloorPlan';
 import ExpenseTable from './ProjectDetail/ExpenseTable';
 import CheckTable from './ProjectDetail/CheckTable';
@@ -27,7 +28,7 @@ import FloorPlanEditor from '../components/FloorPlanEditor';
 
 const ProjectDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const { user } = useAuth();
+    const { user, isSuperAdmin } = useAuth();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -36,6 +37,7 @@ const ProjectDetail: React.FC = () => {
     const [checks, setChecks] = useState<Check[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pageError, setPageError] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const tabParam = searchParams.get('tab');
@@ -240,8 +242,8 @@ const ProjectDetail: React.FC = () => {
             if (!proj) throw new Error('Proje bulunamadı');
 
             // --- YETKİ KONTROLÜ ---
-            const isSuper = isUserSuperAdmin(user?.email);
-            if (!isSuper) {
+            // isSuperAdmin comes from AuthContext (useAuth)
+            if (!isSuperAdmin) {
                 const { data: profile } = await supabase
                     .from('users')
                     .select('accessible_projects')
@@ -337,18 +339,7 @@ const ProjectDetail: React.FC = () => {
                 navigate(`/projeler/${proj.slug}${currentSearch}`, { replace: true });
             }
 
-        } catch (err: any) {
-            console.error(err);
-            if (err.message === 'Proje bulunamadı' && !showSpinner) {
-                setOrphanedCache(true);
-            } else if (showSpinner) {
-                navigate('/projeler');
-            }
-            setLoading(false);
-            setLoadingExpenses(false);
-            setLoadingChecks(false);
-            setLoadingApartments(false);
-        }
+        } catch (err: any) { console.error('Proje hata:', err); setPageError(err.message || 'Hata'); setLoading(false); setLoadingExpenses(false); setLoadingChecks(false); setLoadingApartments(false); }
     }, [id, navigate, selectedPartner, showCompanySection]);
 
     // Cache Saving Logic

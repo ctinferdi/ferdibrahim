@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
 import { Expense, ExpenseInput } from '../types';
 import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
-import { isUserSuperAdmin } from '../config/admin';
+
 
 const Expenses = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -22,8 +22,7 @@ const Expenses = () => {
     const [deletingExpenseInfo, setDeletingExpenseInfo] = useState<{ id: string, name: string } | null>(null);
     const [sendingCode, setSendingCode] = useState(false);
 
-    const { user } = useAuth();
-    const isSuperAdmin = isUserSuperAdmin(user?.email);
+    const { user, isSuperAdmin } = useAuth();
 
     const handleAdminAction = (action: () => void) => {
         if (!isSuperAdmin) {

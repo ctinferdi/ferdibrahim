@@ -2,9 +2,18 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../config/supabase';
 
+// ── Super admin list (inline to avoid cross-chunk bundling issues) ──
+const SUPER_ADMIN_EMAILS = ['ctinferdi@gmail.com'];
+
+function checkIsSuperAdmin(email: string | null | undefined): boolean {
+    if (!email) return false;
+    return SUPER_ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    isSuperAdmin: boolean;
     signOut: () => Promise<void>;
 }
 
@@ -13,19 +22,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
     useEffect(() => {
         // 1. Check active session once - clear invalid tokens if found
         supabase.auth.getSession().then(({ data: { session }, error }) => {
             if (error) {
-                // Geçersiz refresh token varsa temizle
                 console.warn('Session error, clearing invalid tokens:', error.message);
                 Object.keys(localStorage).forEach(key => {
                     if (key.startsWith('sb-')) localStorage.removeItem(key);
                 });
                 setUser(null);
+                setIsSuperAdmin(false);
             } else {
                 setUser(session?.user ?? null);
+                setIsSuperAdmin(checkIsSuperAdmin(session?.user?.email));
             }
             setLoading(false);
         });
@@ -33,28 +44,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // 2. Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
+            setIsSuperAdmin(checkIsSuperAdmin(session?.user?.email));
             setLoading(false);
         });
 
-        // 3. Session Timeout logic initialization
+        // 3. Session Timeout logic
         let lastActivity = Date.now();
         const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
         const resetTimer = () => { lastActivity = Date.now(); };
-
-        activityEvents.forEach(event => {
-            window.addEventListener(event, resetTimer);
-        });
+        activityEvents.forEach(event => window.addEventListener(event, resetTimer));
 
         const timeoutInterval = setInterval(() => {
             const now = Date.now();
             const oneHourInMs = 60 * 60 * 1000;
-            // Use a ref-like approach or just check current state safely
-            // Note: In an interval, we will see the LATEST 'user' if we define the function here?
-            // Actually, to be safe with closures, we could use a ref for 'user' but
-            // for now, let's keep it simple as it's a global singleton state.
             if (now - lastActivity > oneHourInMs) {
-                // We'll handle the signout if a user is present
-                // supabase.auth.getUser() is safer inside interval than closed-over 'user'
                 supabase.auth.getUser().then(({ data: { user } }) => {
                     if (user) {
                         console.log('Session timed out due to inactivity');
@@ -66,26 +69,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => {
             subscription.unsubscribe();
-            activityEvents.forEach(event => {
-                window.removeEventListener(event, resetTimer);
-            });
+            activityEvents.forEach(event => window.removeEventListener(event, resetTimer));
             clearInterval(timeoutInterval);
         };
-    }, []); // Empty array - run once on mount
+    }, []);
 
     const signOut = async () => {
         await supabase.auth.signOut();
         setUser(null);
-    };
-
-    const value = {
-        user,
-        loading,
-        signOut,
+        setIsSuperAdmin(false);
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, loading, isSuperAdmin, signOut }}>
             {!loading && children}
         </AuthContext.Provider>
     );

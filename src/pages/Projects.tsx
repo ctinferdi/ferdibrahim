@@ -7,14 +7,12 @@ import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
 import { Project, ProjectInput, ProjectPartnerInput, Check, Apartment } from '../types';
 import { supabase } from '../config/supabase';
-import { isUserSuperAdmin } from '../config/admin';
+
 
 const Projects: React.FC = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, isSuperAdmin } = useAuth();
     const [projects, setProjects] = useState<Project[]>([]);
-
-    const isSuperAdmin = isUserSuperAdmin(user?.email);
 
     const [userPerms, setUserPerms] = useState<string[]>([]);
     useEffect(() => {

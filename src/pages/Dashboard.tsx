@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { isUserSuperAdmin } from '../config/admin';
+
 import { supabase } from '../config/supabase';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
@@ -12,7 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toTurkishUpperCase } from '../utils/stringUtils';
 
 const Dashboard = () => {
-    const { user } = useAuth();
+    const { user, isSuperAdmin } = useAuth();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [checks, setChecks] = useState<Check[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -32,7 +32,7 @@ const Dashboard = () => {
 
         const loadData = async () => {
             let accessibleIds: string[] = [];
-            const isSuperAdmin = isUserSuperAdmin(user?.email);
+            // isSuperAdmin comes from AuthContext
             
             if (!isSuperAdmin && user?.id) {
                 const { data: profile } = await supabase
