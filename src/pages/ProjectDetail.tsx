@@ -43,6 +43,8 @@ const ProjectDetail: React.FC = () => {
         tabParam === 'apartments' ? 'apartments' : (tabParam === 'checks' ? 'checks' : 'expenses')
     );
 
+    const [orphanedCache, setOrphanedCache] = useState(false);
+
     const setActiveTab = (tab: 'expenses' | 'checks' | 'apartments') => {
         setActiveTabState(tab);
         navigate(`/projeler/${id}?tab=${tab}`, { replace: true });
@@ -335,9 +337,13 @@ const ProjectDetail: React.FC = () => {
                 navigate(`/projeler/${proj.slug}${currentSearch}`, { replace: true });
             }
 
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            if (showSpinner) navigate('/projeler');
+            if (err.message === 'Proje bulunamadı' && !showSpinner) {
+                setOrphanedCache(true);
+            } else if (showSpinner) {
+                navigate('/projeler');
+            }
             setLoading(false);
             setLoadingExpenses(false);
             setLoadingChecks(false);
@@ -592,6 +598,71 @@ const ProjectDetail: React.FC = () => {
     };
 
     if (loading || !project) {
+        if (orphanedCache && (expenses.length > 0 || checks.length > 0 || apartments.length > 0)) {
+            return (
+                <Layout>
+                    <div style={{ padding: 'var(--spacing-2xl)', textAlign: 'center' }}>
+                        <h2 style={{ color: 'var(--color-danger)', marginBottom: 'var(--spacing-md)' }}>⚠️ Kritik Uyarı: Kurtarılmayı Bekleyen Veriler Var!</h2>
+                        <p style={{ marginBottom: 'var(--spacing-lg)' }}>
+                            Eski/silinmiş projeden kalan ve henüz sunucuya ulaşmamış <b>{expenses.length} gider, {checks.length} çek ve {apartments.length} daire</b> bilginiz tarayıcı hafızanızda tespit edildi.
+                        </p>
+                        <p style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-text-light)' }}>
+                            Eğer önbelleği temizlerseniz bu veriler kalıcı olarak silinir. Aşağıdaki butona tıklayarak bu verileri güncel <b>HÜSEYİN DİNÇ</b> projenize güvenle aktarabilirsiniz.
+                        </p>
+                        <button
+                            className="btn btn-primary"
+                            style={{ padding: '16px 32px', fontSize: '18px', background: '#22c55e', border: 'none' }}
+                            onClick={async () => {
+                                setLoading(true);
+                                try {
+                                    // Güncel HÜSEYİN DİNÇ projesini bul
+                                    const { data: newProj } = await supabase
+                                        .from('projects')
+                                        .select('id')
+                                        .eq('slug', 'huseyin-dinc')
+                                        .single();
+                                    
+                                    if (!newProj) {
+                                        alert('Güncel proje bulunamadı!');
+                                        return;
+                                    }
+
+                                    // Verileri tek tek yeni projeye kaydet
+                                    for (const exp of expenses) {
+                                        const { id: oldId, created_at, updated_at, ...cleanExp } = exp as any;
+                                        cleanExp.project_id = newProj.id;
+                                        cleanExp.user_id = user?.id;
+                                        await supabase.from('expenses').insert([cleanExp]);
+                                    }
+                                    for (const chk of checks) {
+                                        const { id: oldId, created_at, updated_at, ...cleanChk } = chk as any;
+                                        cleanChk.project_id = newProj.id;
+                                        cleanChk.user_id = user?.id;
+                                        await supabase.from('checks').insert([cleanChk]);
+                                    }
+
+                                    for (const apt of apartments) {
+                                        const { id: oldId, created_at, updated_at, ...cleanApt } = apt as any;
+                                        cleanApt.project_id = newProj.id;
+                                        await supabase.from('apartments').insert([cleanApt]);
+                                    }
+
+                                    alert('Tebrikler! Tüm veriler başarıyla kurtarıldı ve güncel projeye aktarıldı. Şimdi sayfaya yönlendiriliyorsunuz.');
+                                    localStorage.removeItem(`project_cache_${id}`);
+                                    window.location.href = '/projeler/huseyin-dinc';
+                                } catch (e: any) {
+                                    console.error(e);
+                                    alert('Kurtarma sırasında bir hata oluştu: ' + e.message);
+                                    setLoading(false);
+                                }
+                            }}
+                        >
+                            Verileri Kurtar ve Aktar
+                        </button>
+                    </div>
+                </Layout>
+            );
+        }
         return <Layout><div className="loading-container"><div className="spinner"></div></div></Layout>;
     }
     
