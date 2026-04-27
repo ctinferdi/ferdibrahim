@@ -15,9 +15,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // 1. Check active session once
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
+        // 1. Check active session once - clear invalid tokens if found
+        supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (error) {
+                // Geçersiz refresh token varsa temizle
+                console.warn('Session error, clearing invalid tokens:', error.message);
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('sb-')) localStorage.removeItem(key);
+                });
+                setUser(null);
+            } else {
+                setUser(session?.user ?? null);
+            }
             setLoading(false);
         });
 
