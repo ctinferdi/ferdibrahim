@@ -62,7 +62,8 @@ function parseDxf(text: string): DxfSummary | null {
             if (y > maxY) maxY = y;
         };
 
-        for (const ent of dxf.entities) {
+        for (const _ent of dxf.entities) {
+            const ent = _ent as any;
             entityCount++;
             if (ent.type === 'LINE') {
                 processVertex(ent.vertices?.[0]?.x, ent.vertices?.[0]?.y);

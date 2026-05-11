@@ -147,6 +147,12 @@ const Building3D: React.FC<Building3DProps> = ({
             -bw / 2 + CBKW / 2 + 0.25,
         ];
 
+        const floorMap = new Map<number, Apartment[]>();
+        apartments.forEach(a => {
+            if (!floorMap.has(a.floor)) floorMap.set(a.floor, []);
+            floorMap.get(a.floor)!.push(a);
+        });
+
         const isDuplexFloor = (apts: Apartment[]) =>
             apts.some(a =>
                 (a.apartment_number ?? '').toUpperCase().includes('DUBLEKS') ||
@@ -542,10 +548,10 @@ const Building3D: React.FC<Building3DProps> = ({
 
             <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {[
-                    { color: '#16a34a', label: 'Satılık' },
-                    { color: '#d97706', label: 'Mal Sahibi' },
-                    { color: '#475569', label: 'Satıldı' },
-                ].map(item => (
+                    { color: '#16a34a', label: 'Satılık', show: true },
+                    { color: '#d97706', label: 'Mal Sahibi', show: apartments.some(a => a.status === 'owner') },
+                    { color: '#475569', label: 'Satıldı', show: apartments.some(a => a.status === 'sold') },
+                ].filter(i => i.show).map(item => (
                     <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(15,23,42,0.78)', padding: '4px 10px', borderRadius: 20, backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ width: 9, height: 9, borderRadius: 2, background: item.color }} />
                         <span style={{ color: '#e2e8f0', fontSize: 11, fontWeight: 600 }}>{item.label}</span>

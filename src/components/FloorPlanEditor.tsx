@@ -9,15 +9,15 @@ import DxfParser from 'dxf-parser';
 type RoomType = 'salon' | 'yatak' | 'mutfak' | 'banyo' | 'wc' | 'balkon' | 'koridor' | 'depo' | 'dükkan' | 'ofis';
 type ToolType = 'select' | 'room' | 'wall' | 'door' | 'window' | 'erase' | 'column' | 'beam' | 'slab';
 
-interface Room   { id: string; x: number; y: number; w: number; h: number; type: RoomType; label: string; height?: number; }
-interface Wall   { id: string; x1: number; y1: number; x2: number; y2: number; thickness?: number; height?: number; color?: string; }
+interface Room { id: string; x: number; y: number; w: number; h: number; type: RoomType; label: string; height?: number; }
+interface Wall { id: string; x1: number; y1: number; x2: number; y2: number; thickness?: number; height?: number; color?: string; }
 
 interface DoorEl { id: string; x: number; y: number; w: number; angle?: number; color?: string; }
-interface WinEl  { id: string; x: number; y: number; w: number; h?: number; angle?: number; wallSide: 'top'|'bottom'|'left'|'right'; color?: string; }
+interface WinEl { id: string; x: number; y: number; w: number; h?: number; angle?: number; wallSide: 'top' | 'bottom' | 'left' | 'right'; color?: string; }
 
 interface Column { id: string; x: number; y: number; w: number; h: number; color?: string; }
-interface Beam   { id: string; x1: number; y1: number; x2: number; y2: number; thickness?: number; height?: number; color?: string; }
-interface Slab   { id: string; x: number; y: number; w: number; h: number; thickness?: number; color?: string; }
+interface Beam { id: string; x1: number; y1: number; x2: number; y2: number; thickness?: number; height?: number; color?: string; }
+interface Slab { id: string; x: number; y: number; w: number; h: number; thickness?: number; color?: string; }
 
 interface FloorData {
     floor: number; label: string;
@@ -29,28 +29,28 @@ interface FloorData {
 interface Props { isOpen: boolean; onClose: () => void; projectName?: string; }
 
 /* ─── Constants ────────────────────────────────────────────────── */
-const GRID      = 20;   // px per 0.5m
-const PX_TO_M   = 0.5 / GRID;  // 0.025 m/px
-const FLOOR_H   = 3.0;  // metres per storey (3D)
-const SLAB_H    = 0.25;
+const GRID = 20;   // px per 0.5m
+const PX_TO_M = 0.5 / GRID;  // 0.025 m/px
+const FLOOR_H = 3.0;  // metres per storey (3D)
+const SLAB_H = 0.25;
 
 
-const ROOM_FILL: Record<RoomType, string>  = {
-    salon:'#bfdbfe', yatak:'#fbcfe8', mutfak:'#fef08a', banyo:'#6ee7b7',
-    wc:'#e9d5ff', balkon:'#bbf7d0', koridor:'#e5e7eb', depo:'#fde68a',
-    dükkan:'#fca5a5', ofis:'#bae6fd',
+const ROOM_FILL: Record<RoomType, string> = {
+    salon: '#bfdbfe', yatak: '#fbcfe8', mutfak: '#fef08a', banyo: '#6ee7b7',
+    wc: '#e9d5ff', balkon: '#bbf7d0', koridor: '#e5e7eb', depo: '#fde68a',
+    dükkan: '#fca5a5', ofis: '#bae6fd',
 };
 const ROOM_LABELS: Record<RoomType, string> = {
-    salon:'Salon', yatak:'Yatak', mutfak:'Mutfak', banyo:'Banyo', wc:'WC',
-    balkon:'Balkon', koridor:'Koridor', depo:'Depo', dükkan:'Dükkan', ofis:'Ofis',
+    salon: 'Salon', yatak: 'Yatak', mutfak: 'Mutfak', banyo: 'Banyo', wc: 'WC',
+    balkon: 'Balkon', koridor: 'Koridor', depo: 'Depo', dükkan: 'Dükkan', ofis: 'Ofis',
 };
 const ROOM_3D: Record<RoomType, string> = {
-    salon:'#93c5fd', yatak:'#f9a8d4', mutfak:'#fde047', banyo:'#34d399',
-    wc:'#c4b5fd', balkon:'#86efac', koridor:'#d1d5db', depo:'#fcd34d',
-    dükkan:'#f87171', ofis:'#7dd3fc',
+    salon: '#93c5fd', yatak: '#f9a8d4', mutfak: '#fde047', banyo: '#34d399',
+    wc: '#c4b5fd', balkon: '#86efac', koridor: '#d1d5db', depo: '#fcd34d',
+    dükkan: '#f87171', ofis: '#7dd3fc',
 };
 
-const uid  = () => Math.random().toString(36).slice(2, 9);
+const uid = () => Math.random().toString(36).slice(2, 9);
 const snap = (v: number) => Math.round(v / GRID) * GRID;
 
 /* ─── 3D Room mesh ──────────────────────────────────────────────── */
@@ -69,12 +69,12 @@ function Room3D({ room, fi, centerX, centerZ }: { room: Room; fi: number; center
         <group position={[cx, cy, cz]}>
             <mesh castShadow receiveShadow>
                 <boxGeometry args={[w, h, d]} />
-                <meshStandardMaterial 
-                    color={col} 
-                    transparent={isBalcony} 
-                    opacity={isBalcony ? 0.35 : 0.9} 
-                    roughness={isBalcony ? 0 : 0.5} 
-                    metalness={isBalcony ? 1 : 0.1} 
+                <meshStandardMaterial
+                    color={col}
+                    transparent={isBalcony}
+                    opacity={isBalcony ? 0.35 : 0.9}
+                    roughness={isBalcony ? 0 : 0.5}
+                    metalness={isBalcony ? 1 : 0.1}
                 />
 
             </mesh>
@@ -106,8 +106,8 @@ function Wall3D({ wall, fi, centerX, centerZ, windows, doors }: { wall: Wall; fi
     const color = wall.color || "#e2e8f0";
 
     const wallStart = new THREE.Vector2(wall.x1, wall.y1);
-    const wallEnd   = new THREE.Vector2(wall.x2, wall.y2);
-    const wallDir   = new THREE.Vector2().subVectors(wallEnd, wallStart).normalize();
+    const wallEnd = new THREE.Vector2(wall.x2, wall.y2);
+    const wallDir = new THREE.Vector2().subVectors(wallEnd, wallStart).normalize();
 
     const distToSegment = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
         const l2 = Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
@@ -117,10 +117,10 @@ function Wall3D({ wall, fi, centerX, centerZ, windows, doors }: { wall: Wall; fi
         return Math.sqrt(Math.pow(px - (x1 + t * (x2 - x1)), 2) + Math.pow(py - (y1 + t * (y2 - y1)), 2));
     };
 
-    const openings: { pos: number, w: number, type: 'win'|'door' }[] = [];
+    const openings: { pos: number, w: number, type: 'win' | 'door' }[] = [];
     [...windows, ...doors].forEach((o: any) => {
         const d = distToSegment(o.x, o.y, wall.x1, wall.y1, wall.x2, wall.y2);
-        if (d < 15) { 
+        if (d < 15) {
             const offset = (new THREE.Vector2(o.x, o.y).sub(wallStart)).dot(wallDir);
             openings.push({ pos: offset * PX_TO_M, w: o.w * PX_TO_M, type: o.wallSide ? 'win' : 'door' });
         }
@@ -132,7 +132,7 @@ function Wall3D({ wall, fi, centerX, centerZ, windows, doors }: { wall: Wall; fi
     let last = 0;
     openings.forEach(op => {
         const start = Math.max(0, op.pos - op.w / 2);
-        const end   = Math.min(len, op.pos + op.w / 2);
+        const end = Math.min(len, op.pos + op.w / 2);
         if (start > last) segments.push({ start: last, end: start, type: 'solid' });
         segments.push({ start: start, end: end, type: 'hole' });
         last = end;
@@ -145,7 +145,7 @@ function Wall3D({ wall, fi, centerX, centerZ, windows, doors }: { wall: Wall; fi
                 const sLen = seg.end - seg.start;
                 if (sLen <= 0.01) return null;
                 const scx = seg.start + sLen / 2;
-                
+
                 if (seg.type === 'hole') {
                     const isWin = openings.find(o => Math.abs(o.pos - scx) < 0.1 && o.type === 'win');
                     return (
@@ -167,7 +167,7 @@ function Wall3D({ wall, fi, centerX, centerZ, windows, doors }: { wall: Wall; fi
                 }
 
                 return (
-                    <mesh key={i} position={[scx, h/2, 0]} castShadow receiveShadow>
+                    <mesh key={i} position={[scx, h / 2, 0]} castShadow receiveShadow>
                         <boxGeometry args={[sLen, h, thickness]} />
                         <meshStandardMaterial color={color} roughness={0.7} />
                     </mesh>
@@ -198,7 +198,7 @@ function Window3D({ win, fi, centerX, centerZ }: { win: WinEl; fi: number; cente
     const w = win.w * PX_TO_M;
     const h = (win.h ?? 1.5);
     const cx = (win.x * PX_TO_M) - centerX;
-    const cy = fi * (FLOOR_H + SLAB_H) + 0.9 + h/2; // sills typically at 90cm
+    const cy = fi * (FLOOR_H + SLAB_H) + 0.9 + h / 2; // sills typically at 90cm
     const cz = (win.y * PX_TO_M) - centerZ;
     const angle = win.angle ?? 0;
 
@@ -278,11 +278,11 @@ function Slab3D({ fi, minX, minZ, maxX, maxZ, centerX, centerZ }: any) {
 function Building3DScene({ floors }: { floors: FloorData[] }) {
     // Determine bounding box of all elements for centering
     const allElems = useMemo(() => {
-        const res: {x:number, y:number}[] = [];
+        const res: { x: number, y: number }[] = [];
         floors.forEach(f => {
-            f.rooms.forEach(r => { res.push({x:r.x, y:r.y}, {x:r.x+r.w, y:r.y+r.h}); });
-            f.walls.forEach(w => { res.push({x:w.x1, y:w.y1}, {x:w.x2, y:w.y2}); });
-            f.columns?.forEach(c => { res.push({x:c.x, y:c.y}, {x:c.x+c.w, y:c.y+c.h}); });
+            f.rooms.forEach(r => { res.push({ x: r.x, y: r.y }, { x: r.x + r.w, y: r.y + r.h }); });
+            f.walls.forEach(w => { res.push({ x: w.x1, y: w.y1 }, { x: w.x2, y: w.y2 }); });
+            f.columns?.forEach(c => { res.push({ x: c.x, y: c.y }, { x: c.x + c.w, y: c.y + c.h }); });
         });
         return res;
     }, [floors]);
@@ -337,7 +337,6 @@ function Building3DScene({ floors }: { floors: FloorData[] }) {
                         <Text
                             position={[0, fi * (FLOOR_H + SLAB_H) + FLOOR_H + 0.3, 0]}
                             fontSize={0.35} color="#94a3b8" anchorX="center"
-                            billboard
                         >
                             {f.label}
                         </Text>
@@ -359,25 +358,25 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
         { floor: 1, label: '1. Kat', rooms: [], walls: [], doors: [], windows: [], columns: [], beams: [], slabs: [] },
     ]);
 
-    const [bgImage, setBgImage]     = useState<string | null>(null);
-    const [dxfLines, setDxfLines]   = useState<{x1:number, y1:number, x2:number, y2:number}[]>([]);
+    const [bgImage, setBgImage] = useState<string | null>(null);
+    const [dxfLines, setDxfLines] = useState<{ x1: number, y1: number, x2: number, y2: number }[]>([]);
     const [bgOpacity, setBgOpacity] = useState(0.4);
 
-    const [bgScale,   setBgScale]   = useState(1.0);
+    const [bgScale, setBgScale] = useState(1.0);
 
 
     const [activeIdx, setActiveIdx] = useState(0);
-    const [tool, setTool]           = useState<ToolType>('room');
-    const [roomType, setRoomType]   = useState<RoomType>('salon');
+    const [tool, setTool] = useState<ToolType>('room');
+    const [roomType, setRoomType] = useState<RoomType>('salon');
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [zoom, setZoom]           = useState(1);
-    const [pan, setPan]             = useState({ x: 60, y: 40 });
-    const [drawing, setDrawing]     = useState<{ x: number; y: number } | null>(null);
-    const [cursor, setCursor]       = useState({ x: 0, y: 0 });
-    const [viewMode, setViewMode]   = useState<'split' | '2d' | '3d'>('split');
-    const [dragging, setDragging]   = useState<{ id: string; offX: number; offY: number } | null>(null);
-    const [panDrag, setPanDrag]     = useState<{ sx: number; sy: number; sp: { x: number; y: number } } | null>(null);
-    const [showDims, setShowDims]   = useState(true);
+    const [zoom, setZoom] = useState(1);
+    const [pan, setPan] = useState({ x: 60, y: 40 });
+    const [drawing, setDrawing] = useState<{ x: number; y: number } | null>(null);
+    const [cursor, setCursor] = useState({ x: 0, y: 0 });
+    const [viewMode, setViewMode] = useState<'split' | '2d' | '3d'>('split');
+    const [dragging, setDragging] = useState<{ id: string; offX: number; offY: number } | null>(null);
+    const [panDrag, setPanDrag] = useState<{ sx: number; sy: number; sp: { x: number; y: number } } | null>(null);
+    const [showDims, setShowDims] = useState(true);
     const svgRef = useRef<SVGSVGElement>(null);
 
 
@@ -498,17 +497,17 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
             update(f => ({ ...f, walls: [...f.walls, { id: uid(), x1: drawing.x, y1: drawing.y, x2: sx, y2: sy }] }));
         } else if (tool === 'door' && (w >= GRID || h >= GRID)) {
             // Snapping door
-            let snappedX = x1 + w/2, snappedY = y1 + h/2;
+            let snappedX = x1 + w / 2, snappedY = y1 + h / 2;
             let bestWall: Wall | null = null, minDist = 40, wallAngle = 0;
             fd.walls.forEach(wa => {
                 const d = distToSegment(snappedX, snappedY, wa.x1, wa.y1, wa.x2, wa.y2);
                 if (d < minDist) { minDist = d; bestWall = wa; }
             });
             if (bestWall) {
-                const wa = bestWall;
+                const wa = bestWall as Wall;
                 const dx_w = wa.x2 - wa.x1, dy_w = wa.y2 - wa.y1;
                 wallAngle = Math.atan2(dy_w, dx_w);
-                const l2 = dx_w*dx_w + dy_w*dy_w;
+                const l2 = dx_w * dx_w + dy_w * dy_w;
                 let t = ((snappedX - wa.x1) * dx_w + (snappedY - wa.y1) * dy_w) / l2;
                 t = Math.max(0, Math.min(1, t));
                 snappedX = wa.x1 + t * dx_w; snappedY = wa.y1 + t * dy_w;
@@ -517,7 +516,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
 
         } else if (tool === 'window' && (w >= GRID || h >= GRID)) {
             // Snapping window
-            let snappedX = x1 + w/2, snappedY = y1 + h/2;
+            let snappedX = x1 + w / 2, snappedY = y1 + h / 2;
             let bestWall: Wall | null = null, minDist = 40, wallAngle = 0;
             let side: any = 'top';
             fd.walls.forEach(wa => {
@@ -525,10 +524,10 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                 if (d < minDist) { minDist = d; bestWall = wa; }
             });
             if (bestWall) {
-                const wa = bestWall;
+                const wa = bestWall as Wall;
                 const dx_w = wa.x2 - wa.x1, dy_w = wa.y2 - wa.y1;
                 wallAngle = Math.atan2(dy_w, dx_w);
-                const l2 = dx_w*dx_w + dy_w*dy_w;
+                const l2 = dx_w * dx_w + dy_w * dy_w;
                 let t = ((snappedX - wa.x1) * dx_w + (snappedY - wa.y1) * dy_w) / l2;
                 t = Math.max(0, Math.min(1, t));
                 snappedX = wa.x1 + t * dx_w; snappedY = wa.y1 + t * dy_w;
@@ -565,10 +564,10 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
     const copyFromBelow = () => {
         const src = floors.find(f => f.floor === fd.floor - 1);
         if (!src) return;
-        update(f => ({ 
-            ...f, 
-            rooms: src.rooms.map(r => ({ ...r, id: uid() })), 
-            walls: src.walls.map(w => ({ ...w, id: uid() })), 
+        update(f => ({
+            ...f,
+            rooms: src.rooms.map(r => ({ ...r, id: uid() })),
+            walls: src.walls.map(w => ({ ...w, id: uid() })),
             columns: src.columns.map(c => ({ ...c, id: uid() })),
             beams: src.beams.map(b => ({ ...b, id: uid() })),
             slabs: src.slabs.map(s => ({ ...s, id: uid() }))
@@ -651,14 +650,14 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                         <div style={sectionLabel}>ARAÇLAR</div>
                         {([
                             { t: 'select', icon: '↖', lbl: 'Seç / Taşı' },
-                            { t: 'room',   icon: '⬜', lbl: 'Oda Çiz' },
-                            { t: 'wall',   icon: '━',  lbl: 'Duvar Çiz' },
-                            { t: 'column', icon: '■',  lbl: 'Kolon' },
-                            { t: 'beam',   icon: '▬',  lbl: 'Kiriş' },
-                            { t: 'slab',   icon: '⧉',  lbl: 'Döşeme' },
-                            { t: 'door',   icon: '🚪', lbl: 'Kapı Ekle' },
+                            { t: 'room', icon: '⬜', lbl: 'Oda Çiz' },
+                            { t: 'wall', icon: '━', lbl: 'Duvar Çiz' },
+                            { t: 'column', icon: '■', lbl: 'Kolon' },
+                            { t: 'beam', icon: '▬', lbl: 'Kiriş' },
+                            { t: 'slab', icon: '⧉', lbl: 'Döşeme' },
+                            { t: 'door', icon: '🚪', lbl: 'Kapı Ekle' },
                             { t: 'window', icon: '🪟', lbl: 'Pencere' },
-                            { t: 'erase',  icon: '✕',  lbl: 'Sil' },
+                            { t: 'erase', icon: '✕', lbl: 'Sil' },
 
 
                         ] as { t: ToolType; icon: string; lbl: string }[]).map(({ t, icon, lbl }) => (
@@ -687,7 +686,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                         {lbl}
                                     </button>
                                 ))}
-                        </>
+                            </>
                         )}
 
                         <div style={{ ...sectionLabel, marginTop: '10px' }}>ARKA PLAN (DXF/RESİM)</div>
@@ -706,10 +705,10 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                             <div style={{ padding: '5px' }}>
                                 <div style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '4px' }}>Şeffaflık</div>
                                 <input type="range" min="0" max="1" step="0.1" value={bgOpacity} onChange={e => setBgOpacity(parseFloat(e.target.value))} style={{ width: '100%' }} />
-                                
+
                                 <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', marginBottom: '4px' }}>Plan Ölçeği</div>
                                 <input type="range" min="0.1" max="5" step="0.05" value={bgScale} onChange={e => setBgScale(parseFloat(e.target.value))} style={{ width: '100%' }} />
-                                <div style={{ fontSize: '9px', textAlign: 'right', color: '#64748b' }}>%{Math.round(bgScale*100)}</div>
+                                <div style={{ fontSize: '9px', textAlign: 'right', color: '#64748b' }}>%{Math.round(bgScale * 100)}</div>
 
                                 <button onClick={() => { setBgImage(null); setDxfLines([]); }} style={{ background: '#991b1b', width: '100%', marginTop: '8px', border: 'none', color: 'white', padding: '4px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>Planı Kaldır</button>
                             </div>
@@ -729,22 +728,23 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                         try {
                                             const parser = new DxfParser();
                                             const dxf = parser.parseSync(re.target?.result as string);
-                                            const lines:any[] = [];
-                                            dxf.entities.forEach(ent => {
+                                            if (!dxf || !dxf.entities) return;
+                                            const lines: any[] = [];
+                                            dxf.entities.forEach((ent: any) => {
                                                 if (ent.type === 'LINE') {
                                                     const v = (ent as any).vertices;
                                                     if (v.length >= 2) lines.push({ x1: v[0].x, y1: -v[0].y, x2: v[1].x, y2: -v[1].y });
                                                 } else if (ent.type === 'LWPOLYLINE' || ent.type === 'POLYLINE') {
                                                     const v = (ent as any).vertices;
-                                                    for (let i=0; i<v.length-1; i++) {
-                                                        lines.push({ x1: v[i].x, y1: -v[i].y, x2: v[i+1].x, y2: -v[i+1].y });
+                                                    for (let i = 0; i < v.length - 1; i++) {
+                                                        lines.push({ x1: v[i].x, y1: -v[i].y, x2: v[i + 1].x, y2: -v[i + 1].y });
                                                     }
                                                 } else if (ent.type === 'CIRCLE') {
                                                     const c = ent as any;
                                                     const steps = 32;
-                                                    for (let i=0; i<steps; i++) {
+                                                    for (let i = 0; i < steps; i++) {
                                                         const a1 = (i / steps) * Math.PI * 2;
-                                                        const a2 = ((i+1) / steps) * Math.PI * 2;
+                                                        const a2 = ((i + 1) / steps) * Math.PI * 2;
                                                         lines.push({
                                                             x1: c.center.x + Math.cos(a1) * c.radius, y1: -(c.center.y + Math.sin(a1) * c.radius),
                                                             x2: c.center.x + Math.cos(a2) * c.radius, y2: -(c.center.y + Math.sin(a2) * c.radius)
@@ -761,7 +761,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                                 const dx = maxX - minX, dy = maxY - minY;
                                                 const targetSize = 1200;
                                                 const scale = targetSize / Math.max(dx, dy, 1);
-                                                
+
                                                 const normalized = lines.map(l => ({
                                                     x1: (l.x1 - minX) * scale + 100, y1: (l.y1 - minY) * scale + 100,
                                                     x2: (l.x2 - minX) * scale + 100, y2: (l.y2 - minY) * scale + 100
@@ -835,14 +835,14 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
 
                                 {/* Background Tracer */}
                                 {bgImage && (
-                                    <image href={bgImage} opacity={bgOpacity} 
-                                        style={{ pointerEvents: 'none', transform: `scale(${bgScale})`, transformOrigin: '0 0' }} 
+                                    <image href={bgImage} opacity={bgOpacity}
+                                        style={{ pointerEvents: 'none', transform: `scale(${bgScale})`, transformOrigin: '0 0' }}
                                     />
                                 )}
                                 {dxfLines.length > 0 && (
                                     <g opacity={bgOpacity} style={{ pointerEvents: 'none', transform: `scale(${bgScale})`, transformOrigin: '0 0' }}>
                                         {dxfLines.map((l, i) => (
-                                            <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#64748b" strokeWidth={1/zoom} />
+                                            <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} stroke="#64748b" strokeWidth={1 / zoom} />
                                         ))}
                                     </g>
                                 )}
@@ -895,13 +895,13 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                     return (
                                         <g key={w.id} style={{ cursor: tool === 'select' || tool === 'erase' ? 'pointer' : 'default' }}>
                                             <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
-                                                stroke={sel ? '#60a5fa' : (w.color || '#ffffff')} 
+                                                stroke={sel ? '#60a5fa' : (w.color || '#ffffff')}
                                                 strokeWidth={(sel ? 8 : 5) / zoom} strokeLinecap="round" />
                                             {!sel && <line x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
                                                 stroke="#1e293b" strokeWidth={1 / zoom} strokeLinecap="round" />}
                                             {showDims && len > 10 && (
-                                                <text 
-                                                    x={(w.x1 + w.x2) / 2} 
+                                                <text
+                                                    x={(w.x1 + w.x2) / 2}
                                                     y={(w.y1 + w.y2) / 2 - 5 / zoom}
                                                     textAnchor="middle" fontSize={9 / zoom} fill="#fff" fontWeight="700"
                                                     style={{ pointerEvents: 'none', paintOrder: 'stroke', stroke: '#000', strokeWidth: 2 / zoom }}>
@@ -918,7 +918,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                     return (
                                         <rect key={c.id}
                                             x={c.x} y={c.y} width={c.w} height={c.h}
-                                            fill={c.color || "#1e293b"} 
+                                            fill={c.color || "#1e293b"}
                                             stroke={sel ? '#60a5fa' : '#3b82f6'}
                                             strokeWidth={(sel ? 3 : 1) / zoom}
                                             style={{ cursor: tool === 'select' || tool === 'erase' ? 'pointer' : 'default' }}
@@ -985,8 +985,8 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                             const len = Math.sqrt(Math.pow(cursor.x - drawing.x, 2) + Math.pow(cursor.y - drawing.y, 2));
                                             if (len > 5) {
                                                 return (
-                                                    <text 
-                                                        x={(drawing.x + cursor.x) / 2} 
+                                                    <text
+                                                        x={(drawing.x + cursor.x) / 2}
                                                         y={(drawing.y + cursor.y) / 2 - 10 / zoom}
                                                         textAnchor="middle" fontSize={11 / zoom} fill="#3b82f6" fontWeight="700"
                                                         style={{ pointerEvents: 'none', paintOrder: 'stroke', stroke: '#1e293b', strokeWidth: 3 / zoom }}>
@@ -1026,10 +1026,10 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                         >
                             <color attach="background" args={['#0a0f1a']} />
                             <ambientLight intensity={1.2} />
-                            <directionalLight 
-                                position={[20, 40, 20]} 
-                                intensity={2.8} 
-                                castShadow 
+                            <directionalLight
+                                position={[20, 40, 20]}
+                                intensity={2.8}
+                                castShadow
                                 shadow-mapSize={[1024, 1024]}
                             />
 
@@ -1061,11 +1061,11 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                 )}
                 {/* Properties Sidebar */}
                 {selectedId && show2D && (
-                    <PropertiesSidebar 
-                        id={selectedId} 
-                        fd={fd} 
-                        update={update} 
-                        onClose={() => setSelectedId(null)} 
+                    <PropertiesSidebar
+                        id={selectedId}
+                        fd={fd}
+                        update={update}
+                        onClose={() => setSelectedId(null)}
                     />
                 )}
             </div>
@@ -1086,18 +1086,18 @@ const sectionLabel: React.CSSProperties = {
 
 /* ─── Sidebar Component (Özellikler) ────────────────────────── */
 const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
-    const el =  fd.rooms.find((r:any) => r.id === id) || 
-                fd.walls.find((w:any) => w.id === id) || 
-                fd.doors.find((d:any) => d.id === id) || 
-                fd.columns?.find((c:any) => c.id === id) ||
-                fd.windows.find((w:any) => w.id === id);
+    const el = fd.rooms.find((r: any) => r.id === id) ||
+        fd.walls.find((w: any) => w.id === id) ||
+        fd.doors.find((d: any) => d.id === id) ||
+        fd.columns?.find((c: any) => c.id === id) ||
+        fd.windows.find((w: any) => w.id === id);
 
     if (!el) return null;
 
     const isRoom = !!el.type;
     const isWall = !el.type && el.x1 !== undefined;
-    const isCol  = !el.type && !el.x1 && el.h !== undefined && !el.wallSide;
-    const isWin  = !!el.wallSide;
+    const isCol = !el.type && !el.x1 && el.h !== undefined && !el.wallSide;
+    const isWin = !!el.wallSide;
     const isDoor = !el.type && !el.x1 && el.w !== undefined && !el.h && !el.wallSide;
 
     const fieldStyle = { display: 'flex', flexDirection: 'column' as const, gap: '4px', marginBottom: '12px' };
@@ -1116,7 +1116,7 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                     <label style={labelStyle}>Oda Adı</label>
                     <input style={inputStyle} value={el.label} onChange={e => {
                         const val = e.target.value;
-                        update((f:any) => ({ ...f, rooms: f.rooms.map((r:any) => r.id === id ? { ...r, label: val } : r) }));
+                        update((f: any) => ({ ...f, rooms: f.rooms.map((r: any) => r.id === id ? { ...r, label: val } : r) }));
                     }} />
                 </div>
             )}
@@ -1127,10 +1127,10 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                         <label style={labelStyle}>Genişlik (cm)</label>
                         <input type="number" style={inputStyle} value={Math.round(el.w * 2.5)} onChange={e => {
                             const val = parseInt(e.target.value) / 2.5;
-                            update((f:any) => ({
+                            update((f: any) => ({
                                 ...f,
-                                rooms:   isRoom ? f.rooms.map((r:any) => r.id === id ? { ...r, w: val } : r) : f.rooms,
-                                columns: isCol  ? f.columns.map((r:any) => r.id === id ? { ...r, w: val } : r) : f.columns
+                                rooms: isRoom ? f.rooms.map((r: any) => r.id === id ? { ...r, w: val } : r) : f.rooms,
+                                columns: isCol ? f.columns.map((r: any) => r.id === id ? { ...r, w: val } : r) : f.columns
                             }));
                         }} />
                     </div>
@@ -1138,10 +1138,10 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                         <label style={labelStyle}>Derinlik (cm)</label>
                         <input type="number" style={inputStyle} value={Math.round(el.h * 2.5)} onChange={e => {
                             const val = parseInt(e.target.value) / 2.5;
-                            update((f:any) => ({
+                            update((f: any) => ({
                                 ...f,
-                                rooms:   isRoom ? f.rooms.map((r:any) => r.id === id ? { ...r, h: val } : r) : f.rooms,
-                                columns: isCol  ? f.columns.map((r:any) => r.id === id ? { ...r, h: val } : r) : f.columns
+                                rooms: isRoom ? f.rooms.map((r: any) => r.id === id ? { ...r, h: val } : r) : f.rooms,
+                                columns: isCol ? f.columns.map((r: any) => r.id === id ? { ...r, h: val } : r) : f.columns
                             }));
                         }} />
                     </div>
@@ -1149,9 +1149,9 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                         <label style={labelStyle}>Oda Yüksekliği (m)</label>
                         <input type="number" step="0.1" style={inputStyle} value={el.height ?? (isRoom && el.type === 'balkon' ? 1.05 : 3.0)} onChange={e => {
                             const val = parseFloat(e.target.value);
-                            update((f:any) => ({
+                            update((f: any) => ({
                                 ...f,
-                                rooms:   isRoom ? f.rooms.map((r:any) => r.id === id ? { ...r, height: val } : r) : f.rooms,
+                                rooms: isRoom ? f.rooms.map((r: any) => r.id === id ? { ...r, height: val } : r) : f.rooms,
                             }));
                         }} />
                     </div>
@@ -1164,14 +1164,14 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                         <label style={labelStyle}>Duvar Kalınlığı (cm)</label>
                         <input type="number" style={inputStyle} value={el.thickness || 15} onChange={e => {
                             const val = parseInt(e.target.value);
-                            update((f:any) => ({ ...f, walls: f.walls.map((w:any) => w.id === id ? { ...w, thickness: val } : w) }));
+                            update((f: any) => ({ ...f, walls: f.walls.map((w: any) => w.id === id ? { ...w, thickness: val } : w) }));
                         }} />
                     </div>
                     <div style={fieldStyle}>
                         <label style={labelStyle}>Duvar Yüksekliği (m)</label>
                         <input type="number" step="0.1" style={inputStyle} value={el.height ?? 3.0} onChange={e => {
                             const val = parseFloat(e.target.value);
-                            update((f:any) => ({ ...f, walls: f.walls.map((w:any) => w.id === id ? { ...w, height: val } : w) }));
+                            update((f: any) => ({ ...f, walls: f.walls.map((w: any) => w.id === id ? { ...w, height: val } : w) }));
                         }} />
                     </div>
                 </>
@@ -1183,17 +1183,17 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                     <label style={labelStyle}>Pencere Genişliği (cm)</label>
                     <input type="number" style={inputStyle} value={Math.round(el.w * 2.5)} onChange={e => {
                         const val = parseInt(e.target.value) / 2.5;
-                        update((f:any) => ({ ...f, windows: f.windows.map((r:any) => r.id === id ? { ...r, w: val } : r) }));
+                        update((f: any) => ({ ...f, windows: f.windows.map((r: any) => r.id === id ? { ...r, w: val } : r) }));
                     }} />
                 </div>
             )}
-            
+
             {isDoor && (
                 <div style={fieldStyle}>
                     <label style={labelStyle}>Kapı Genişliği (cm)</label>
                     <input type="number" style={inputStyle} value={Math.round(el.w * 2.5)} onChange={e => {
                         const val = parseInt(e.target.value) / 2.5;
-                        update((f:any) => ({ ...f, doors: f.doors.map((r:any) => r.id === id ? { ...r, w: val } : r) }));
+                        update((f: any) => ({ ...f, doors: f.doors.map((r: any) => r.id === id ? { ...r, w: val } : r) }));
                     }} />
                 </div>
             )}
@@ -1202,10 +1202,10 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                     <label style={labelStyle}>Renk Seçimi</label>
                     <input type="color" style={{ ...inputStyle, height: '35px', padding: '2px' }} value={el.color || (isWin ? '#93c5fd' : '#78350f')} onChange={e => {
                         const val = e.target.value;
-                        update((f:any) => ({
+                        update((f: any) => ({
                             ...f,
-                            doors:   isDoor ? f.doors.map((r:any) => r.id === id ? { ...r, color: val } : r) : f.doors,
-                            windows: isWin  ? f.windows.map((r:any) => r.id === id ? { ...r, color: val } : r) : f.windows
+                            doors: isDoor ? f.doors.map((r: any) => r.id === id ? { ...r, color: val } : r) : f.doors,
+                            windows: isWin ? f.windows.map((r: any) => r.id === id ? { ...r, color: val } : r) : f.windows
                         }));
                     }} />
                 </div>
@@ -1216,17 +1216,17 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
                     <label style={labelStyle}>Renk Seçimi</label>
                     <input type="color" style={{ ...inputStyle, height: '35px', padding: '2px' }} value={el.color || (isCol ? '#1e293b' : '#64748b')} onChange={e => {
                         const val = e.target.value;
-                        update((f:any) => ({
+                        update((f: any) => ({
                             ...f,
-                            walls:   isWall ? f.walls.map((r:any) => r.id === id ? { ...r, color: val } : r) : f.walls,
-                            columns: isCol  ? f.columns.map((r:any) => r.id === id ? { ...r, color: val } : r) : f.columns
+                            walls: isWall ? f.walls.map((r: any) => r.id === id ? { ...r, color: val } : r) : f.walls,
+                            columns: isCol ? f.columns.map((r: any) => r.id === id ? { ...r, color: val } : r) : f.columns
                         }));
                     }} />
                 </div>
             )}
 
             <div style={{ marginTop: '20px', color: '#475569', fontSize: '10px' }}>
-                ID: {id}<br/>
+                ID: {id}<br />
                 Ölçek: 1px = 2.5cm
                 <div style={{ marginTop: '10px', color: '#94a3b8' }}>* Değerleri değiştirmek için sayı kutularını kullanın.</div>
             </div>

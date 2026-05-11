@@ -107,17 +107,15 @@ const PublicProject: React.FC = () => {
         </div>
     );
 
-    const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
+    const availableApartments = apartments.filter(a => a.status === 'available');
+    const floors = [...new Set(availableApartments.map(a => a.floor))].sort((a, b) => b - a);
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
     const companyAddress = project.company_address || userCompany?.company_address;
     const companyLocation = project.company_location || userCompany?.company_location;
     const whatsappNum = project.whatsapp_number || userCompany?.whatsapp_number;
 
     const statBar = [
-        { icon: '📊', label: 'Toplam', count: apartments.length, color: '#94a3b8' },
-        { icon: '🟢', label: 'Satılık', count: apartments.filter(a => a.status === 'available').length, color: '#22c55e' },
-        { icon: '🔴', label: 'Satılan', count: apartments.filter(a => a.status === 'sold').length, color: '#ef4444' },
-        { icon: '🟡', label: 'Mal Sahibi', count: apartments.filter(a => a.status === 'owner').length, color: '#f59e0b' },
+        { icon: '🟢', label: 'Satılık', count: availableApartments.length, color: '#22c55e' },
     ];
 
     return (
@@ -255,7 +253,7 @@ const PublicProject: React.FC = () => {
                         <div style={{ height: 'min(82vh, 680px)', minHeight: 500 }}>
                         <Suspense fallback={<div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13, letterSpacing: 2 }}>3D YÜKLENİYOR...</div>}>
                             <Building3D
-                                    apartments={apartments}
+                                    apartments={apartments.map(a => a.status === 'available' ? a : { ...a, status: 'common', apartment_number: '' })}
                                     onSelectApartment={setSelectedApartment}
                                     projectName={project?.name}
                                     companyName={userCompany?.company_name || undefined}
@@ -267,9 +265,12 @@ const PublicProject: React.FC = () => {
                         </div>
                     ) : (
                         floors.map((floor, fi) => {
-                        const floorApts = apartments
+                        const floorApts = availableApartments
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                            
+                        if (floorApts.length === 0) return null;
+
                         return (
                             <div key={floor} className="floor-row" style={{
                                 display: 'flex',
@@ -381,8 +382,6 @@ const PublicProject: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '24px', flexWrap: 'wrap' }}>
                     {[
                         { color: '#22c55e', label: 'Satılık — Tıkla, detay gör' },
-                        { color: '#f59e0b', label: 'Mal Sahibi' },
-                        { color: '#475569', label: 'Satıldı' },
                     ].map(l => (
                         <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '13px' }}>
                             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: l.color }} />
