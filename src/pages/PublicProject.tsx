@@ -128,20 +128,26 @@ const PublicProject: React.FC = () => {
                 boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
             }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', maxWidth: '1200px', margin: '0 auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
-                        <span style={{ fontSize: '22px' }}>🏢</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
+                        <span style={{ fontSize: '36px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>🏢</span>
                         <div>
-                            <h1 style={{ margin: 0, fontSize: 'clamp(15px,2.5vw,20px)', fontWeight: 900, color: '#fff', letterSpacing: 0.5, textShadow: '0 2px 8px rgba(0,0,0,0.3)', lineHeight: 1.2 }}>
+                            <h1 style={{ margin: 0, fontSize: 'clamp(22px, 3.5vw, 32px)', fontWeight: 900, color: '#fff', letterSpacing: 0.5, textShadow: '0 2px 8px rgba(0,0,0,0.4)', lineHeight: 1.2 }}>
                                 {companyName}
                             </h1>
-                            {companyAddress && (
-                                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '12px' }}>📍 {companyAddress}</span>
-                            )}
-                            {companyLocation && (
-                                <a href={companyLocation} target="_blank" rel="noopener noreferrer"
-                                    style={{ display: 'inline-block', marginLeft: '8px', color: 'rgba(255,255,255,0.65)', fontSize: '12px', textDecoration: 'underline' }}>
-                                    🗺️ Harita
-                                </a>
+                            {(companyAddress || companyLocation) && (
+                                <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                                    {companyAddress && (
+                                        <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '15px', fontWeight: 500, textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                                            📍 {companyAddress}
+                                        </span>
+                                    )}
+                                    {companyLocation && (
+                                        <a href={companyLocation} target="_blank" rel="noopener noreferrer"
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#fbbf24', fontSize: '14px', textDecoration: 'none', fontWeight: 700, padding: '4px 10px', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+                                            🗺️ Haritada Gör
+                                        </a>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -341,6 +347,7 @@ const PublicProject: React.FC = () => {
                                                     onClick={() => !isCommon && setSelectedApartment(apt)}
                                                     style={{
                                                         minWidth: 0,
+                                                        gridColumn: isCommon ? '1 / -1' : undefined,
                                                         background: cfg.bg,
                                                         borderRadius: '10px',
                                                         padding: '12px 10px',

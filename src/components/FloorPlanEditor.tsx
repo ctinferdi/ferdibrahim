@@ -470,6 +470,36 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
             setSelectedId(null); return;
         }
 
+        // DXF Magic Convert: If tool is wall/window/door, and we click near a DXF line, auto-convert it
+        if (tool === 'wall' || tool === 'window' || tool === 'door') {
+            let nearestDxf: any = null;
+            let minDist = 15 / zoom;
+            dxfLines.forEach(l => {
+                const d = distToSegment(x, y, l.x1, l.y1, l.x2, l.y2);
+                if (d < minDist) { minDist = d; nearestDxf = l; }
+            });
+            if (nearestDxf) {
+                if (tool === 'wall') {
+                    update(f => ({ ...f, walls: [...f.walls, { id: uid(), x1: nearestDxf.x1, y1: nearestDxf.y1, x2: nearestDxf.x2, y2: nearestDxf.y2 }] }));
+                } else {
+                    const cx = (nearestDxf.x1 + nearestDxf.x2) / 2;
+                    const cy = (nearestDxf.y1 + nearestDxf.y2) / 2;
+                    const dx_w = nearestDxf.x2 - nearestDxf.x1;
+                    const dy_w = nearestDxf.y2 - nearestDxf.y1;
+                    const angle = Math.atan2(dy_w, dx_w);
+                    const len = Math.sqrt(dx_w * dx_w + dy_w * dy_w);
+                    
+                    if (tool === 'door') {
+                        update(f => ({ ...f, doors: [...f.doors, { id: uid(), x: cx, y: cy, w: Math.max(40, len), angle }] }));
+                    } else if (tool === 'window') {
+                        const side = Math.abs(dx_w) > Math.abs(dy_w) ? 'top' : 'left';
+                        update(f => ({ ...f, windows: [...f.windows, { id: uid(), x: cx, y: cy, w: Math.max(60, len), h: 1.5, wallSide: side, angle }] }));
+                    }
+                }
+                return;
+            }
+        }
+
         setDrawing({ x: snap(x), y: snap(y) });
     };
 
