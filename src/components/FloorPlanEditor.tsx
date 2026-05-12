@@ -768,6 +768,8 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
                                                 }));
                                                 setDxfLines(normalized);
                                                 setBgScale(1.0);
+                                            } else {
+                                                alert('DXF dosyası okundu fakat çizgi bulunamadı. Lütfen çizimin "Block" (blok) halinde olmadığından emin olun. Gerekirse AutoCAD\'de tümünü seçip "X" (Explode) ile patlatarak tekrar DXF kaydedin.');
                                             }
                                         } catch (err) { alert('DXF dosyası okunamadı. Lütfen geçerli bir DXF (v2000 veya üstü) yükleyin.'); }
                                     };

@@ -109,6 +109,7 @@ const PublicProject: React.FC = () => {
 
     const availableApartments = apartments.filter(a => a.status === 'available');
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
+    const maxAptsPerFloor = floors.length > 0 ? Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length)) : 1;
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
     const companyAddress = project.company_address || userCompany?.company_address;
     const companyLocation = project.company_location || userCompany?.company_location;
@@ -319,15 +320,15 @@ const PublicProject: React.FC = () => {
                                     {getFloorLabel(floor)}
                                 </div>
 
-                                <div className="apt-grid" style={{ display: 'flex', gap: '10px', flex: 1, alignItems: 'center' }}>
+                                <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '10px', flex: 1, alignItems: 'center' }}>
                                     {!hasAvailable ? (
-                                        <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px' }}>
+                                        <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px', gridColumn: `1 / -1` }}>
                                             Bu katta satılık daire bulunmuyor.
                                         </div>
                                     ) : (
                                         floorApts.map(apt => {
                                             if (apt.status !== 'available') {
-                                                return <div key={apt.id} style={{ flex: '1 1 0%', minWidth: '130px' }} />;
+                                                return <div key={apt.id} style={{ minWidth: 0 }} />;
                                             }
 
                                             const cfg = STATUS_CONFIG.available;
@@ -337,8 +338,7 @@ const PublicProject: React.FC = () => {
                                                     className="apt-card available"
                                                     onClick={() => setSelectedApartment(apt)}
                                                     style={{
-                                                        flex: '1 1 0%',
-                                                        minWidth: '130px',
+                                                        minWidth: 0,
                                                         background: cfg.bg,
                                                         borderRadius: '10px',
                                                         padding: '12px 10px',
