@@ -170,7 +170,7 @@ const PublicProject: React.FC = () => {
                                 color: 'rgba(255,255,255,0.9)',
                                 fontSize: '13px',
                                 maxWidth: '350px',
-                                textAlign: 'right',
+                                textAlign: 'left',
                                 lineHeight: 1.6,
                                 border: '1px solid rgba(255,255,255,0.1)'
                             }}>
@@ -291,7 +291,7 @@ const PublicProject: React.FC = () => {
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
                         
-                        const hasAvailable = floorApts.some(a => a.status === 'available');
+                        const hasVisibleApts = floorApts.some(a => a.status === 'available' || a.status === 'common');
 
                         return (
                             <div key={floor} className="floor-row" style={{
@@ -321,54 +321,66 @@ const PublicProject: React.FC = () => {
                                 </div>
 
                                 <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '10px', flex: 1, alignItems: 'center' }}>
-                                    {!hasAvailable ? (
+                                    {!hasVisibleApts ? (
                                         <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px', gridColumn: `1 / -1` }}>
                                             Bu katta satılık daire bulunmuyor.
                                         </div>
                                     ) : (
                                         floorApts.map(apt => {
-                                            if (apt.status !== 'available') {
+                                            if (apt.status !== 'available' && apt.status !== 'common') {
                                                 return <div key={apt.id} style={{ minWidth: 0 }} />;
                                             }
 
-                                            const cfg = STATUS_CONFIG.available;
+                                            const isCommon = apt.status === 'common';
+                                            const cfg = STATUS_CONFIG[apt.status] || STATUS_CONFIG.available;
+                                            
                                             return (
                                                 <div
                                                     key={apt.id}
-                                                    className="apt-card available"
-                                                    onClick={() => setSelectedApartment(apt)}
+                                                    className={`apt-card ${isCommon ? 'common' : 'available'}`}
+                                                    onClick={() => !isCommon && setSelectedApartment(apt)}
                                                     style={{
                                                         minWidth: 0,
                                                         background: cfg.bg,
                                                         borderRadius: '10px',
                                                         padding: '12px 10px',
-                                                        cursor: 'pointer',
+                                                        cursor: isCommon ? 'default' : 'pointer',
                                                         boxShadow: cfg.glow,
                                                         display: 'flex',
                                                         flexDirection: 'column',
                                                         gap: '4px',
-                                                        border: '1px solid rgba(255,255,255,0.15)',
+                                                        border: isCommon ? '1px solid #334155' : '1px solid rgba(255,255,255,0.15)',
                                                         position: 'relative',
                                                         overflow: 'hidden',
+                                                        opacity: cfg.dim ? 0.8 : 1
                                                     }}
                                                 >
-                                                    <div style={{
-                                                        position: 'absolute', top: 0, left: '-50%',
-                                                        width: '30%', height: '100%',
-                                                        background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)',
-                                                        transform: 'skewX(-20deg)',
-                                                        pointerEvents: 'none'
-                                                    }} />
+                                                    {!isCommon && (
+                                                        <div style={{
+                                                            position: 'absolute', top: 0, left: '-50%',
+                                                            width: '30%', height: '100%',
+                                                            background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)',
+                                                            transform: 'skewX(-20deg)',
+                                                            pointerEvents: 'none'
+                                                        }} />
+                                                    )}
                                                     <div style={{ fontSize: '13px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
-                                                        Daire {apt.apartment_number || '—'}
+                                                        {isCommon ? (apt.apartment_number || 'ORTAK ALAN') : `Daire ${apt.apartment_number || '—'}`}
                                                     </div>
-                                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                                                    <div style={{ fontSize: '10px', color: isCommon ? '#64748b' : 'rgba(255,255,255,0.8)' }}>
                                                         {apt.square_meters} m²
                                                     </div>
-                                                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
-                                                        {formatCurrency(apt.price)}
-                                                    </div>
-                                                    {apt.plan_files && apt.plan_files.length > 0 && (
+                                                    {!isCommon && (
+                                                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+                                                            {formatCurrency(apt.price)}
+                                                        </div>
+                                                    )}
+                                                    {isCommon && (
+                                                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>
+                                                            {cfg.label}
+                                                        </div>
+                                                    )}
+                                                    {!isCommon && apt.plan_files && apt.plan_files.length > 0 && (
                                                         <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
                                                             📄 {apt.plan_files.length} plan
                                                         </div>
