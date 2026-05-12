@@ -108,7 +108,7 @@ const PublicProject: React.FC = () => {
     );
 
     const availableApartments = apartments.filter(a => a.status === 'available');
-    const floors = [...new Set(availableApartments.map(a => a.floor))].sort((a, b) => b - a);
+    const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
     const companyAddress = project.company_address || userCompany?.company_address;
     const companyLocation = project.company_location || userCompany?.company_location;
@@ -268,8 +268,6 @@ const PublicProject: React.FC = () => {
                         const floorApts = availableApartments
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-                            
-                        if (floorApts.length === 0) return null;
 
                         return (
                             <div key={floor} className="floor-row" style={{
@@ -298,9 +296,14 @@ const PublicProject: React.FC = () => {
                                     {getFloorLabel(floor)}
                                 </div>
 
-                                <div className="apt-grid" style={{ display: 'flex', gap: '10px', flex: 1 }}>
-                                    {floorApts.map(apt => {
-                                        const cfg = STATUS_CONFIG[apt.status] || STATUS_CONFIG.available;
+                                <div className="apt-grid" style={{ display: 'flex', gap: '10px', flex: 1, alignItems: 'center' }}>
+                                    {floorApts.length === 0 ? (
+                                        <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px' }}>
+                                            Bu katta satılık daire bulunmuyor.
+                                        </div>
+                                    ) : (
+                                        floorApts.map(apt => {
+                                            const cfg = STATUS_CONFIG[apt.status] || STATUS_CONFIG.available;
                                         const clickable = apt.status === 'available';
                                         return (
                                             <div
@@ -357,7 +360,8 @@ const PublicProject: React.FC = () => {
                                                 )}
                                             </div>
                                         );
-                                    })}
+                                    })
+                                    )}
                                 </div>
                             </div>
                         );
