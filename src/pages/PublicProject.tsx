@@ -114,10 +114,6 @@ const PublicProject: React.FC = () => {
     const companyLocation = project.company_location || userCompany?.company_location;
     const whatsappNum = project.whatsapp_number || userCompany?.whatsapp_number;
 
-    const statBar = [
-        { icon: '🟢', label: 'Satılık', count: availableApartments.length, color: '#22c55e' },
-    ];
-
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)', overflowX: 'auto' }}>
 
@@ -148,23 +144,48 @@ const PublicProject: React.FC = () => {
                             )}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                        {statBar.map(s => (
-                            <div key={s.label} style={{
-                                background: 'rgba(255,255,255,0.15)',
-                                backdropFilter: 'blur(8px)',
-                                borderRadius: '999px',
-                                padding: '5px 12px',
-                                color: '#fff',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                display: 'flex', alignItems: 'center', gap: '5px'
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                        <div style={{
+                            background: 'rgba(255,255,255,0.25)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '30px',
+                            padding: '10px 24px',
+                            color: '#fff',
+                            fontSize: '18px',
+                            fontWeight: 900,
+                            border: '2px solid rgba(255,255,255,0.4)',
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                        }}>
+                            <span style={{ fontSize: '20px' }}>🟢</span>
+                            Satılık: <span style={{ color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.8)' }}>{availableApartments.length}</span> Daire
+                        </div>
+
+                        {availableApartments.length > 0 && (
+                            <div style={{
+                                background: 'rgba(0,0,0,0.3)',
+                                padding: '12px 16px',
+                                borderRadius: '12px',
+                                color: 'rgba(255,255,255,0.9)',
+                                fontSize: '13px',
+                                maxWidth: '350px',
+                                textAlign: 'right',
+                                lineHeight: 1.6,
+                                border: '1px solid rgba(255,255,255,0.1)'
                             }}>
-                                <span style={{ color: s.color }}>{s.icon}</span>
-                                {s.label}: <span style={{ color: s.color }}>{s.count}</span>
+                                <div style={{ fontWeight: 800, marginBottom: '8px', color: '#fbbf24', fontSize: '14px' }}>📌 Müsait Daireler:</div>
+                                {floors.map(f => {
+                                    const apts = availableApartments.filter(a => a.floor === f).sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0));
+                                    if (apts.length === 0) return null;
+                                    return (
+                                        <div key={f} style={{ marginBottom: '6px' }}>
+                                            <span style={{ fontWeight: 800, color: 'white' }}>{getFloorLabel(f)}:</span>{' '}
+                                            {apts.map(a => `Daire ${a.apartment_number}`).join(', ')}
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </div>
@@ -281,18 +302,18 @@ const PublicProject: React.FC = () => {
                                 background: fi === 0 ? 'rgba(99,102,241,0.06)' : 'transparent',
                             }}>
                                 <div className="floor-label-col" style={{
-                                    minWidth: '70px',
+                                    minWidth: '90px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                                    borderRadius: '8px',
+                                    borderRadius: '12px',
                                     color: '#fff',
-                                    fontSize: '11px',
-                                    fontWeight: 800,
+                                    fontSize: '15px',
+                                    fontWeight: 900,
                                     letterSpacing: 1,
-                                    boxShadow: '0 2px 8px rgba(79,70,229,0.4)',
-                                    padding: '8px 4px',
+                                    boxShadow: '0 4px 12px rgba(79,70,229,0.5)',
+                                    padding: '12px 6px',
                                     textAlign: 'center',
                                 }}>
                                     {getFloorLabel(floor)}
