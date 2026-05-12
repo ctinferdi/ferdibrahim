@@ -265,9 +265,11 @@ const PublicProject: React.FC = () => {
                         </div>
                     ) : (
                         floors.map((floor, fi) => {
-                        const floorApts = availableApartments
+                        const floorApts = apartments
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                        
+                        const hasAvailable = floorApts.some(a => a.status === 'available');
 
                         return (
                             <div key={floor} className="floor-row" style={{
@@ -297,37 +299,38 @@ const PublicProject: React.FC = () => {
                                 </div>
 
                                 <div className="apt-grid" style={{ display: 'flex', gap: '10px', flex: 1, alignItems: 'center' }}>
-                                    {floorApts.length === 0 ? (
+                                    {!hasAvailable ? (
                                         <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px' }}>
                                             Bu katta satılık daire bulunmuyor.
                                         </div>
                                     ) : (
                                         floorApts.map(apt => {
-                                            const cfg = STATUS_CONFIG[apt.status] || STATUS_CONFIG.available;
-                                        const clickable = apt.status === 'available';
-                                        return (
-                                            <div
-                                                key={apt.id}
-                                                className={`apt-card${clickable ? ' available' : ''}`}
-                                                onClick={() => clickable && setSelectedApartment(apt)}
-                                                style={{
-                                                    flex: '1 1 0%',
-                                                    minWidth: '130px',
-                                                    background: cfg.bg,
-                                                    borderRadius: '10px',
-                                                    padding: '12px 10px',
-                                                    cursor: clickable ? 'pointer' : 'default',
-                                                    boxShadow: cfg.glow,
-                                                    opacity: cfg.dim ? 0.5 : 1,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '4px',
-                                                    border: clickable ? '1px solid rgba(255,255,255,0.15)' : '1px solid #2d3748',
-                                                    position: 'relative',
-                                                    overflow: 'hidden',
-                                                }}
-                                            >
-                                                {clickable && (
+                                            if (apt.status !== 'available') {
+                                                return <div key={apt.id} style={{ flex: '1 1 0%', minWidth: '130px' }} />;
+                                            }
+
+                                            const cfg = STATUS_CONFIG.available;
+                                            return (
+                                                <div
+                                                    key={apt.id}
+                                                    className="apt-card available"
+                                                    onClick={() => setSelectedApartment(apt)}
+                                                    style={{
+                                                        flex: '1 1 0%',
+                                                        minWidth: '130px',
+                                                        background: cfg.bg,
+                                                        borderRadius: '10px',
+                                                        padding: '12px 10px',
+                                                        cursor: 'pointer',
+                                                        boxShadow: cfg.glow,
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '4px',
+                                                        border: '1px solid rgba(255,255,255,0.15)',
+                                                        position: 'relative',
+                                                        overflow: 'hidden',
+                                                    }}
+                                                >
                                                     <div style={{
                                                         position: 'absolute', top: 0, left: '-50%',
                                                         width: '30%', height: '100%',
@@ -335,32 +338,23 @@ const PublicProject: React.FC = () => {
                                                         transform: 'skewX(-20deg)',
                                                         pointerEvents: 'none'
                                                     }} />
-                                                )}
-                                                <div style={{ fontSize: '13px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
-                                                    Daire {apt.apartment_number || '—'}
-                                                </div>
-                                                <div style={{ fontSize: '10px', color: apt.status === 'available' ? 'rgba(255,255,255,0.8)' : '#64748b' }}>
-                                                    {apt.square_meters} m²
-                                                </div>
-                                                {apt.status === 'available' && (
+                                                    <div style={{ fontSize: '13px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
+                                                        Daire {apt.apartment_number || '—'}
+                                                    </div>
+                                                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                                                        {apt.square_meters} m²
+                                                    </div>
                                                     <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
                                                         {formatCurrency(apt.price)}
                                                     </div>
-                                                )}
-                                                {apt.status === 'owner' && (
-                                                    <div style={{ fontSize: '10px', color: '#fff', marginTop: '2px', opacity: 0.85 }}>MAL SAHİBİ</div>
-                                                )}
-                                                {apt.status === 'sold' && (
-                                                    <div style={{ fontSize: '10px', color: '#475569', marginTop: '2px' }}>SATILDI</div>
-                                                )}
-                                                {apt.plan_files && apt.plan_files.length > 0 && apt.status === 'available' && (
-                                                    <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                                                        📄 {apt.plan_files.length} plan
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })
+                                                    {apt.plan_files && apt.plan_files.length > 0 && (
+                                                        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
+                                                            📄 {apt.plan_files.length} plan
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
                                     )}
                                 </div>
                             </div>
