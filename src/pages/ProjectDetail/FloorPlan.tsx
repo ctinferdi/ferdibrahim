@@ -12,18 +12,20 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
     React.useEffect(() => {
         const style = document.createElement('style');
         style.textContent = `
-            @media (max-width: 640px) {
-                .floor-plan-row {
-                    min-width: 600px !important;
-                }
-                .floor-plan-grid {
-                    display: flex !important;
-                    flex-wrap: nowrap !important;
-                }
+            .floor-plan-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
-
-
-
+            .floor-plan-inner {
+                min-width: 480px;
+            }
+            .floor-plan-row {
+                width: 100%;
+            }
+            .floor-plan-grid {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
         `;
         document.head.appendChild(style);
         return () => {
@@ -56,16 +58,13 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
 
 
     return (
-        <div style={{
+        <div className="floor-plan-scroll" style={{ maxHeight: '600px', overflowY: 'auto', width: '100%' }}>
+        <div className="floor-plan-inner" style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '0',
             paddingBottom: '2px',
             padding: '2px',
-            maxHeight: '600px',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            width: '100%'
         }}>
             {floors.map(floor => {
                 const floorApts = apartments
@@ -228,6 +227,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 };
