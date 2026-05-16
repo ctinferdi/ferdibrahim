@@ -300,7 +300,7 @@ const PublicProject: React.FC = () => {
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
                         
-                        const hasVisibleApts = floorApts.some(a => a.status === 'available' || a.status === 'common');
+                        const hasAvailableApts = floorApts.some(a => a.status === 'available');
 
                         return (
                             <div key={floor} className="floor-row" style={{
@@ -333,29 +333,18 @@ const PublicProject: React.FC = () => {
                                     {getFloorLabel(floor)}
                                 </div>
 
-                                <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '6px', flex: 1, minWidth: 0, overflow: 'hidden', alignItems: 'center' }}>
-                                    {!hasVisibleApts ? (
-                                        <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px', gridColumn: `1 / -1` }}>
-                                            Bu katta satılık daire bulunmuyor.
+                                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {!hasAvailableApts && (
+                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', background: 'rgba(100,116,139,0.15)', border: '1px solid rgba(100,116,139,0.25)', borderRadius: '99px', fontSize: '9px', color: '#64748b', fontWeight: 700, alignSelf: 'flex-start', marginBottom: '2px' }}>
+                                            🔒 Satılık daire bulunmuyor
                                         </div>
-                                    ) : (
-                                        floorApts.map(apt => {
+                                    )}
+                                    <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '6px', minWidth: 0, overflow: 'hidden', alignItems: 'stretch' }}>
+                                        {floorApts.map(apt => {
                                             if (apt.status !== 'available' && apt.status !== 'common') {
                                                 return (
-                                                    <div key={apt.id} style={{
-                                                        minWidth: 0,
-                                                        borderRadius: '10px',
-                                                        padding: '12px 10px',
-                                                        background: 'rgba(34,197,94,0.12)',
-                                                        border: '1px solid rgba(34,197,94,0.18)',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '4px',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        opacity: 0.4,
-                                                    }}>
-                                                        <div style={{ fontSize: '13px', fontWeight: 800, color: 'rgba(255,255,255,0.5)' }}>
+                                                    <div key={apt.id} style={{ minWidth: 0, borderRadius: '10px', padding: '10px 6px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+                                                        <div style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
                                                             Daire {apt.apartment_number || '—'}
                                                         </div>
                                                     </div>
@@ -364,63 +353,30 @@ const PublicProject: React.FC = () => {
 
                                             const isCommon = apt.status === 'common';
                                             const cfg = STATUS_CONFIG[apt.status] || STATUS_CONFIG.available;
-                                            
+
                                             return (
                                                 <div
                                                     key={apt.id}
                                                     className={`apt-card ${isCommon ? 'common' : 'available'}`}
                                                     onClick={() => !isCommon && setSelectedApartment(apt)}
-                                                    style={{
-                                                        minWidth: 0,
-                                                        gridColumn: isCommon ? '1 / -1' : undefined,
-                                                        background: cfg.bg,
-                                                        borderRadius: '10px',
-                                                        padding: '12px 10px',
-                                                        cursor: isCommon ? 'default' : 'pointer',
-                                                        boxShadow: cfg.glow,
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '4px',
-                                                        border: isCommon ? '1px solid #334155' : '1px solid rgba(255,255,255,0.15)',
-                                                        position: 'relative',
-                                                        overflow: 'hidden',
-                                                        opacity: cfg.dim ? 0.8 : 1
-                                                    }}
+                                                    style={{ minWidth: 0, gridColumn: isCommon ? '1 / -1' : undefined, background: cfg.bg, borderRadius: '10px', padding: '10px 8px', cursor: isCommon ? 'default' : 'pointer', boxShadow: cfg.glow, display: 'flex', flexDirection: 'column', gap: '3px', border: isCommon ? '1px solid #334155' : '1px solid rgba(255,255,255,0.15)', position: 'relative', overflow: 'hidden', opacity: cfg.dim ? 0.8 : 1 }}
                                                 >
-                                                    {!isCommon && (
-                                                        <div style={{
-                                                            position: 'absolute', top: 0, left: '-50%',
-                                                            width: '30%', height: '100%',
-                                                            background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)',
-                                                            transform: 'skewX(-20deg)',
-                                                            pointerEvents: 'none'
-                                                        }} />
-                                                    )}
-                                                    <div style={{ fontSize: '13px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
+                                                    {!isCommon && (<div style={{ position: 'absolute', top: 0, left: '-50%', width: '30%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', transform: 'skewX(-20deg)', pointerEvents: 'none' }} />)}
+                                                    <div style={{ fontSize: '11px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
                                                         {isCommon ? (apt.apartment_number || 'ORTAK ALAN') : `Daire ${apt.apartment_number || '—'}`}
                                                     </div>
-                                                    <div style={{ fontSize: '10px', color: isCommon ? '#64748b' : 'rgba(255,255,255,0.8)' }}>
-                                                        {apt.square_meters} m²
-                                                    </div>
+                                                    <div style={{ fontSize: '9px', color: isCommon ? '#64748b' : 'rgba(255,255,255,0.8)' }}>{apt.square_meters} m²</div>
                                                     {!isCommon && (
-                                                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#fff', marginTop: '4px' }}>
+                                                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#fff', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                             {formatCurrency(apt.price)}
                                                         </div>
                                                     )}
-                                                    {isCommon && (
-                                                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>
-                                                            {cfg.label}
-                                                        </div>
-                                                    )}
-                                                    {!isCommon && apt.plan_files && apt.plan_files.length > 0 && (
-                                                        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>
-                                                            📄 {apt.plan_files.length} plan
-                                                        </div>
-                                                    )}
+                                                    {isCommon && (<div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>{cfg.label}</div>)}
+                                                    {!isCommon && apt.plan_files && apt.plan_files.length > 0 && (<div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>📄 {apt.plan_files.length} plan</div>)}
                                                 </div>
                                             );
-                                        })
-                                    )}
+                                        })}
+                                    </div>
                                 </div>
                             </div>
                         );
