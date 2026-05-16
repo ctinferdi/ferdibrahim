@@ -167,35 +167,38 @@ const PublicProject: React.FC = () => {
                             <span style={{ fontSize: '20px' }}>🟢</span>
                             Satılık: <span style={{ color: '#22c55e', textShadow: '0 0 10px rgba(34,197,94,0.8)' }}>{availableApartments.length}</span> Daire
                         </div>
-
-                        {availableApartments.length > 0 && (
-                            <div style={{
-                                background: 'rgba(0,0,0,0.3)',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                color: 'rgba(255,255,255,0.9)',
-                                fontSize: '13px',
-                                maxWidth: '350px',
-                                textAlign: 'left',
-                                lineHeight: 1.6,
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}>
-                                <div style={{ fontWeight: 800, marginBottom: '8px', color: '#fbbf24', fontSize: '14px' }}>📌 Müsait Daireler:</div>
-                                {floors.map(f => {
-                                    const apts = availableApartments.filter(a => a.floor === f).sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0));
-                                    if (apts.length === 0) return null;
-                                    return (
-                                        <div key={f} style={{ marginBottom: '6px' }}>
-                                            <span style={{ fontWeight: 800, color: 'white' }}>{getFloorLabel(f)}:</span>{' '}
-                                            {apts.map(a => `Daire ${a.apartment_number}`).join(', ')}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
+
+            {/* MÜSAİT DAİRELER - MOBIL GÖRÜNÜR ALAN */}
+            {availableApartments.length > 0 && (
+                <div style={{ maxWidth: '1200px', margin: '16px auto 0', padding: '0 16px' }}>
+                    <div style={{
+                        background: 'rgba(0,0,0,0.35)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '16px',
+                        padding: '16px 20px',
+                        color: 'rgba(255,255,255,0.9)',
+                        fontSize: '13px',
+                        lineHeight: 1.7,
+                    }}>
+                        <div style={{ fontWeight: 800, marginBottom: '10px', color: '#fbbf24', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '18px' }}>🏠</span> Mevcut Satılık Daireler Listesi
+                        </div>
+                        {floors.map(f => {
+                            const apts = availableApartments.filter(a => a.floor === f).sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0));
+                            if (apts.length === 0) return null;
+                            return (
+                                <div key={f} style={{ marginBottom: '6px' }}>
+                                    <span style={{ fontWeight: 800, color: 'white' }}>{getFloorLabel(f)}:</span>{' '}
+                                    {apts.map(a => `Daire ${a.apartment_number}`).join(', ')}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* IMAGE GALLERY */}
             {projectImages.length > 0 && (
