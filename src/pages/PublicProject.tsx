@@ -43,13 +43,13 @@ const PublicProject: React.FC = () => {
         const style = document.createElement('style');
         style.textContent = `
             body { margin: 0; padding: 0; }
-            .apt-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+            .apt-card { transition: transform 0.18s ease, box-shadow 0.18s ease; min-width: 0 !important; }
             .apt-card.available:hover { transform: translateY(-4px) scale(1.03); cursor: pointer; }
+            .floor-row { overflow: hidden; }
+            .apt-grid { min-width: 0; }
             @media (max-width: 768px) {
-                .floor-row { flex-direction: column !important; }
-                .floor-label-col { min-width: unset !important; width: 100% !important; min-height: 36px !important; }
-                .apt-grid { flex-wrap: wrap !important; }
-                .apt-card { min-width: 120px !important; }
+                .floor-label-col { min-width: 60px !important; width: 60px !important; flex-shrink: 0 !important; }
+                .apt-card { min-width: 0 !important; word-break: break-word; }
             }
         `;
         document.head.appendChild(style);
@@ -305,31 +305,35 @@ const PublicProject: React.FC = () => {
                         return (
                             <div key={floor} className="floor-row" style={{
                                 display: 'flex',
-                                gap: '10px',
-                                padding: '10px 14px',
+                                gap: '8px',
+                                padding: '10px 10px',
                                 borderBottom: '1px solid #334155',
                                 alignItems: 'stretch',
                                 background: fi === 0 ? 'rgba(99,102,241,0.06)' : 'transparent',
+                                overflow: 'hidden',
+                                minWidth: 0,
                             }}>
                                 <div className="floor-label-col" style={{
-                                    minWidth: '90px',
+                                    minWidth: '60px',
+                                    width: '60px',
+                                    flexShrink: 0,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
                                     borderRadius: '12px',
                                     color: '#fff',
-                                    fontSize: '15px',
+                                    fontSize: '13px',
                                     fontWeight: 900,
-                                    letterSpacing: 1,
+                                    letterSpacing: 0.5,
                                     boxShadow: '0 4px 12px rgba(79,70,229,0.5)',
-                                    padding: '12px 6px',
+                                    padding: '10px 4px',
                                     textAlign: 'center',
                                 }}>
                                     {getFloorLabel(floor)}
                                 </div>
 
-                                <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '10px', flex: 1, alignItems: 'center' }}>
+                                <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '6px', flex: 1, minWidth: 0, overflow: 'hidden', alignItems: 'center' }}>
                                     {!hasVisibleApts ? (
                                         <div style={{ color: '#64748b', fontSize: '13px', fontStyle: 'italic', paddingLeft: '10px', gridColumn: `1 / -1` }}>
                                             Bu katta satılık daire bulunmuyor.
@@ -342,20 +346,17 @@ const PublicProject: React.FC = () => {
                                                         minWidth: 0,
                                                         borderRadius: '10px',
                                                         padding: '12px 10px',
-                                                        border: '1px dashed rgba(255,255,255,0.08)',
-                                                        background: 'rgba(255,255,255,0.03)',
+                                                        background: 'rgba(34,197,94,0.12)',
+                                                        border: '1px solid rgba(34,197,94,0.18)',
                                                         display: 'flex',
                                                         flexDirection: 'column',
                                                         gap: '4px',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        opacity: 0.35,
+                                                        opacity: 0.4,
                                                     }}>
-                                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+                                                        <div style={{ fontSize: '13px', fontWeight: 800, color: 'rgba(255,255,255,0.5)' }}>
                                                             Daire {apt.apartment_number || '—'}
-                                                        </div>
-                                                        <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>
-                                                            {apt.status === 'sold' ? 'SATILDI' : apt.status === 'owner' ? 'MAL SAHİBİ' : ''}
                                                         </div>
                                                     </div>
                                                 );
