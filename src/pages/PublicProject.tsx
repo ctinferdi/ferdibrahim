@@ -337,7 +337,28 @@ const PublicProject: React.FC = () => {
                                     ) : (
                                         floorApts.map(apt => {
                                             if (apt.status !== 'available' && apt.status !== 'common') {
-                                                return <div key={apt.id} style={{ minWidth: 0 }} />;
+                                                return (
+                                                    <div key={apt.id} style={{
+                                                        minWidth: 0,
+                                                        borderRadius: '10px',
+                                                        padding: '12px 10px',
+                                                        border: '1px dashed rgba(255,255,255,0.08)',
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '4px',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        opacity: 0.35,
+                                                    }}>
+                                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>
+                                                            Daire {apt.apartment_number || '—'}
+                                                        </div>
+                                                        <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>
+                                                            {apt.status === 'sold' ? 'SATILDI' : apt.status === 'owner' ? 'MAL SAHİBİ' : ''}
+                                                        </div>
+                                                    </div>
+                                                );
                                             }
 
                                             const isCommon = apt.status === 'common';
