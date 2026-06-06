@@ -17,7 +17,7 @@ const FloorPlan: React.FC<FloorPlanProps> = ({ apartments, onApartmentClick }) =
                 -webkit-overflow-scrolling: touch;
             }
             .floor-plan-inner {
-                min-width: 480px;
+                min-width: 100%;
             }
             .floor-plan-row {
                 width: 100%;

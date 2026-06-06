@@ -928,7 +928,7 @@ const ProjectDetail: React.FC = () => {
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
-                    <div className="floor-plan-column" style={{ width: '350px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                    <div className="floor-plan-column" style={{ width: '500px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
 
                         {activeTab === 'apartments' && (
                             <div className="card" style={{
