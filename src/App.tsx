@@ -12,6 +12,7 @@ import ResetPassword from './pages/ResetPassword';
 import Checks from './pages/Checks';
 import Apartments from './pages/Apartments';
 import Expenses from './pages/Expenses';
+import FloorPlanner from './pages/FloorPlanner/FloorPlanner';
 import './index.css';
 
 import { useBackgroundRefresh } from './hooks/useBackgroundRefresh';
@@ -56,6 +57,14 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Projects />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/kat-plani"
+                        element={
+                            <ProtectedRoute>
+                                <FloorPlanner />
                             </ProtectedRoute>
                         }
                     />

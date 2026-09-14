@@ -28,7 +28,8 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
 
     const menuItems = [
         { path: '/', label: '🏠 Ana Sayfa', icon: '🏠' },
-        { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' }
+        { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' },
+        { path: '/kat-plani', label: '📐 Kat Planı & 3D', icon: '📐' }
     ];
 
 
