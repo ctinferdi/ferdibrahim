@@ -1,5 +1,6 @@
 import React from 'react';
 import { Apartment } from '../../types';
+import { formatMoneyWithCurrency } from '../../utils/formatters';
 
 interface ApartmentTableProps {
     apartments: Apartment[];
@@ -91,16 +92,20 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
                             return (
                                 <tr key={apartment.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                                     <td style={tdCenter('700')}>{apartment.apartment_number}</td>
-                                    <td style={tdCenter()}>{isVisible ? formatCurrency(apartment.price) : '* * *'}</td>
-                                    <td style={{ ...tdCenter(), color: '#1e40af' }}>{apartment.status === 'sold' ? (isVisible ? formatCurrency(soldPrice) : '* * *') : '-'}</td>
-                                    <td style={{ ...tdCenter(), color: '#10b981' }}>{apartment.status === 'sold' ? (isVisible ? formatCurrency(paidAmount) : '* * *') : '-'}</td>
-                                    <td style={{ ...tdCenter(), color: '#ef4444' }}>{apartment.status === 'sold' ? (isVisible ? formatCurrency(remaining) : '* * *') : '-'}</td>
+                                    <td style={tdCenter()}>{isVisible ? formatMoneyWithCurrency(apartment.price, apartment.currency) : '* * *'}</td>
+                                    <td style={{ ...tdCenter(), color: '#1e40af' }}>{apartment.status === 'sold' ? (isVisible ? formatMoneyWithCurrency(soldPrice, apartment.currency) : '* * *') : '-'}</td>
+                                    <td style={{ ...tdCenter(), color: '#10b981' }}>{apartment.status === 'sold' ? (isVisible ? formatMoneyWithCurrency(paidAmount, apartment.currency) : '* * *') : '-'}</td>
+                                    <td style={{ ...tdCenter(), color: '#ef4444' }}>{apartment.status === 'sold' ? (isVisible ? formatMoneyWithCurrency(remaining, apartment.currency) : '* * *') : '-'}</td>
                                     <td style={{ ...tdCenter(), color: '#6366f1' }}>
                                         {apartment.status === 'sold' && apartment.installments && apartment.installments.length > 0 ? (
                                             isVisible ? (
                                                 <div>
                                                     <div style={{ fontWeight: 700 }}>{apartment.installments.filter(i => i.status === 'paid').length} / {apartment.installments.length} Ödendi</div>
-                                                    {nextInstallment && <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px' }}>Sıradaki: {new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')}</div>}
+                                                    {nextInstallment && (
+                                                        <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px' }}>
+                                                            Sıradaki: {formatMoneyWithCurrency(nextInstallment.amount, nextInstallment.currency || apartment.currency)} ({new Date(nextInstallment.due_date).toLocaleDateString('tr-TR')})
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ) : '* * *'
                                         ) : '-'}
@@ -162,19 +167,19 @@ const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onR
 
                             {/* Kart gövdesi */}
                             <div style={{ padding: '10px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                <MobileRow label="Liste Fiyatı" value={isVisible ? formatCurrency(apartment.price) : '* * *'} />
+                                <MobileRow label="Liste Fiyatı" value={isVisible ? formatMoneyWithCurrency(apartment.price, apartment.currency) : '* * *'} />
                                 <MobileRow label="Müşteri" value={apartment.customer_name || '-'} />
                                 {apartment.customer_phone && <MobileRow label="Telefon" value={apartment.customer_phone} />}
                                 {apartment.status === 'sold' && (
                                     <>
-                                        <MobileRow label="Satış Fiyatı"   value={isVisible ? formatCurrency(soldPrice)  : '* * *'} color="#1e40af" />
-                                        <MobileRow label="Alınan Ödeme"   value={isVisible ? formatCurrency(paidAmount) : '* * *'} color="#10b981" />
-                                        <MobileRow label="Kalan Alacak"   value={isVisible ? formatCurrency(remaining)  : '* * *'} color="#ef4444" />
+                                        <MobileRow label="Satış Fiyatı"   value={isVisible ? formatMoneyWithCurrency(soldPrice, apartment.currency)  : '* * *'} color="#1e40af" />
+                                        <MobileRow label="Alınan Ödeme"   value={isVisible ? formatMoneyWithCurrency(paidAmount, apartment.currency) : '* * *'} color="#10b981" />
+                                        <MobileRow label="Kalan Alacak"   value={isVisible ? formatMoneyWithCurrency(remaining, apartment.currency)  : '* * *'} color="#ef4444" />
                                         {apartment.installments && apartment.installments.length > 0 && (
                                             <MobileRow
                                                 label="Taksit"
                                                 value={isVisible
-                                                    ? `${apartment.installments.filter(i => i.status === 'paid').length}/${apartment.installments.length} Ödendi${nextInstallment ? ' • ' + new Date(nextInstallment.due_date).toLocaleDateString('tr-TR') : ''}`
+                                                    ? `${apartment.installments.filter(i => i.status === 'paid').length}/${apartment.installments.length} Ödendi${nextInstallment ? ' • ' + formatMoneyWithCurrency(nextInstallment.amount, nextInstallment.currency || apartment.currency) + ' (' + new Date(nextInstallment.due_date).toLocaleDateString('tr-TR') + ')' : ''}`
                                                     : '* * *'}
                                                 color="#6366f1"
                                             />

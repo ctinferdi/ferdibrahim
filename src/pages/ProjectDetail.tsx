@@ -96,6 +96,7 @@ const ProjectDetail: React.FC = () => {
         price: 0,
         sold_price: 0,
         paid_amount: 0,
+        currency: 'TRY',
         status: 'available' as any,
         customer_name: '',
         customer_phone: '',
@@ -823,7 +824,7 @@ const ProjectDetail: React.FC = () => {
                                 resetCheckForm();
                                 setShowCheckModal(true);
                             }
-                            else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold' }); setShowApartmentModal(true); }
+                            else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold', currency: 'TRY' }); setShowApartmentModal(true); }
                         }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
                             + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
                         </button>
@@ -924,7 +925,7 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
 
                     {/* Right Column - Floor Plan (Fixed side) */}
@@ -981,7 +982,7 @@ const ProjectDetail: React.FC = () => {
                         {viewMode === '2d' ? (
                             <FloorPlan apartments={apartments} onApartmentClick={(a) => {
                                 setEditingApartmentId(a.id);
-                                setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' });
+                                setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' });
                                 setShowApartmentModal(true);
                             }} />
                         ) : (
@@ -992,7 +993,7 @@ const ProjectDetail: React.FC = () => {
                                         projectName={project.name}
                                         onSelectApartment={(a) => {
                                             setEditingApartmentId(a.id);
-                                            setApartmentFormData({ ...a, sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' });
+                                            setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' });
                                             setShowApartmentModal(true);
                                         }}
                                     />

@@ -75,6 +75,7 @@ export interface Installment {
     status: 'pending' | 'paid';
     description?: string;
     paid_at?: string;
+    currency?: string; // 'TRY' | 'USD' | 'EUR'
 }
 
 export interface Apartment {
@@ -86,6 +87,7 @@ export interface Apartment {
     price: number;
     sold_price?: number;
     paid_amount?: number;
+    currency?: string; // 'TRY' | 'USD' | 'EUR'
     status: ApartmentStatus;
     customer_name?: string;
     customer_phone?: string;

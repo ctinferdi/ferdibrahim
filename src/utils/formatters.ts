@@ -23,3 +23,16 @@ export const parseNumberFromDots = (value: string | number | null | undefined): 
     const parsed = Number(cleaned);
     return isNaN(parsed) ? 0 : parsed;
 };
+
+export const getCurrencySymbol = (currency?: string): string => {
+    if (currency === 'USD') return '$';
+    if (currency === 'EUR') return '€';
+    return '₺';
+};
+
+export const formatMoneyWithCurrency = (value: number | string | null | undefined, currency?: string): string => {
+    const symbol = getCurrencySymbol(currency);
+    const formattedNum = formatNumberWithDots(value);
+    return `${symbol}${formattedNum || '0'}`;
+};
+
