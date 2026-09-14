@@ -1,6 +1,7 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../config/supabase';
 import '../index.css';
 
 interface LayoutProps {
@@ -11,6 +12,19 @@ interface LayoutProps {
 const Layout = ({ children, headerTitle }: LayoutProps) => {
     const { user, signOut } = useAuth();
     const location = useLocation();
+
+    // Auto-check check notifications once per day when app is loaded
+    useEffect(() => {
+        if (!user) return;
+        const today = new Date().toISOString().split('T')[0];
+        const lastRun = localStorage.getItem('last_auto_check_notifier_run');
+        if (lastRun !== today) {
+            localStorage.setItem('last_auto_check_notifier_run', today);
+            supabase.functions.invoke('check-notifier').catch((err) => {
+                console.warn('Auto check notifier error:', err);
+            });
+        }
+    }, [user]);
 
     const menuItems = [
         { path: '/', label: '🏠 Ana Sayfa', icon: '🏠' },

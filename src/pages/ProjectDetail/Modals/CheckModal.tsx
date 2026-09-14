@@ -228,7 +228,7 @@ const CheckModal: React.FC<CheckModalProps> = ({
                                         style={{ padding: '6px 10px', fontSize: '13px', borderColor: '#c7d2fe' }}
                                     />
                                     <p style={{ fontSize: '10px', color: '#6b7280', margin: '2px 0 0 0' }}>
-                                        Vade 10 gün kala girilen e-postaların tümüne bilgilendirme gönderilir.
+                                        Vadeye 15 ve 7 gün kala girilen e-postaların tümüne otomatik bilgilendirme gönderilir.
                                     </p>
                                 </div>
                             )}

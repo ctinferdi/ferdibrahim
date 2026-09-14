@@ -1,0 +1,17 @@
+name: Daily Check Due Date Reminder
+
+on:
+  schedule:
+    # Runs every day at 06:00 UTC (09:00 Turkey time)
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Check Notifier Edge Function
+        run: |
+          curl -s -X POST "https://bqwqwgcrnrtunwzyajzf.supabase.co/functions/v1/check-notifier" \
+            -H "Authorization: Bearer sb_publishable_UGtKLEpt0HDfgTZUHe0hqg_EZdFmEUA" \
+            -H "Content-Type: application/json"

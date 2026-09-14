@@ -388,7 +388,7 @@ const Checks = () => {
                 }}>
                     <h2 style={{ margin: 0, color: '#92400e', letterSpacing: '2px', fontWeight: 800 }}>YAPILACAK ÇEK ÖDEMELERİ</h2>
                     <p style={{ margin: '5px 0 0 0', color: '#b45309', fontSize: '11px', fontWeight: 600 }}>
-                        🔔 Bildirim simgesi olan çekler için vadeye 10 gün kala otomatik e-posta gönderilir.
+                        🔔 Bildirim simgesi olan çekler için vadeye 15 gün ve 7 gün kala otomatik e-posta gönderilir.
                     </p>
                 </div>
 
@@ -435,20 +435,26 @@ const Checks = () => {
                                         <td style={{
                                             textAlign: 'center',
                                             borderRight: '1px solid #fef3c7',
-                                            fontWeight: 500,
+                                            fontWeight: 700,
                                             color: (() => {
                                                 const dueDate = new Date(check.due_date);
-                                                const today = new Date(); // Using system provided current date
+                                                const today = new Date();
                                                 const diffTime = dueDate.getTime() - today.getTime();
                                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                return (diffDays <= 10 && check.status === 'pending') ? '#dc2626' : 'inherit';
+                                                if (check.status !== 'pending') return 'inherit';
+                                                if (diffDays <= 7) return '#dc2626';
+                                                if (diffDays <= 15) return '#b45309';
+                                                return 'inherit';
                                             })(),
                                             background: (() => {
                                                 const dueDate = new Date(check.due_date);
                                                 const today = new Date();
                                                 const diffTime = dueDate.getTime() - today.getTime();
                                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                return (diffDays <= 10 && check.status === 'pending') ? '#fee2e2' : 'transparent';
+                                                if (check.status !== 'pending') return 'transparent';
+                                                if (diffDays <= 7) return '#fee2e2';
+                                                if (diffDays <= 15) return '#fef3c7';
+                                                return 'transparent';
                                             })()
                                         }}>
                                             {new Date(check.due_date).toLocaleDateString('tr-TR')}
