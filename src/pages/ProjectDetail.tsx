@@ -283,6 +283,7 @@ const ProjectDetail: React.FC = () => {
             }
 
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
+            localStorage.setItem('dashboard_selected_project_id', proj.id);
 
             // Phase 3: Handle individual results
             if (results.length === 1) {

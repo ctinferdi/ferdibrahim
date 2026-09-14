@@ -246,7 +246,10 @@ const Projects: React.FC = () => {
                                             {/* Proje Kartı */}
                                             <div
                                                 className="card"
-                                                onClick={() => navigate(`/projeler/${project.slug || project.id}`)}
+                                                onClick={() => {
+                                                    localStorage.setItem('dashboard_selected_project_id', project.id);
+                                                    navigate(`/projeler/${project.slug || project.id}`);
+                                                }}
                                                 style={{
                                                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                                     color: 'white',
