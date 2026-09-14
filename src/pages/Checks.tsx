@@ -422,14 +422,26 @@ const Checks = () => {
                                         opacity: check.status === 'paid' ? 0.7 : 1,
                                         borderBottom: '1px solid #fde68a'
                                     }}>
-                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: '1.2rem' }}>
+                                        <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontSize: '1.2rem', padding: '6px 4px' }}>
                                             <div
                                                 onClick={() => handleManualNotify(check)}
-                                                style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1 }}
+                                                style={{ cursor: 'pointer', transition: 'transform 0.2s', opacity: sendingCode ? 0.5 : 1, display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}
                                                 className="hover-scale"
-                                                title={(check.notification_email || check.notification_email_2 || check.notification_email_3) ? "Şimdi e-posta bildirimi gönder" : "E-posta bilgilerini eklemek için tıkla"}
+                                                title={(() => {
+                                                    const emails = [check.notification_email, check.notification_email_2, check.notification_email_3].filter(Boolean);
+                                                    if (emails.length === 0) return 'E-posta bildirimleri kapalı (E-posta eklemek için çeki düzenleyin)';
+                                                    let tip = `📢 Bildirim Açık (${emails.join(', ')})\nOtomatik Bildirimler: 15 gün, 7 gün, 3 gün, 1 gün ve Vade Günü`;
+                                                    if (check.last_notified_at) tip += `\n✅ Son Otomatik Bildirim: ${new Date(check.last_notified_at).toLocaleDateString('tr-TR')}`;
+                                                    tip += '\n👉 Tıklayarak şimdi manuel bildirim gönderebilirsiniz.';
+                                                    return tip;
+                                                })()}
                                             >
-                                                {(check.notification_email || check.notification_email_2 || check.notification_email_3) ? '🔔' : '🔕'}
+                                                <span>{(check.notification_email || check.notification_email_2 || check.notification_email_3) ? '🔔' : '🔕'}</span>
+                                                {check.last_notified_at && (
+                                                    <span style={{ fontSize: '8px', color: '#059669', fontWeight: 800, lineHeight: 1, marginTop: '2px' }}>
+                                                        ✓ {new Date(check.last_notified_at).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td style={{
@@ -439,8 +451,9 @@ const Checks = () => {
                                             color: (() => {
                                                 const dueDate = new Date(check.due_date);
                                                 const today = new Date();
-                                                const diffTime = dueDate.getTime() - today.getTime();
-                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                const d1 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                                                const d2 = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                                                const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
                                                 if (check.status !== 'pending') return 'inherit';
                                                 if (diffDays <= 7) return '#dc2626';
                                                 if (diffDays <= 15) return '#b45309';
@@ -449,15 +462,34 @@ const Checks = () => {
                                             background: (() => {
                                                 const dueDate = new Date(check.due_date);
                                                 const today = new Date();
-                                                const diffTime = dueDate.getTime() - today.getTime();
-                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                const d1 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                                                const d2 = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                                                const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
                                                 if (check.status !== 'pending') return 'transparent';
                                                 if (diffDays <= 7) return '#fee2e2';
                                                 if (diffDays <= 15) return '#fef3c7';
                                                 return 'transparent';
                                             })()
                                         }}>
-                                            {new Date(check.due_date).toLocaleDateString('tr-TR')}
+                                            <div>{new Date(check.due_date).toLocaleDateString('tr-TR')}</div>
+                                            {check.status === 'pending' && (() => {
+                                                const dueDate = new Date(check.due_date);
+                                                const today = new Date();
+                                                const d1 = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                                                const d2 = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+                                                const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+                                                return (
+                                                    <div style={{
+                                                        fontSize: '9px',
+                                                        fontWeight: 800,
+                                                        marginTop: '2px',
+                                                        letterSpacing: '0.3px',
+                                                        color: diffDays <= 7 ? '#dc2626' : diffDays <= 15 ? '#b45309' : '#64748b'
+                                                    }}>
+                                                        {diffDays < 0 ? `⚠️ ${Math.abs(diffDays)} GÜN GEÇTİ` : diffDays === 0 ? '🚨 BUGÜN VADE!' : diffDays === 1 ? '🚨 YARIN ÖDENECEK' : `⏳ ${diffDays} GÜN KALDI`}
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
                                         <td style={{ textAlign: 'center', borderRight: '1px solid #fef3c7', fontWeight: 600 }}>
                                             {formatCurrency(check.amount)}

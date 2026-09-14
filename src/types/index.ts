@@ -48,6 +48,8 @@ export interface Check {
     notification_email?: string;
     notification_email_2?: string;
     notification_email_3?: string;
+    last_notified_at?: string;
+    notified_milestones?: string[];
     created_by_email?: string;
     user_id?: string;
     created_at?: string;
