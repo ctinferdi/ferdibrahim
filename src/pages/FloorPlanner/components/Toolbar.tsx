@@ -13,6 +13,9 @@ interface ToolbarProps {
     roofEnabled?: boolean;
     onToggleRoof?: () => void;
     onUploadBlueprintClick: () => void;
+    onAIAutoModel?: () => void;
+    isAIProcessing?: boolean;
+    hasBlueprint?: boolean;
     onLoadSample: () => void;
     onClear: () => void;
     onSave: () => void;
@@ -33,6 +36,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
     roofEnabled,
     onToggleRoof,
     onUploadBlueprintClick,
+    onAIAutoModel,
+    isAIProcessing,
+    hasBlueprint,
     onLoadSample,
     onClear,
     onSave,
@@ -281,6 +287,30 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
             {/* Right: Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {onAIAutoModel && (
+                    <button
+                        onClick={onAIAutoModel}
+                        disabled={isAIProcessing}
+                        style={{
+                            padding: '6px 14px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            border: 'none',
+                            background: 'linear-gradient(135deg, #7c3aed, #c026d3, #2563eb)',
+                            color: '#ffffff',
+                            cursor: isAIProcessing ? 'wait' : 'pointer',
+                            boxShadow: '0 2px 10px rgba(192, 38, 211, 0.45)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                        }}
+                        title="Yapay zeka yüklü mimari planı analiz edip otomatik olarak tüm duvarları, kapıları, pencereleri ve mobilyaları 3D modeller"
+                    >
+                        ✨ {isAIProcessing ? 'Yapay Zeka Modelliyor...' : 'AI ile Otomatik 3D Modelle'}
+                    </button>
+                )}
+
                 <button
                     onClick={onUploadBlueprintClick}
                     style={{

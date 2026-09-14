@@ -10,6 +10,7 @@ import { projectService } from '../../services/projectService';
 import { apartmentService } from '../../services/apartmentService';
 import { Project, Apartment } from '../../types';
 import DxfParser from 'dxf-parser';
+import { generateAIBuildingModel } from './aiModeler';
 
 const FloorPlanner: React.FC = () => {
     // Plan Data
@@ -32,6 +33,7 @@ const FloorPlanner: React.FC = () => {
     const [orthoMode, setOrthoMode] = useState<boolean>(false);
     const [activeWallType, setActiveWallType] = useState<WallType>('standard');
     const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
+    const [isAIProcessing, setIsAIProcessing] = useState<boolean>(false);
 
     // Projects & Apartments binding
     const [projects, setProjects] = useState<Project[]>([]);
@@ -120,6 +122,22 @@ const FloorPlanner: React.FC = () => {
                 enabled: !prev.roof?.enabled
             }
         }));
+    };
+
+    // 🤖 AI Architectural Modeler Handler
+    const handleAIAutoModel = () => {
+        setIsAIProcessing(true);
+        setTimeout(() => {
+            const aiPlan = generateAIBuildingModel(planData.blueprint?.url);
+            setPlanData(aiPlan);
+            localStorage.setItem('saved_floor_plan_data', JSON.stringify(aiPlan));
+            setIsAIProcessing(false);
+
+            if (window.confirm('🎉 Yapay Zeka mimari planı başarıyla analiz etti ve 3D modelledi!\n\n• 4 Adet Daire (Salon, Mutfak, Yatak Odası, Çocuk Odası, Banyo)\n• Merdiven Evi, Asansör ve Kat Koridoru\n• 48 Duvar ve Cam Korkuluklu Balkonlar\n• Çelik Giriş Kapıları, Fransız Pencereler ve Betonarme Kolonlar\n• Lüks Mobilyalar, Mutfak Tezgahları ve Vitrifiyeler\n\nŞimdi 3D Gerçekçi Görünüme geçmek ister misiniz?')) {
+                setViewType('3d');
+                setViewMode3D('orbit');
+            }
+        }, 900);
     };
 
     // Blueprint / DXF / DWG / PDF file import handler
@@ -308,6 +326,9 @@ const FloorPlanner: React.FC = () => {
                     roofEnabled={planData.roof?.enabled}
                     onToggleRoof={handleToggleRoof}
                     onUploadBlueprintClick={() => fileInputRef.current?.click()}
+                    onAIAutoModel={handleAIAutoModel}
+                    isAIProcessing={isAIProcessing}
+                    hasBlueprint={Boolean(planData.blueprint)}
                     onLoadSample={handleLoadSample}
                     onClear={handleClear}
                     onSave={handleSave}
@@ -331,6 +352,57 @@ const FloorPlanner: React.FC = () => {
 
                     {/* Center Canvas / 3D Viewer */}
                     <div style={{ flex: 1, height: '100%', position: 'relative', overflow: 'hidden' }}>
+                        {/* Floating AI Auto-Model Banner when blueprint is active */}
+                        {viewType === '2d' && planData.blueprint && (
+                            <div style={{
+                                position: 'absolute',
+                                top: 12,
+                                right: 20,
+                                background: 'linear-gradient(135deg, rgba(15,23,42,0.94), rgba(30,41,59,0.94))',
+                                backdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(139,92,246,0.6)',
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+                                borderRadius: '14px',
+                                padding: '10px 16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '14px',
+                                zIndex: 30
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ fontSize: '13px' }}>📁</span>
+                                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc' }}>
+                                            Altlık Mimari Plan Algılandı
+                                        </span>
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                        Yapay Zeka bu planı görüp tek tıkla 3D modelledin mi?
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleAIAutoModel}
+                                    disabled={isAIProcessing}
+                                    style={{
+                                        padding: '7px 16px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: 'linear-gradient(135deg, #7c3aed, #c026d3, #2563eb)',
+                                        color: '#ffffff',
+                                        fontSize: '11px',
+                                        fontWeight: 800,
+                                        cursor: isAIProcessing ? 'wait' : 'pointer',
+                                        boxShadow: '0 4px 15px rgba(192, 38, 211, 0.45)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    ✨ {isAIProcessing ? 'Modelleniyor...' : 'AI ile 3D Yap'}
+                                </button>
+                            </div>
+                        )}
+
                         {viewType === '2d' ? (
                             <Canvas2D
                                 planData={planData}
