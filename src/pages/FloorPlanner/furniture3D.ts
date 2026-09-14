@@ -391,6 +391,110 @@ export function createFurniture3D(item: FurnitureItem): THREE.Group {
             break;
         }
 
+        case 'column_rect':
+        case 'column_square': {
+            // ── Betonarme Taşıyıcı Kolon ──
+            const colMat = new THREE.MeshStandardMaterial({
+                color: 0xe2e8f0,
+                roughness: 0.9,
+                metalness: 0.05
+            });
+            const colMesh = new THREE.Mesh(new THREE.BoxGeometry(w, h || 2.80, d), colMat);
+            colMesh.position.set(0, (h || 2.80) / 2, 0);
+            colMesh.castShadow = true;
+            colMesh.receiveShadow = true;
+            group.add(colMesh);
+
+            // Kolon taban süpürgeliği (Dark baseboard)
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+            const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(w + 0.02, 0.08, d + 0.02), baseMat);
+            baseMesh.position.set(0, 0.04, 0);
+            group.add(baseMesh);
+            break;
+        }
+
+        case 'kitchen_upper': {
+            // ── Mutfak Üst Dolapları (LED Aydınlatmalı) ──
+            const cabinetMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+            const handleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.2, metalness: 0.8 });
+            const ledGlowMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+
+            // Dolap Gövdesi (Hanging at Y = 1.50m to 2.25m)
+            const upperCabinet = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cabinetMat);
+            const hangY = 1.50 + h / 2;
+            upperCabinet.position.set(0, hangY, 0);
+            upperCabinet.castShadow = true;
+            group.add(upperCabinet);
+
+            // LED Işık Şeridi (Alt kısımda sıcak sarı ışık)
+            const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(w * 0.95, 0.02, 0.03), ledGlowMat);
+            ledStrip.position.set(0, 1.50 - 0.01, d / 2 - 0.05);
+            group.add(ledStrip);
+
+            // Dolap Kapak Çizgileri & Gizli Kulplar
+            const doorCount = Math.max(2, Math.round(w / 0.6));
+            const doorW = w / doorCount;
+            for (let i = 0; i < doorCount; i++) {
+                const handle = new THREE.Mesh(new THREE.BoxGeometry(doorW * 0.4, 0.015, 0.02), handleMat);
+                const handleX = -w / 2 + doorW * (i + 0.5);
+                handle.position.set(handleX, 1.52, d / 2 + 0.01);
+                group.add(handle);
+            }
+            break;
+        }
+
+        case 'kitchen_island': {
+            // ── Ada Mutfak & Bar Tabureleri ──
+            const islandBaseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+            const marbleMat = materials.marbleCounter;
+            const stoolMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
+            const stoolMetal = materials.metalChrome;
+
+            // Ada Gövdesi
+            const baseH = h - 0.05;
+            const islandBase = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, baseH, d * 0.75), islandBaseMat);
+            islandBase.position.set(0, baseH / 2, -d * 0.1);
+            islandBase.castShadow = true;
+            group.add(islandBase);
+
+            // Mermer / Kuvars Tezgah Üstü (Çıkıntılı / Overhang)
+            const counterTop = new THREE.Mesh(new THREE.BoxGeometry(w, 0.05, d), marbleMat);
+            counterTop.position.set(0, h - 0.025, 0);
+            counterTop.castShadow = true;
+            group.add(counterTop);
+
+            // 2 Bar Taburesi (Overhang altına yerleştirilmiş)
+            const stoolSpacing = w * 0.45;
+            [-stoolSpacing / 2, stoolSpacing / 2].forEach(stoolX => {
+                const stoolGroup = new THREE.Group();
+                // Oturak
+                const seatMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.05, 16), stoolMat);
+                seatMesh.position.set(0, 0.65, 0);
+                seatMesh.castShadow = true;
+                stoolGroup.add(seatMesh);
+
+                // Ayak
+                const legMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.65, 8), stoolMetal);
+                legMesh.position.set(0, 0.325, 0);
+                stoolGroup.add(legMesh);
+
+                // Taban halkası
+                const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.02, 16), stoolMetal);
+                basePlate.position.set(0, 0.01, 0);
+                stoolGroup.add(basePlate);
+
+                // Ayak basma çemberi
+                const footRing = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.012, 8, 16), stoolMetal);
+                footRing.rotation.x = Math.PI / 2;
+                footRing.position.set(0, 0.25, 0);
+                stoolGroup.add(footRing);
+
+                stoolGroup.position.set(stoolX, 0, d * 0.38);
+                group.add(stoolGroup);
+            });
+            break;
+        }
+
         default: {
             // Generic fallback box
             const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), materials.woodOak);

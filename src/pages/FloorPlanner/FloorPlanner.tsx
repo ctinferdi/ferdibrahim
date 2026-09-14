@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
 import Canvas2D from './components/Canvas2D';
 import Viewer3D from './components/Viewer3D';
 import FurnitureCatalog from './components/FurnitureCatalog';
 import Toolbar from './components/Toolbar';
-import { FloorPlanData } from './types';
+import { FloorPlanData, WallType, Wall } from './types';
 import { SAMPLE_APARTMENT, CatalogItem } from './sampleData';
 import { projectService } from '../../services/projectService';
 import { apartmentService } from '../../services/apartmentService';
 import { Project, Apartment } from '../../types';
+import DxfParser from 'dxf-parser';
 
 const FloorPlanner: React.FC = () => {
-    // Plan Data (Loaded from LocalStorage or Sample)
+    // Plan Data
     const [planData, setPlanData] = useState<FloorPlanData>(() => {
         const saved = localStorage.getItem('saved_floor_plan_data');
         if (saved) {
@@ -24,18 +25,23 @@ const FloorPlanner: React.FC = () => {
         return SAMPLE_APARTMENT;
     });
 
-    // View Type & Modes
+    // View & Tool States
     const [viewType, setViewType] = useState<'2d' | '3d'>('2d');
     const [viewMode3D, setViewMode3D] = useState<'orbit' | 'walk'>('orbit');
     const [activeTool, setActiveTool] = useState<'select' | 'wall' | 'door' | 'window' | 'pan'>('select');
+    const [orthoMode, setOrthoMode] = useState<boolean>(false);
+    const [activeWallType, setActiveWallType] = useState<WallType>('standard');
     const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
 
-    // Projects and Apartments for binding
+    // Projects & Apartments binding
     const [projects, setProjects] = useState<Project[]>([]);
     const [apartments, setApartments] = useState<Apartment[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
     const [selectedApartmentId, setSelectedApartmentId] = useState<string>('');
     const [saving, setSaving] = useState(false);
+
+    // File Input for Blueprint & DXF Import
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         projectService.getProjects().then(projs => {
@@ -63,18 +69,15 @@ const FloorPlanner: React.FC = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Save to LocalStorage
             localStorage.setItem('saved_floor_plan_data', JSON.stringify(planData));
 
-            // If an apartment is selected, attach floor plan data
             if (selectedApartmentId) {
                 await apartmentService.updateApartment(selectedApartmentId, {
-                    // Stored in JSON
                     floor_plan_3d: planData
                 } as any);
-                alert(`✅ Kat planı başarıyla kaydedildi ve seçilen daireye bağlandı!`);
+                alert(`✅ Kat planı ve 3D model başarıyla kaydedildi ve seçilen daireye bağlandı!`);
             } else {
-                alert(`✅ Kat planı başarıyla kaydedildi!`);
+                alert(`✅ Kat planı ve 3D model başarıyla tarayıcınıza kaydedildi!`);
             }
         } catch (error: any) {
             console.error('Plan save error:', error);
@@ -100,16 +103,142 @@ const FloorPlanner: React.FC = () => {
                 walls: [],
                 openings: [],
                 rooms: [],
-                furniture: []
+                furniture: [],
+                columns: [],
+                roof: { enabled: false, type: 'pitched', height: 1.8, overhang: 0.6, color: '#9a3412' }
             };
             setPlanData(emptyPlan);
             localStorage.setItem('saved_floor_plan_data', JSON.stringify(emptyPlan));
         }
     };
 
+    const handleToggleRoof = () => {
+        setPlanData(prev => ({
+            ...prev,
+            roof: {
+                ...(prev.roof || { type: 'pitched', height: 1.8, overhang: 0.6, color: '#9a3412' }),
+                enabled: !prev.roof?.enabled
+            }
+        }));
+    };
+
+    // Blueprint / DXF / DWG / PDF file import handler
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const fileName = file.name.toLowerCase();
+
+        // 1. DXF CAD Vector File
+        if (fileName.endsWith('.dxf')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const text = event.target?.result as string;
+                    const parser = new DxfParser();
+                    const dxf = parser.parseSync(text);
+
+                    if (dxf && dxf.entities) {
+                        const newWalls: Wall[] = [];
+                        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+                        // Find bounds first
+                        dxf.entities.forEach((entity: any) => {
+                            if (entity.type === 'LINE' && entity.vertices && entity.vertices.length >= 2) {
+                                const [v1, v2] = entity.vertices;
+                                minX = Math.min(minX, v1.x, v2.x);
+                                maxX = Math.max(maxX, v1.x, v2.x);
+                                minY = Math.min(minY, v1.y, v2.y);
+                                maxY = Math.max(maxY, v1.y, v2.y);
+                            }
+                        });
+
+                        const spanX = maxX - minX;
+                        // Determine scale factor: if span is in mm (>1000), convert to meters
+                        let scaleFactor = 1;
+                        if (spanX > 500) scaleFactor = 0.001; // mm to m
+                        else if (spanX > 50) scaleFactor = 0.01; // cm to m
+
+                        dxf.entities.forEach((entity: any, i: number) => {
+                            if (entity.type === 'LINE' && entity.vertices && entity.vertices.length >= 2) {
+                                const [v1, v2] = entity.vertices;
+                                const wLen = Math.hypot(v2.x - v1.x, v2.y - v1.y) * scaleFactor;
+                                // Filter out very tiny line segments (< 0.2m)
+                                if (wLen >= 0.2) {
+                                    newWalls.push({
+                                        id: `dxf_w_${i}_${Date.now()}`,
+                                        start: {
+                                            x: Math.round((v1.x - minX) * scaleFactor * 10) / 10,
+                                            y: Math.round((v1.y - minY) * scaleFactor * 10) / 10
+                                        },
+                                        end: {
+                                            x: Math.round((v2.x - minX) * scaleFactor * 10) / 10,
+                                            y: Math.round((v2.y - minY) * scaleFactor * 10) / 10
+                                        },
+                                        thickness: 0.20,
+                                        height: 2.80,
+                                        wallType: 'standard'
+                                    });
+                                }
+                            }
+                        });
+
+                        if (newWalls.length > 0) {
+                            setPlanData(prev => ({
+                                ...prev,
+                                walls: [...prev.walls, ...newWalls]
+                            }));
+                            alert(`🎉 Başarılı! DXF dosyasından ${newWalls.length} adet mimari duvar kat planına aktarıldı.`);
+                        } else {
+                            alert('DXF dosyasında çizgi katmanı bulunamadı.');
+                        }
+                    }
+                } catch (err: any) {
+                    console.error('DXF parse error:', err);
+                    alert(`DXF dosyası okunurken hata oluştu: ${err.message}`);
+                }
+            };
+            reader.readAsText(file);
+        }
+        // 2. Image blueprint (PNG, JPG, SVG)
+        else if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target?.result as string;
+                setPlanData(prev => ({
+                    ...prev,
+                    blueprint: {
+                        url: dataUrl,
+                        name: file.name,
+                        x: 0,
+                        y: 0,
+                        scale: 0.02,
+                        opacity: 0.45
+                    }
+                }));
+                alert(`✅ Mimari plan resmi arka plan olarak yerleştirildi! Artık üzerine kolayca duvar çizebilirsiniz.`);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Lütfen geçerli bir .DXF veya Resim (.jpg, .png) mimari plan dosyası seçiniz.');
+        }
+
+        // Reset input
+        e.target.value = '';
+    };
+
     return (
         <Layout>
             <div style={{ height: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f8fafc' }}>
+                {/* Hidden file input */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".dxf,.png,.jpg,.jpeg,.svg"
+                    style={{ display: 'none' }}
+                />
+
                 {/* Top Project Binding Bar */}
                 <div style={{
                     padding: '8px 16px',
@@ -123,11 +252,16 @@ const FloorPlanner: React.FC = () => {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
-                            📐 3D Kat Planı & İç Mekan Stüdyosu
+                            📐 Kat Planı & 3D Mimari Stüdyo
                         </span>
                         <span style={{ fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px' }}>
-                            {planData.walls.length} Duvar • {planData.openings.length} Açıklık • {planData.furniture.length} Mobilya
+                            {planData.walls.length} Duvar • {planData.openings.length} Açıklık • {planData.furniture.length} Mobilya • {planData.columns?.length || 0} Kolon
                         </span>
+                        {planData.blueprint && (
+                            <span style={{ fontSize: '11px', color: '#0284c7', background: '#e0f2fe', padding: '3px 8px', borderRadius: '4px' }}>
+                                📁 Altlık Plan: Aktif
+                            </span>
+                        )}
                     </div>
 
                     {/* Projeye & Daireye Bağlama Seçicileri */}
@@ -167,15 +301,24 @@ const FloorPlanner: React.FC = () => {
                         setActiveTool(t);
                         setSelectedCatalogItem(null);
                     }}
+                    orthoMode={orthoMode}
+                    onToggleOrtho={() => setOrthoMode(!orthoMode)}
+                    activeWallType={activeWallType}
+                    onChangeWallType={setActiveWallType}
+                    roofEnabled={planData.roof?.enabled}
+                    onToggleRoof={handleToggleRoof}
+                    onUploadBlueprintClick={() => fileInputRef.current?.click()}
                     onLoadSample={handleLoadSample}
                     onClear={handleClear}
                     onSave={handleSave}
                     saving={saving}
+                    viewMode3D={viewMode3D}
+                    onToggleViewMode3D={setViewMode3D}
                 />
 
                 {/* Workspace Body */}
                 <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
-                    {/* Left Furniture Catalog Drawer (only in 2D or toggled) */}
+                    {/* Left Furniture & Structure Catalog Drawer (only in 2D) */}
                     {viewType === '2d' && (
                         <FurnitureCatalog
                             selectedItem={selectedCatalogItem}
@@ -195,6 +338,8 @@ const FloorPlanner: React.FC = () => {
                                 activeTool={activeTool}
                                 selectedCatalogItem={selectedCatalogItem}
                                 onItemPlaced={() => setSelectedCatalogItem(null)}
+                                orthoMode={orthoMode}
+                                activeWallType={activeWallType}
                             />
                         ) : (
                             <Viewer3D

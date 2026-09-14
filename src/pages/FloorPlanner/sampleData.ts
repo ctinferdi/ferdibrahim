@@ -1,8 +1,8 @@
-import { FurnitureItem, FloorPlanData } from './types';
+import { FurnitureItem, FloorPlanData, Column, RoofConfig } from './types';
 
 export interface CatalogItem {
     type: string;
-    category: 'living' | 'kitchen' | 'bedroom' | 'bathroom' | 'dining';
+    category: 'living' | 'kitchen' | 'bedroom' | 'bathroom' | 'dining' | 'structure';
     name: string;
     width: number;
     depth: number;
@@ -12,6 +12,28 @@ export interface CatalogItem {
 }
 
 export const CATALOG_ITEMS: CatalogItem[] = [
+    // Taşıyıcı & Yapısal Elemanlar (Kolonlar)
+    {
+        type: 'column_rect',
+        category: 'structure',
+        name: 'Betonarme Kolon (30x50 cm)',
+        width: 0.30,
+        depth: 0.50,
+        height: 2.80,
+        color: '#64748b',
+        icon: '🏛️'
+    },
+    {
+        type: 'column_square',
+        category: 'structure',
+        name: 'Kare Kolon (40x40 cm)',
+        width: 0.40,
+        depth: 0.40,
+        height: 2.80,
+        color: '#64748b',
+        icon: '🏛️'
+    },
+
     // Oturma Odası
     {
         type: 'l_sofa',
@@ -94,6 +116,26 @@ export const CATALOG_ITEMS: CatalogItem[] = [
         height: 0.9,
         color: '#f8fafc',
         icon: '🍳'
+    },
+    {
+        type: 'kitchen_upper',
+        category: 'kitchen',
+        name: 'Mutfak Üst Dolapları (LED Aydınlatmalı)',
+        width: 2.4,
+        depth: 0.35,
+        height: 0.75,
+        color: '#f1f5f9',
+        icon: '🗄️'
+    },
+    {
+        type: 'kitchen_island',
+        category: 'kitchen',
+        name: 'Ada Mutfak & Bar Tabureleri',
+        width: 1.8,
+        depth: 0.9,
+        height: 0.92,
+        color: '#334155',
+        icon: '🏝️'
     },
     {
         type: 'fridge',
@@ -201,42 +243,65 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     }
 ];
 
-// Örnek 2+1 Lüks Daire Planı
+// Örnek 2+1 Lüks Daire Planı (Genişletilmiş Mimari Model: Balkon, Kolonlar, Çatı, Katlar)
 export const SAMPLE_APARTMENT: FloorPlanData = {
     id: 'sample-2plus1-luxury',
-    name: 'Örnek 2+1 Lüks Daire Planı (115 m²)',
-    scale: 45, // 1 metre = 45 px
+    name: 'Örnek 2+1 Lüks Daire Planı (125 m²)',
+    scale: 45,
+    currentFloorIndex: 0,
+    floors: [
+        { id: 'fl_0', name: 'Zemin Kat', level: 0, height: 2.8 },
+        { id: 'fl_1', name: '1. Normal Kat', level: 1, height: 2.8 },
+        { id: 'fl_2', name: '2. Normal Kat', level: 2, height: 2.8 }
+    ],
+    roof: {
+        enabled: false,
+        type: 'pitched',
+        height: 2.2,
+        overhang: 0.5,
+        color: '#b91c1c' // Kiremit Kırmızısı
+    },
     walls: [
-        // Dış Duvarlar (Perimeter)
-        { id: 'w_ext_top', start: { x: 0, y: 0 }, end: { x: 11, y: 0 }, thickness: 0.25, height: 2.8 },
-        { id: 'w_ext_right', start: { x: 11, y: 0 }, end: { x: 11, y: 8 }, thickness: 0.25, height: 2.8 },
-        { id: 'w_ext_bottom', start: { x: 11, y: 8 }, end: { x: 0, y: 8 }, thickness: 0.25, height: 2.8 },
-        { id: 'w_ext_left', start: { x: 0, y: 8 }, end: { x: 0, y: 0 }, thickness: 0.25, height: 2.8 },
+        // Dış Duvarlar
+        { id: 'w_ext_top', start: { x: 0, y: 0 }, end: { x: 11, y: 0 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_right', start: { x: 11, y: 0 }, end: { x: 11, y: 8 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_bottom', start: { x: 11, y: 8 }, end: { x: 0, y: 8 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_left', start: { x: 0, y: 8 }, end: { x: 0, y: 0 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
 
-        // İç Bölme Duvarları (Interior)
-        // Salon & Mutfak bölmesi (x=6.2)
-        { id: 'w_int_1', start: { x: 6.2, y: 0 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8 },
-        // Koridor & Odalar yatay bölme (y=5.2)
-        { id: 'w_int_2', start: { x: 0, y: 5.2 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8 },
-        // Yatak Odası 1 & 2 dikey bölme (x=3.2)
-        { id: 'w_int_3', start: { x: 3.2, y: 5.2 }, end: { x: 3.2, y: 8 }, thickness: 0.15, height: 2.8 },
-        // Banyo dikey bölme (x=8.5, y=5.2'den y=8'e)
-        { id: 'w_int_4', start: { x: 8.5, y: 5.2 }, end: { x: 8.5, y: 8 }, thickness: 0.15, height: 2.8 },
-        { id: 'w_int_5', start: { x: 6.2, y: 5.2 }, end: { x: 11, y: 5.2 }, thickness: 0.15, height: 2.8 },
+        // Balkon Duvarları (Cam Korkuluklu & Kısa Parapet)
+        { id: 'w_balc_1', start: { x: 11, y: 1.5 }, end: { x: 13, y: 1.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+        { id: 'w_balc_2', start: { x: 13, y: 1.5 }, end: { x: 13, y: 4.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+        { id: 'w_balc_3', start: { x: 13, y: 4.5 }, end: { x: 11, y: 4.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+
+        // İç Bölme Duvarları
+        { id: 'w_int_1', start: { x: 6.2, y: 0 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_2', start: { x: 0, y: 5.2 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_3', start: { x: 3.2, y: 5.2 }, end: { x: 3.2, y: 8 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_4', start: { x: 8.5, y: 5.2 }, end: { x: 8.5, y: 8 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_5', start: { x: 6.2, y: 5.2 }, end: { x: 11, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' }
     ],
     openings: [
+        // Balkon Fransız Kapısı
+        { id: 'op_door_balcony', wallId: 'w_ext_right', type: 'door', doorType: 'sliding', position: 0.38, width: 2.0, height: 2.3, sillHeight: 0 },
         // Pencereler
-        { id: 'op_win_salon', wallId: 'w_ext_right', type: 'window', position: 0.25, width: 1.8, height: 1.5, sillHeight: 0.8 },
-        { id: 'op_win_kitchen', wallId: 'w_ext_top', type: 'window', position: 0.8, width: 1.4, height: 1.3, sillHeight: 0.9 },
-        { id: 'op_win_bed1', wallId: 'w_ext_bottom', type: 'window', position: 0.15, width: 1.5, height: 1.4, sillHeight: 0.9 },
-        { id: 'op_win_bed2', wallId: 'w_ext_bottom', type: 'window', position: 0.45, width: 1.4, height: 1.4, sillHeight: 0.9 },
+        { id: 'op_win_salon', wallId: 'w_ext_top', type: 'window', windowType: 'french', position: 0.82, width: 1.8, height: 2.1, sillHeight: 0.2 },
+        { id: 'op_win_bed1', wallId: 'w_ext_bottom', type: 'window', windowType: 'standard', position: 0.15, width: 1.5, height: 1.4, sillHeight: 0.9 },
+        { id: 'op_win_bed2', wallId: 'w_ext_bottom', type: 'window', windowType: 'standard', position: 0.45, width: 1.4, height: 1.4, sillHeight: 0.9 },
 
         // Kapılar
-        { id: 'op_door_main', wallId: 'w_ext_top', type: 'door', position: 0.35, width: 1.0, height: 2.1, sillHeight: 0 },
-        { id: 'op_door_salon', wallId: 'w_int_1', type: 'door', position: 0.7, width: 0.9, height: 2.1, sillHeight: 0 },
-        { id: 'op_door_bed1', wallId: 'w_int_2', type: 'door', position: 0.25, width: 0.85, height: 2.1, sillHeight: 0 },
-        { id: 'op_door_bed2', wallId: 'w_int_2', type: 'door', position: 0.75, width: 0.85, height: 2.1, sillHeight: 0 },
-        { id: 'op_door_bath', wallId: 'w_int_5', type: 'door', position: 0.5, width: 0.8, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_main', wallId: 'w_ext_top', type: 'door', doorType: 'steel', position: 0.35, width: 1.0, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_salon', wallId: 'w_int_1', type: 'door', doorType: 'double_glass', position: 0.7, width: 1.3, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bed1', wallId: 'w_int_2', type: 'door', doorType: 'standard', position: 0.25, width: 0.85, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bed2', wallId: 'w_int_2', type: 'door', doorType: 'standard', position: 0.75, width: 0.85, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bath', wallId: 'w_int_5', type: 'door', doorType: 'standard', position: 0.5, width: 0.8, height: 2.1, sillHeight: 0 }
+    ],
+    columns: [
+        { id: 'col_1', x: 0.15, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_2', x: 6.2, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_3', x: 10.85, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_4', x: 6.2, y: 5.2, width: 0.40, depth: 0.40 },
+        { id: 'col_5', x: 10.85, y: 7.85, width: 0.30, depth: 0.50 },
+        { id: 'col_6', x: 0.15, y: 7.85, width: 0.30, depth: 0.50 }
     ],
     rooms: [
         {
@@ -247,6 +312,15 @@ export const SAMPLE_APARTMENT: FloorPlanData = {
                 { x: 11, y: 5.2 }, { x: 6.2, y: 5.2 }
             ],
             floorType: 'parquet_light'
+        },
+        {
+            id: 'room_balcony',
+            name: 'Geniş Balkon (7.5 m²)',
+            points: [
+                { x: 11, y: 1.5 }, { x: 13, y: 1.5 },
+                { x: 13, y: 4.5 }, { x: 11, y: 4.5 }
+            ],
+            floorType: 'balcony_tile'
         },
         {
             id: 'room_master_bed',
@@ -339,7 +413,7 @@ export const SAMPLE_APARTMENT: FloorPlanData = {
             height: 0.02,
             color: '#cbd5e1'
         },
-        // Mutfak Tezgahı & Buzdolabı & Yemek Masası
+        // Mutfak & Ada
         {
             id: 'f_kitchen_l',
             type: 'kitchen_l',
@@ -352,6 +426,19 @@ export const SAMPLE_APARTMENT: FloorPlanData = {
             depth: 2.2,
             height: 0.9,
             color: '#f8fafc'
+        },
+        {
+            id: 'f_kitchen_upper',
+            type: 'kitchen_upper',
+            category: 'kitchen',
+            name: 'Mutfak Üst Dolapları',
+            x: 9.5,
+            y: 0.18,
+            rotation: 0,
+            width: 2.4,
+            depth: 0.35,
+            height: 0.75,
+            color: '#f1f5f9'
         },
         {
             id: 'f_fridge',

@@ -94,6 +94,7 @@ export interface Apartment {
     sort_order?: number;
     plan_files?: PlanFile[];
     installments?: Installment[];
+    floor_plan_3d?: any;
     project_id?: string;
     user_id?: string;
     created_at?: string;

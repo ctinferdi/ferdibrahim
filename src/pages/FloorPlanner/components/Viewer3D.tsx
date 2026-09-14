@@ -321,10 +321,34 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
             metalness: 0.05
         });
 
-        const marbleMat = new THREE.MeshStandardMaterial({
-            map: createMarbleTexture(),
-            roughness: 0.2,
+        const balconyTileMat = new THREE.MeshStandardMaterial({
+            color: 0x94a3b8,
+            roughness: 0.6,
             metalness: 0.1
+        });
+
+        const railingMetalMat = new THREE.MeshStandardMaterial({
+            color: 0x0f172a,
+            roughness: 0.35,
+            metalness: 0.85
+        });
+
+        const steelDoorMat = new THREE.MeshStandardMaterial({
+            color: 0x1e293b,
+            roughness: 0.4,
+            metalness: 0.6
+        });
+
+        const chromeMat = new THREE.MeshStandardMaterial({
+            color: 0xf1f5f9,
+            roughness: 0.15,
+            metalness: 0.95
+        });
+
+        const roofTileMat = new THREE.MeshStandardMaterial({
+            color: 0x9a3412, // Terracotta tile roof
+            roughness: 0.7,
+            metalness: 0.05
         });
 
         // ── 2. Build Rooms (Floors) ──
@@ -339,7 +363,12 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
             shape.closePath();
 
             const floorGeo = new THREE.ShapeGeometry(shape);
-            const mat = room.floorType === 'marble' || room.floorType === 'tile' ? marbleMat : parquetLightMat;
+            let mat = parquetLightMat;
+            if (room.floorType === 'marble') mat = marbleMat;
+            else if (room.floorType === 'balcony_tile') mat = balconyTileMat;
+            else if (room.floorType === 'tile') mat = marbleMat;
+            else if (room.floorType === 'parquet_dark') mat = parquetLightMat;
+
             const floorMesh = new THREE.Mesh(floorGeo, mat);
             floorMesh.rotation.x = Math.PI / 2;
             floorMesh.position.y = 0.005;
@@ -347,9 +376,21 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
             dynamicGroup.add(floorMesh);
         });
 
-        // ── 3. Build Walls with Openings (Doors & Windows) ──
-        const wallHeight = 2.80; // Standard 2.8m floor-to-ceiling height
+        // ── 3. Build Columns (Taşıyıcı Betonarme Kolonlar) ──
+        if (planData.columns && planData.columns.length > 0) {
+            planData.columns.forEach(col => {
+                const colH = col.height || 2.80;
+                const colGeo = new THREE.BoxGeometry(col.width, colH, col.depth);
+                const colMesh = new THREE.Mesh(colGeo, wallCapMaterial);
+                colMesh.position.set(col.x, colH / 2, col.y);
+                if (col.rotation) colMesh.rotation.y = -(col.rotation * Math.PI) / 180;
+                colMesh.castShadow = true;
+                colMesh.receiveShadow = true;
+                dynamicGroup.add(colMesh);
+            });
+        }
 
+        // ── 4. Build Walls with Openings & Balcony Types ──
         planData.walls.forEach(wall => {
             const dx = wall.end.x - wall.start.x;
             const dy = wall.end.y - wall.start.y;
@@ -358,6 +399,88 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
 
             const thickness = wall.thickness || 0.20;
             const angle = Math.atan2(dy, dx);
+            const wallType = wall.wallType || 'standard';
+
+            // ── Özel Balkon Tipi: Cam Korkuluklu Balkon (balcony_glass) ──
+            if (wallType === 'balcony_glass') {
+                const curbH = 0.35; // Alt beton parapet
+                const glassH = 0.70; // Üst cam panel
+                const handrailH = 0.05;
+
+                // Parapet kaidesi
+                const curbGeo = new THREE.BoxGeometry(length, curbH, thickness);
+                const curbMesh = new THREE.Mesh(curbGeo, wallMaterial);
+                curbMesh.position.set((wall.start.x + wall.end.x) / 2, curbH / 2, (wall.start.y + wall.end.y) / 2);
+                curbMesh.rotation.y = -angle;
+                curbMesh.castShadow = true;
+                dynamicGroup.add(curbMesh);
+
+                // Cam Panel
+                const glassGeo = new THREE.BoxGeometry(length - 0.04, glassH, 0.02);
+                const glassMesh = new THREE.Mesh(glassGeo, windowGlassMat);
+                glassMesh.position.set((wall.start.x + wall.end.x) / 2, curbH + glassH / 2, (wall.start.y + wall.end.y) / 2);
+                glassMesh.rotation.y = -angle;
+                dynamicGroup.add(glassMesh);
+
+                // Üst Küpeşte (Chrome/Alüminyum El Tutamağı)
+                const railGeo = new THREE.BoxGeometry(length, handrailH, 0.06);
+                const railMesh = new THREE.Mesh(railGeo, chromeMat);
+                railMesh.position.set((wall.start.x + wall.end.x) / 2, curbH + glassH + handrailH / 2, (wall.start.y + wall.end.y) / 2);
+                railMesh.rotation.y = -angle;
+                dynamicGroup.add(railMesh);
+
+                // Paslanmaz çelik dikmeler (her 1.2 metrede bir)
+                const posts = Math.max(2, Math.round(length / 1.2));
+                for (let i = 0; i <= posts; i++) {
+                    const postRatio = i / posts;
+                    const postMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, glassH + handrailH, 8), chromeMat);
+                    const px = wall.start.x + (dx * postRatio);
+                    const py = wall.start.y + (dy * postRatio);
+                    postMesh.position.set(px, curbH + (glassH + handrailH) / 2, py);
+                    dynamicGroup.add(postMesh);
+                }
+                return;
+            }
+
+            // ── Özel Balkon Tipi: Ferforje Demir Korkuluk (balcony_railing) ──
+            if (wallType === 'balcony_railing') {
+                const curbH = 0.15;
+                const railingH = 0.90;
+
+                // Minik beton hatıl
+                const curbGeo = new THREE.BoxGeometry(length, curbH, thickness);
+                const curbMesh = new THREE.Mesh(curbGeo, wallMaterial);
+                curbMesh.position.set((wall.start.x + wall.end.x) / 2, curbH / 2, (wall.start.y + wall.end.y) / 2);
+                curbMesh.rotation.y = -angle;
+                dynamicGroup.add(curbMesh);
+
+                // Üst Küpeşte Demir Profil
+                const topRail = new THREE.Mesh(new THREE.BoxGeometry(length, 0.04, 0.04), railingMetalMat);
+                topRail.position.set((wall.start.x + wall.end.x) / 2, curbH + railingH, (wall.start.y + wall.end.y) / 2);
+                topRail.rotation.y = -angle;
+                dynamicGroup.add(topRail);
+
+                // Alt Taşıyıcı Demir Profil
+                const bottomRail = new THREE.Mesh(new THREE.BoxGeometry(length, 0.03, 0.03), railingMetalMat);
+                bottomRail.position.set((wall.start.x + wall.end.x) / 2, curbH + 0.08, (wall.start.y + wall.end.y) / 2);
+                bottomRail.rotation.y = -angle;
+                dynamicGroup.add(bottomRail);
+
+                // Dikey Ferforje Çubuklar (12cm aralıklarla)
+                const pickets = Math.max(3, Math.round(length / 0.12));
+                for (let i = 1; i < pickets; i++) {
+                    const ratio = i / pickets;
+                    const picket = new THREE.Mesh(new THREE.BoxGeometry(0.018, railingH - 0.08, 0.018), railingMetalMat);
+                    const px = wall.start.x + (dx * ratio);
+                    const py = wall.start.y + (dy * ratio);
+                    picket.position.set(px, curbH + railingH / 2 + 0.04, py);
+                    dynamicGroup.add(picket);
+                }
+                return;
+            }
+
+            // Standart Duvar veya Alçak Duvar
+            const wallHeight = wallType === 'low_wall' ? (wall.height || 1.0) : (wall.height || 2.80);
 
             // Openings on this wall
             const openings = planData.openings
@@ -371,7 +494,6 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
                 wallMesh.castShadow = true;
                 wallMesh.receiveShadow = true;
 
-                // Center position
                 wallMesh.position.set(
                     (wall.start.x + wall.end.x) / 2,
                     wallHeight / 2,
@@ -380,7 +502,6 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
                 wallMesh.rotation.y = -angle;
                 dynamicGroup.add(wallMesh);
             } else {
-                // Wall with segments (Left, Right, Lintel above doors/windows, Sill under windows)
                 let currentPos = 0;
 
                 openings.forEach((op) => {
@@ -407,7 +528,8 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
                     }
 
                     // 2. Lintel above opening (Kiriş / Kapı-Pencere üstü)
-                    const lintelHeight = wallHeight - (op.sillHeight || 0) - op.height;
+                    const sill = op.sillHeight || 0;
+                    const lintelHeight = wallHeight - sill - op.height;
                     if (lintelHeight > 0.05) {
                         const lintelGeo = new THREE.BoxGeometry(op.width, lintelHeight, thickness);
                         const lintelMesh = new THREE.Mesh(lintelGeo, wallMaterial);
@@ -424,23 +546,25 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
                     }
 
                     // 3. Parapet / Sill under window (Pencere altı duvar)
-                    if (op.type === 'window' && (op.sillHeight || 0) > 0.05) {
-                        const sillHeight = op.sillHeight || 0.9;
-                        const sillGeo = new THREE.BoxGeometry(op.width, sillHeight, thickness);
-                        const sillMesh = new THREE.Mesh(sillGeo, wallMaterial);
-                        sillMesh.castShadow = true;
-                        sillMesh.receiveShadow = true;
+                    if (op.type === 'window') {
+                        const sillHeight = op.sillHeight || (op.windowType === 'french' ? 0.05 : 0.90);
+                        if (sillHeight > 0.05) {
+                            const sillGeo = new THREE.BoxGeometry(op.width, sillHeight, thickness);
+                            const sillMesh = new THREE.Mesh(sillGeo, wallMaterial);
+                            sillMesh.castShadow = true;
+                            sillMesh.receiveShadow = true;
 
-                        sillMesh.position.set(
-                            wall.start.x + (dx / length) * opCenter,
-                            sillHeight / 2,
-                            wall.start.y + (dy / length) * opCenter
-                        );
-                        sillMesh.rotation.y = -angle;
-                        dynamicGroup.add(sillMesh);
+                            sillMesh.position.set(
+                                wall.start.x + (dx / length) * opCenter,
+                                sillHeight / 2,
+                                wall.start.y + (dy / length) * opCenter
+                            );
+                            sillMesh.rotation.y = -angle;
+                            dynamicGroup.add(sillMesh);
+                        }
 
                         // Window Glass & Frame
-                        const winFrame = new THREE.Mesh(new THREE.BoxGeometry(op.width, op.height, 0.06), windowFrameMat);
+                        const winFrame = new THREE.Mesh(new THREE.BoxGeometry(op.width, op.height, 0.07), windowFrameMat);
                         winFrame.position.set(
                             wall.start.x + (dx / length) * opCenter,
                             sillHeight + op.height / 2,
@@ -449,27 +573,72 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
                         winFrame.rotation.y = -angle;
                         dynamicGroup.add(winFrame);
 
+                        // Dual glass panels
                         const glass = new THREE.Mesh(new THREE.BoxGeometry(op.width - 0.08, op.height - 0.08, 0.02), windowGlassMat);
                         glass.position.copy(winFrame.position);
                         glass.rotation.copy(winFrame.rotation);
                         dynamicGroup.add(glass);
                     }
 
-                    // 4. Door 3D Model (Frame + slightly open wooden leaf)
+                    // 4. Door 3D Models (Standard, Steel Entrance, Sliding, Double Glass)
                     if (op.type === 'door') {
                         const doorGroup = new THREE.Group();
-                        // Door Frame
-                        const frameGeo = new THREE.BoxGeometry(op.width, op.height, 0.1);
-                        const frame = new THREE.Mesh(frameGeo, windowFrameMat);
-                        frame.position.set(0, op.height / 2, 0);
-                        doorGroup.add(frame);
+                        const doorType = op.doorType || 'standard';
 
-                        // Door Leaf (opened 25 degrees)
-                        const leafGeo = new THREE.BoxGeometry(op.width - 0.08, op.height - 0.04, 0.04);
-                        const leaf = new THREE.Mesh(leafGeo, doorWoodMat);
-                        leaf.position.set(-(op.width - 0.08) / 2, op.height / 2, 0);
-                        leaf.rotation.y = 0.45; // slightly open
-                        doorGroup.add(leaf);
+                        if (doorType === 'steel') {
+                            // Çelik Kapı (Lüks Antrasit Daire Giriş Kapısı)
+                            const frameGeo = new THREE.BoxGeometry(op.width, op.height, 0.12);
+                            const frame = new THREE.Mesh(frameGeo, windowFrameMat);
+                            frame.position.set(0, op.height / 2, 0);
+                            doorGroup.add(frame);
+
+                            // Çelik Kanat
+                            const leafGeo = new THREE.BoxGeometry(op.width - 0.06, op.height - 0.03, 0.06);
+                            const leaf = new THREE.Mesh(leafGeo, steelDoorMat);
+                            leaf.position.set(0, op.height / 2, 0);
+                            leaf.castShadow = true;
+                            doorGroup.add(leaf);
+
+                            // Dikey Paslanmaz Çelik Kol
+                            const handleBar = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.85, 12), chromeMat);
+                            handleBar.position.set(op.width * 0.35, 1.05, 0.05);
+                            doorGroup.add(handleBar);
+                        } else if (doorType === 'sliding') {
+                            // Sürgülü Cam Kapı (Balkon veya Salon)
+                            const frameGeo = new THREE.BoxGeometry(op.width, op.height, 0.08);
+                            const frame = new THREE.Mesh(frameGeo, windowFrameMat);
+                            frame.position.set(0, op.height / 2, 0);
+                            doorGroup.add(frame);
+
+                            // İki sürgü kanadı
+                            const halfW = (op.width - 0.06) / 2;
+                            const glassPanel1 = new THREE.Mesh(new THREE.BoxGeometry(halfW, op.height - 0.06, 0.02), windowGlassMat);
+                            glassPanel1.position.set(-halfW / 2, op.height / 2, -0.015);
+                            doorGroup.add(glassPanel1);
+
+                            const glassPanel2 = new THREE.Mesh(new THREE.BoxGeometry(halfW, op.height - 0.06, 0.02), windowGlassMat);
+                            glassPanel2.position.set(halfW / 2 - 0.15, op.height / 2, 0.015); // partially slid open
+                            doorGroup.add(glassPanel2);
+                        } else {
+                            // Ahşap Oda Kapısı
+                            const frameGeo = new THREE.BoxGeometry(op.width, op.height, 0.1);
+                            const frame = new THREE.Mesh(frameGeo, windowFrameMat);
+                            frame.position.set(0, op.height / 2, 0);
+                            doorGroup.add(frame);
+
+                            const leafGeo = new THREE.BoxGeometry(op.width - 0.08, op.height - 0.04, 0.04);
+                            const leaf = new THREE.Mesh(leafGeo, doorWoodMat);
+                            leaf.position.set(-(op.width - 0.08) / 2, op.height / 2, 0);
+                            leaf.rotation.y = 0.45; // open 25 degrees
+                            leaf.castShadow = true;
+                            doorGroup.add(leaf);
+
+                            // Metal kapı kolu
+                            const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.12), chromeMat);
+                            handle.rotation.z = Math.PI / 2;
+                            handle.position.set(-(op.width - 0.08) / 2 + 0.08, op.height / 2 - 0.05, 0.04);
+                            doorGroup.add(handle);
+                        }
 
                         doorGroup.position.set(
                             wall.start.x + (dx / length) * opCenter,
@@ -503,7 +672,55 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
             }
         });
 
-        // ── 4. Build Furniture ──
+        // ── 5. Roof Generation (Çatı Oluşturma) ──
+        if (planData.roof?.enabled && planData.walls.length > 0) {
+            // Find overall bounding box of all walls
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            planData.walls.forEach(w => {
+                minX = Math.min(minX, w.start.x, w.end.x);
+                maxX = Math.max(maxX, w.start.x, w.end.x);
+                minY = Math.min(minY, w.start.y, w.end.y);
+                maxY = Math.max(maxY, w.start.y, w.end.y);
+            });
+
+            const roofOverhang = planData.roof.overhang || 0.6;
+            const roofH = planData.roof.height || 1.8;
+            const buildingW = (maxX - minX) + roofOverhang * 2;
+            const buildingD = (maxY - minY) + roofOverhang * 2;
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            const baseElevation = 2.80; // top of standard walls
+
+            if (planData.roof.type === 'pitched' || planData.roof.type === 'hip') {
+                // Gable / Hip Roof Geometry (Pyramid/Wedge)
+                const roofGeo = new THREE.ConeGeometry(Math.max(buildingW, buildingD) * 0.72, roofH, 4);
+                const roofMesh = new THREE.Mesh(roofGeo, roofTileMat);
+                roofMesh.position.set(centerX, baseElevation + roofH / 2, centerY);
+                roofMesh.rotation.y = Math.PI / 4;
+                roofMesh.castShadow = true;
+                dynamicGroup.add(roofMesh);
+            } else {
+                // Modern Düz Teras Çatı (Flat Roof with Parapet)
+                const roofSlab = new THREE.Mesh(new THREE.BoxGeometry(buildingW, 0.25, buildingD), wallCapMaterial);
+                roofSlab.position.set(centerX, baseElevation + 0.125, centerY);
+                roofSlab.castShadow = true;
+                roofSlab.receiveShadow = true;
+                dynamicGroup.add(roofSlab);
+
+                // Çatı parapeti
+                const parapetH = 0.45;
+                const parapetGeo = new THREE.BoxGeometry(buildingW, parapetH, 0.2);
+                const p1 = new THREE.Mesh(parapetGeo, wallMaterial);
+                p1.position.set(centerX, baseElevation + 0.25 + parapetH / 2, centerY - buildingD / 2 + 0.1);
+                dynamicGroup.add(p1);
+
+                const p2 = new THREE.Mesh(parapetGeo, wallMaterial);
+                p2.position.set(centerX, baseElevation + 0.25 + parapetH / 2, centerY + buildingD / 2 - 0.1);
+                dynamicGroup.add(p2);
+            }
+        }
+
+        // ── 6. Build Furniture ──
         planData.furniture.forEach(item => {
             const meshGroup = createFurniture3D(item);
             dynamicGroup.add(meshGroup);

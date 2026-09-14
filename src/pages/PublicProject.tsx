@@ -6,6 +6,9 @@ import { userService } from '../services/userService';
 import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
 
 const Building3D = lazy(() => import('../components/Building3D'));
+const Viewer3D = lazy(() => import('./FloorPlanner/components/Viewer3D'));
+import { SAMPLE_APARTMENT } from './FloorPlanner/sampleData';
+import { FloorPlanData } from './FloorPlanner/types';
 import { loadBuilding3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
@@ -29,6 +32,8 @@ const PublicProject: React.FC = () => {
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const [view3D, setView3D] = useState(() => searchParams.get('view') === '3d');
     const [buildingDims, setBuildingDims] = useState<{ w?: number; d?: number }>({});
+    const [viewingApartment3D, setViewingApartment3D] = useState<boolean>(false);
+    const [apartment3DMode, setApartment3DMode] = useState<'orbit' | 'walk'>('walk');
 
     const readDims = (projectId: string) => {
         try {
@@ -519,6 +524,31 @@ const PublicProject: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* 3D Daireyi Gez Butonu */}
+                            <button
+                                onClick={() => setViewingApartment3D(true)}
+                                style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    padding: '14px',
+                                    background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+                                    color: '#fff',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    fontWeight: 800,
+                                    fontSize: '15px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 20px rgba(59,130,246,0.35)',
+                                    marginBottom: '12px',
+                                    transition: 'all 0.15s'
+                                }}
+                            >
+                                🚶 3D Daireyi Gez (Sanal Tur)
+                            </button>
+
                             <a
                                 href={whatsappNum
                                     ? `https://wa.me/${whatsappNum.replace(/\D/g, '').replace(/^(0|90)?/, '90')}?text=${encodeURIComponent(`Merhaba, ${project.name} projesindeki Daire ${selectedApartment.apartment_number} hakkında bilgi almak istiyorum.`)}`
@@ -533,6 +563,96 @@ const PublicProject: React.FC = () => {
                                 <div style={{ textAlign: 'center', color: '#64748b', fontSize: '12px', marginTop: '8px' }}>{whatsappNum}</div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 3D APARTMENT WALKTHROUGH FULLSCREEN MODAL */}
+            {viewingApartment3D && selectedApartment && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: '#0f172a',
+                        zIndex: 2500,
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}
+                >
+                    {/* Top Bar */}
+                    <div style={{
+                        height: '56px',
+                        background: '#1e293b',
+                        borderBottom: '1px solid #334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 20px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <span style={{ color: '#f8fafc', fontWeight: 800, fontSize: '16px' }}>
+                                🚶 {project.name} — Daire {selectedApartment.apartment_number} (3D Sanal Tur)
+                            </span>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                    onClick={() => setApartment3DMode('walk')}
+                                    style={{
+                                        padding: '5px 12px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        borderRadius: '6px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        background: apartment3DMode === 'walk' ? '#10b981' : '#334155',
+                                        color: '#ffffff'
+                                    }}
+                                >
+                                    🚶 İçinde Gezin (WASD)
+                                </button>
+                                <button
+                                    onClick={() => setApartment3DMode('orbit')}
+                                    style={{
+                                        padding: '5px 12px',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        borderRadius: '6px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        background: apartment3DMode === 'orbit' ? '#3b82f6' : '#334155',
+                                        color: '#ffffff'
+                                    }}
+                                >
+                                    🛰️ Kuşbakışı 3D
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setViewingApartment3D(false)}
+                            style={{
+                                padding: '6px 14px',
+                                background: '#dc2626',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontWeight: 800,
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            ✕ Tura Son Ver
+                        </button>
+                    </div>
+
+                    {/* 3D Canvas Area */}
+                    <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+                        <Suspense fallback={<div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>3D Yükleniyor...</div>}>
+                            <Viewer3D
+                                planData={selectedApartment.floor_plan_3d || SAMPLE_APARTMENT}
+                                viewMode={apartment3DMode}
+                                onToggleViewMode={setApartment3DMode}
+                            />
+                        </Suspense>
                     </div>
                 </div>
             )}
