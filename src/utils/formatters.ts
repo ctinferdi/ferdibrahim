@@ -27,12 +27,16 @@ export const parseNumberFromDots = (value: string | number | null | undefined): 
 export const getCurrencySymbol = (currency?: string): string => {
     if (currency === 'USD') return '$';
     if (currency === 'EUR') return '€';
+    if (currency === 'GOLD' || currency === 'GR') return 'gr';
     return '₺';
 };
 
 export const formatMoneyWithCurrency = (value: number | string | null | undefined, currency?: string): string => {
-    const symbol = getCurrencySymbol(currency);
     const formattedNum = formatNumberWithDots(value);
+    if (currency === 'GOLD' || currency === 'GR') {
+        return `${formattedNum || '0'} gr`;
+    }
+    const symbol = getCurrencySymbol(currency);
     return `${symbol}${formattedNum || '0'}`;
 };
 

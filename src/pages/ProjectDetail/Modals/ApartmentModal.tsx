@@ -243,7 +243,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                     </h2>
                     {/* Para Birimi Seçici */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
-                        {(['TRY', 'USD', 'EUR'] as const).map(curr => (
+                        {(['TRY', 'USD', 'EUR', 'GOLD'] as const).map(curr => (
                             <button
                                 key={curr}
                                 type="button"
@@ -254,13 +254,13 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     fontSize: '11px',
                                     fontWeight: 700,
                                     border: 'none',
-                                    background: currency === curr ? '#3b82f6' : 'transparent',
+                                    background: currency === curr ? (curr === 'GOLD' ? '#d97706' : '#3b82f6') : 'transparent',
                                     color: currency === curr ? '#fff' : '#64748b',
                                     cursor: 'pointer',
                                     transition: 'all 0.15s'
                                 }}
                             >
-                                {curr === 'TRY' ? '₺ TL' : curr === 'USD' ? '$ USD' : '€ EUR'}
+                                {curr === 'TRY' ? '₺ TL' : curr === 'USD' ? '$ USD' : curr === 'EUR' ? '€ EUR' : '🪙 Gr Altın'}
                             </button>
                         ))}
                     </div>
@@ -384,8 +384,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                             Satış & Tahsilat Detayları {showSalesDetails ? '' : '(Gizli)'}
                                         </label>
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
-                                        Para Birimi: {getCurrencySymbol(currency)} {currency}
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: currency === 'GOLD' ? '#d97706' : '#3b82f6', background: currency === 'GOLD' ? '#fef3c7' : '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
+                                        Para Birimi: {currency === 'GOLD' ? '🪙 Gram Altın (gr)' : `${getCurrencySymbol(currency)} ${currency}`}
                                     </span>
                                 </div>
 
@@ -554,6 +554,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                 <option value="TRY">₺ TL</option>
                                                                 <option value="USD">$ USD</option>
                                                                 <option value="EUR">€ EUR</option>
+                                                                <option value="GOLD">🪙 gr</option>
                                                             </select>
                                                             {/* Vade / Ödeme Tarihi */}
                                                             <input 
