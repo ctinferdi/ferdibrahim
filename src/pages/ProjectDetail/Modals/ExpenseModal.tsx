@@ -67,18 +67,44 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
     id, label, value, onChange, placeholder, suggestions, required, style
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const storageKey = `hidden_sugg_${id}`;
+
+    // Load hidden / removed suggestions from localStorage
+    const [hiddenList, setHiddenList] = useState<string[]>(() => {
+        try {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const handleRemoveSuggestion = (e: React.MouseEvent, itemToRemove: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const upperToRemove = itemToRemove.trim().toLocaleUpperCase('tr-TR');
+        const updated = [...hiddenList.filter(x => x.trim().toLocaleUpperCase('tr-TR') !== upperToRemove), itemToRemove];
+        setHiddenList(updated);
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(updated));
+        } catch (err) {
+            console.error('Failed to save hidden suggestion:', err);
+        }
+    };
 
     // Filter suggestions based on typed query (only if at least 1 character typed)
     const filtered = useMemo(() => {
         const query = value.trim().toLocaleUpperCase('tr-TR');
         if (!query) return [];
+        const hiddenUpper = new Set(hiddenList.map(h => h.trim().toLocaleUpperCase('tr-TR')));
         return suggestions
             .filter(item => {
-                const upper = item.toLocaleUpperCase('tr-TR');
-                return upper.includes(query) && upper !== query;
+                const upper = item.trim().toLocaleUpperCase('tr-TR');
+                if (hiddenUpper.has(upper)) return false;
+                return upper.includes(query);
             })
-            .slice(0, 6);
-    }, [value, suggestions]);
+            .slice(0, 8);
+    }, [value, suggestions, hiddenList]);
 
     return (
         <div style={{ position: 'relative', ...style }}>
@@ -130,8 +156,11 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
                                 setIsOpen(false);
                             }}
                             style={{
-                                padding: '8px 12px',
-                                fontSize: '12.5px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '7px 10px',
+                                fontSize: '13px',
                                 fontWeight: 700,
                                 color: '#1e293b',
                                 cursor: 'pointer',
@@ -141,7 +170,51 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
                             onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                         >
-                            {item}
+                            <span style={{
+                                flex: 1,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                paddingRight: '8px'
+                            }}>
+                                {item}
+                            </span>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                }}
+                                onClick={(e) => handleRemoveSuggestion(e, item)}
+                                title={`"${item}" önerisini sil`}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '5px',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    padding: 0,
+                                    flexShrink: 0,
+                                    transition: 'all 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = '#fee2e2';
+                                    e.currentTarget.style.color = '#ef4444';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = '#94a3b8';
+                                }}
+                            >
+                                ✕
+                            </button>
                         </div>
                     ))}
                 </div>
