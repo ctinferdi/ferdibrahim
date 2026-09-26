@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Project } from '../../../types';
+import { Project, Expense } from '../../../types';
 import { formatNumberWithDots } from '../../../utils/formatters';
 
 interface ExpenseModalProps {
@@ -7,6 +7,7 @@ interface ExpenseModalProps {
     onClose: () => void;
     onSave: (e: React.FormEvent) => Promise<void>;
     project: Project;
+    expenses?: Expense[];
     editingExpenseId: string | null;
     expenseDate: string;
     setExpenseDate: (val: string) => void;
@@ -51,7 +52,7 @@ const getAvatarColor = (index: number) => {
 };
 
 const ExpenseModal: React.FC<ExpenseModalProps> = ({
-    isOpen, onClose, onSave, project, editingExpenseId,
+    isOpen, onClose, onSave, project, expenses = [], editingExpenseId,
     expenseDate, setExpenseDate,
     selectedPartner, setSelectedPartner,
     paymentMethod, setPaymentMethod,
@@ -66,6 +67,48 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
     if (!isOpen) return null;
 
     const hasMultiplePartners = Boolean(project.partners && project.partners.length > 1);
+
+    // Suggestions from past expenses and common defaults
+    const categorySuggestions = useMemo(() => {
+        const set = new Set<string>();
+        ['BETON', 'DEMİR', 'HAFRİYAT', 'İŞÇİLİK', 'ELEKTRİK', 'TESİSAT', 'BOYA', 'KAPLAMA', 'NOTER', 'ASANSÖR', 'NAKLİYE', 'BEKÇİ', 'MALZEME', 'HARÇ', 'YEMEK'].forEach(c => set.add(c));
+        expenses?.forEach(e => {
+            if (e.category && e.category.trim()) {
+                set.add(e.category.trim().toLocaleUpperCase('tr-TR'));
+            }
+        });
+        return Array.from(set);
+    }, [expenses]);
+
+    const recipientSuggestions = useMemo(() => {
+        const set = new Set<string>();
+        expenses?.forEach(e => {
+            if (e.recipient && e.recipient.trim()) {
+                set.add(e.recipient.trim().toLocaleUpperCase('tr-TR'));
+            }
+        });
+        return Array.from(set);
+    }, [expenses]);
+
+    const paymentMethodSuggestions = useMemo(() => {
+        const set = new Set<string>(['EFT', 'NAKİT', 'KART', 'ÇEK', 'ELDEN', 'HAVALE']);
+        expenses?.forEach(e => {
+            if (e.payment_method && e.payment_method.trim()) {
+                set.add(e.payment_method.trim().toLocaleUpperCase('tr-TR'));
+            }
+        });
+        return Array.from(set);
+    }, [expenses]);
+
+    const descriptionSuggestions = useMemo(() => {
+        const set = new Set<string>();
+        expenses?.forEach(e => {
+            if (e.description && e.description.trim()) {
+                set.add(e.description.trim().toLocaleUpperCase('tr-TR'));
+            }
+        });
+        return Array.from(set).slice(0, 30);
+    }, [expenses]);
 
     // Sum of partner shares
     const partnerSum = useMemo(() => {
@@ -156,6 +199,31 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 padding: 0,
                 overflow: 'hidden'
             }} onClick={(e) => e.stopPropagation()}>
+                {/* Datalist Elements for Suggestions & Autocomplete */}
+                <datalist id="expense_category_datalist">
+                    {categorySuggestions.map((cat, i) => (
+                        <option key={i} value={cat} />
+                    ))}
+                </datalist>
+
+                <datalist id="expense_recipient_datalist">
+                    {recipientSuggestions.map((rec, i) => (
+                        <option key={i} value={rec} />
+                    ))}
+                </datalist>
+
+                <datalist id="expense_payment_method_datalist">
+                    {paymentMethodSuggestions.map((m, i) => (
+                        <option key={i} value={m} />
+                    ))}
+                </datalist>
+
+                <datalist id="expense_description_datalist">
+                    {descriptionSuggestions.map((d, i) => (
+                        <option key={i} value={d} />
+                    ))}
+                </datalist>
+
                 {/* Header */}
                 <div style={{
                     padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -178,7 +246,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
                 {/* Form Body */}
                 <div style={{ padding: 'var(--spacing-lg)', overflowY: 'auto', flex: 1 }}>
-                    <form onSubmit={onSave}>
+                    <form onSubmit={onSave} autoComplete="on">
                         {/* Ortak Dağıtımı Tetikleyici Butonu (Ödemeyi Yapan Ortakları Seçin) */}
                         {!editingExpenseId && hasMultiplePartners && (
                             <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -232,6 +300,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>TARİH</label>
                                 <input
                                     type="date"
+                                    name="expense_date"
+                                    id="expense_date"
                                     className="form-input"
                                     value={expenseDate}
                                     onChange={(e) => setExpenseDate(e.target.value)}
@@ -246,6 +316,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                     <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>ÖDEMEYİ YAPAN</label>
                                     <select
                                         className="form-input"
+                                        name="expense_partner"
+                                        id="expense_partner"
                                         value={selectedPartner}
                                         onChange={(e) => setSelectedPartner(e.target.value)}
                                         style={{ padding: '0.6rem' }}
@@ -267,6 +339,10 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>ÖDEME ŞEKLİ</label>
                                 <input
                                     type="text"
+                                    id="expense_payment_method"
+                                    name="expense_payment_method"
+                                    autoComplete="on"
+                                    list="expense_payment_method_datalist"
                                     className="form-input"
                                     value={paymentMethod}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
@@ -279,6 +355,10 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>VERİLEN KİŞİ / FİRMA</label>
                                 <input
                                     type="text"
+                                    id="expense_recipient"
+                                    name="expense_recipient"
+                                    autoComplete="on"
+                                    list="expense_recipient_datalist"
                                     className="form-input"
                                     value={recipient}
                                     onChange={(e) => setRecipient(e.target.value)}
@@ -288,11 +368,15 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                             </div>
                         </div>
 
-                        {/* İş Adı */}
+                        {/* İş Adı / Kategori */}
                         <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
                             <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>İŞ ADI / KATEGORİ</label>
                             <input
                                 type="text"
+                                id="expense_category"
+                                name="expense_category"
+                                autoComplete="on"
+                                list="expense_category_datalist"
                                 className="form-input"
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
@@ -305,13 +389,17 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                         {/* Açıklama */}
                         <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
                             <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>AÇIKLAMA (OPSİYONEL)</label>
-                            <textarea
+                            <input
+                                type="text"
+                                id="expense_description"
+                                name="expense_description"
+                                autoComplete="on"
+                                list="expense_description_datalist"
                                 className="form-input"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Gider ile ilgili detaylı notlar..."
-                                rows={2}
-                                style={{ resize: 'none', padding: '0.6rem' }}
+                                style={{ padding: '0.6rem' }}
                             />
                         </div>
 
@@ -326,6 +414,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                     <span style={{ position: 'absolute', left: '14px', fontSize: '1.2rem', fontWeight: 800, color: '#64748b' }}>₺</span>
                                     <input
                                         type="text"
+                                        id="expense_amount"
+                                        name="expense_amount"
+                                        autoComplete="off"
                                         className="form-input"
                                         value={formatNumberWithDots(amount)}
                                         onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}

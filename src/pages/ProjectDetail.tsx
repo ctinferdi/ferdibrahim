@@ -1368,6 +1368,7 @@ const ProjectDetail: React.FC = () => {
                 onClose={() => setShowExpenseModal(false)}
                 onSave={handleSaveExpense}
                 project={project}
+                expenses={expenses}
                 editingExpenseId={editingExpenseId}
                 expenseDate={expenseDate}
                 setExpenseDate={setExpenseDate}
