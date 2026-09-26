@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Project, Expense } from '../../../types';
 import { formatNumberWithDots } from '../../../utils/formatters';
 
@@ -51,6 +51,105 @@ const getAvatarColor = (index: number) => {
     return AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
 };
 
+// Clean floating suggestion input - appears right beneath input only when user types
+interface SuggestionInputProps {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (val: string) => void;
+    placeholder?: string;
+    suggestions: string[];
+    required?: boolean;
+    style?: React.CSSProperties;
+}
+
+const SuggestionInput: React.FC<SuggestionInputProps> = ({
+    id, label, value, onChange, placeholder, suggestions, required, style
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    // Filter suggestions based on typed query (only if at least 1 character typed)
+    const filtered = useMemo(() => {
+        const query = value.trim().toLocaleUpperCase('tr-TR');
+        if (!query) return [];
+        return suggestions
+            .filter(item => {
+                const upper = item.toLocaleUpperCase('tr-TR');
+                return upper.includes(query) && upper !== query;
+            })
+            .slice(0, 6);
+    }, [value, suggestions]);
+
+    return (
+        <div style={{ position: 'relative', ...style }}>
+            <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>
+                {label}
+            </label>
+            <input
+                type="text"
+                id={id}
+                name={id}
+                className="form-input"
+                value={value}
+                onChange={(e) => {
+                    onChange(e.target.value);
+                    setIsOpen(true);
+                }}
+                onFocus={() => {
+                    if (value.trim().length >= 1) setIsOpen(true);
+                }}
+                onBlur={() => {
+                    setTimeout(() => setIsOpen(false), 200);
+                }}
+                placeholder={placeholder}
+                style={{ padding: '0.6rem', width: '100%' }}
+                required={required}
+                autoComplete="off"
+            />
+            {isOpen && filtered.length > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 4px)',
+                    left: 0,
+                    right: 0,
+                    background: '#ffffff',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '8px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    zIndex: 1100,
+                    padding: '4px',
+                    maxHeight: '220px',
+                    overflowY: 'auto'
+                }}>
+                    {filtered.map((item, idx) => (
+                        <div
+                            key={idx}
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                onChange(item);
+                                setIsOpen(false);
+                            }}
+                            style={{
+                                padding: '8px 12px',
+                                fontSize: '12.5px',
+                                fontWeight: 700,
+                                color: '#1e293b',
+                                cursor: 'pointer',
+                                borderRadius: '6px',
+                                transition: 'background 0.1s'
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        >
+                            {item}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const ExpenseModal: React.FC<ExpenseModalProps> = ({
     isOpen, onClose, onSave, project, expenses = [], editingExpenseId,
     expenseDate, setExpenseDate,
@@ -68,7 +167,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
     const hasMultiplePartners = Boolean(project.partners && project.partners.length > 1);
 
-    // Suggestions from past expenses and common defaults
+    // Suggestions from past expenses and common presets
     const categorySuggestions = useMemo(() => {
         const set = new Set<string>();
         ['BETON', 'DEMİR', 'HAFRİYAT', 'İŞÇİLİK', 'ELEKTRİK', 'TESİSAT', 'BOYA', 'KAPLAMA', 'NOTER', 'ASANSÖR', 'NAKLİYE', 'BEKÇİ', 'MALZEME', 'HARÇ', 'YEMEK'].forEach(c => set.add(c));
@@ -162,16 +261,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         setAmount(sum.toString());
     };
 
-    // Clear all partner inputs
-    const handleResetShares = () => {
-        const newShares: Record<string, string> = {};
-        project.partners?.forEach(p => {
-            newShares[p.id] = '0';
-        });
-        setPartnerShares(newShares);
-        setAmount('0');
-    };
-
     return (
         <div style={{
             position: 'fixed',
@@ -199,31 +288,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 padding: 0,
                 overflow: 'hidden'
             }} onClick={(e) => e.stopPropagation()}>
-                {/* Datalist Elements for Suggestions & Autocomplete */}
-                <datalist id="expense_category_datalist">
-                    {categorySuggestions.map((cat, i) => (
-                        <option key={i} value={cat} />
-                    ))}
-                </datalist>
-
-                <datalist id="expense_recipient_datalist">
-                    {recipientSuggestions.map((rec, i) => (
-                        <option key={i} value={rec} />
-                    ))}
-                </datalist>
-
-                <datalist id="expense_payment_method_datalist">
-                    {paymentMethodSuggestions.map((m, i) => (
-                        <option key={i} value={m} />
-                    ))}
-                </datalist>
-
-                <datalist id="expense_description_datalist">
-                    {descriptionSuggestions.map((d, i) => (
-                        <option key={i} value={d} />
-                    ))}
-                </datalist>
-
                 {/* Header */}
                 <div style={{
                     padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -246,7 +310,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
                 {/* Form Body */}
                 <div style={{ padding: 'var(--spacing-lg)', overflowY: 'auto', flex: 1 }}>
-                    <form onSubmit={onSave} autoComplete="on">
+                    <form onSubmit={onSave} autoComplete="off">
                         {/* Ortak Dağıtımı Tetikleyici Butonu (Ödemeyi Yapan Ortakları Seçin) */}
                         {!editingExpenseId && hasMultiplePartners && (
                             <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -333,73 +397,48 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                             )}
                         </div>
 
-                        {/* Ödeme Şekli & Verilen Kişi */}
+                        {/* Ödeme Şekli & Verilen Kişi (Custom Dropdowns) */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>ÖDEME ŞEKLİ</label>
-                                <input
-                                    type="text"
-                                    id="expense_payment_method"
-                                    name="expense_payment_method"
-                                    autoComplete="on"
-                                    list="expense_payment_method_datalist"
-                                    className="form-input"
-                                    value={paymentMethod}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    placeholder="EFT, Nakit, vb."
-                                    style={{ padding: '0.6rem' }}
-                                />
-                            </div>
-
-                            <div className="form-group" style={{ marginBottom: 0 }}>
-                                <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>VERİLEN KİŞİ / FİRMA</label>
-                                <input
-                                    type="text"
-                                    id="expense_recipient"
-                                    name="expense_recipient"
-                                    autoComplete="on"
-                                    list="expense_recipient_datalist"
-                                    className="form-input"
-                                    value={recipient}
-                                    onChange={(e) => setRecipient(e.target.value)}
-                                    placeholder="Firma veya Kişi adı"
-                                    style={{ padding: '0.6rem' }}
-                                />
-                            </div>
+                            <SuggestionInput
+                                id="expense_payment_method"
+                                label="ÖDEME ŞEKLİ"
+                                value={paymentMethod}
+                                onChange={setPaymentMethod}
+                                placeholder="EFT, Nakit, vb."
+                                suggestions={paymentMethodSuggestions}
+                            />
+                            <SuggestionInput
+                                id="expense_recipient"
+                                label="VERİLEN KİŞİ / FİRMA"
+                                value={recipient}
+                                onChange={setRecipient}
+                                placeholder="Firma veya Kişi adı"
+                                suggestions={recipientSuggestions}
+                            />
                         </div>
 
                         {/* İş Adı / Kategori */}
-                        <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
-                            <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>İŞ ADI / KATEGORİ</label>
-                            <input
-                                type="text"
+                        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                            <SuggestionInput
                                 id="expense_category"
-                                name="expense_category"
-                                autoComplete="on"
-                                list="expense_category_datalist"
-                                className="form-input"
+                                label="İŞ ADI / KATEGORİ"
                                 value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                                onChange={setCategory}
                                 placeholder="Beton, Demir, Hafriyat, İşçilik, vb."
-                                style={{ padding: '0.6rem' }}
+                                suggestions={categorySuggestions}
                                 required
                             />
                         </div>
 
                         {/* Açıklama */}
-                        <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
-                            <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>AÇIKLAMA (OPSİYONEL)</label>
-                            <input
-                                type="text"
+                        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                            <SuggestionInput
                                 id="expense_description"
-                                name="expense_description"
-                                autoComplete="on"
-                                list="expense_description_datalist"
-                                className="form-input"
+                                label="AÇIKLAMA (OPSİYONEL)"
                                 value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={setDescription}
                                 placeholder="Gider ile ilgili detaylı notlar..."
-                                style={{ padding: '0.6rem' }}
+                                suggestions={descriptionSuggestions}
                             />
                         </div>
 
@@ -416,7 +455,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                         type="text"
                                         id="expense_amount"
                                         name="expense_amount"
-                                        autoComplete="off"
                                         className="form-input"
                                         value={formatNumberWithDots(amount)}
                                         onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
@@ -432,14 +470,12 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 background: '#f8fafc',
                                 border: '1.5px solid #e2e8f0',
                                 borderRadius: '14px',
-                                padding: '15px',
+                                padding: '12px',
                                 boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
                                 marginBottom: 0
                             }}>
-
-
                                 {/* List of Partners */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '230px', overflowY: 'auto', paddingRight: '2px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto', paddingRight: '2px' }}>
                                     {project.partners?.map((partner, index) => {
                                         const pVal = partnerShares[partner.id] || '';
                                         const numVal = Number(pVal.replace(/\D/g, '')) || 0;
