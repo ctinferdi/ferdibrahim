@@ -318,20 +318,24 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
     // Handle individual partner amount change (user types manually)
     const handlePartnerShareChange = (partnerId: string, rawVal: string) => {
-        const cleaned = rawVal.replace(/\D/g, '');
+        // Strip non-digits and strip leading zeros (e.g. "05" -> "5", "00" -> "0")
+        const digitsOnly = rawVal.replace(/\D/g, '');
+        const cleaned = digitsOnly.replace(/^0+(?=\d)/, '');
+        const finalVal = cleaned === '0' ? '' : cleaned;
+
         const updated = {
             ...partnerShares,
-            [partnerId]: cleaned
+            [partnerId]: finalVal
         };
         setPartnerShares(updated);
 
         // Auto-sum all partners and set as total amount
         let sum = 0;
         project.partners?.forEach(p => {
-            const val = p.id === partnerId ? cleaned : (updated[p.id] || '0');
+            const val = p.id === partnerId ? finalVal : (updated[p.id] || '');
             sum += Number(val.replace(/\D/g, '')) || 0;
         });
-        setAmount(sum.toString());
+        setAmount(sum > 0 ? sum.toString() : '');
     };
 
     return (
@@ -529,8 +533,13 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                         id="expense_amount"
                                         name="expense_amount"
                                         className="form-input"
-                                        value={formatNumberWithDots(amount)}
-                                        onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
+                                        value={amount && amount !== '0' ? formatNumberWithDots(amount) : ''}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, '');
+                                            const cleaned = digits.replace(/^0+(?=\d)/, '');
+                                            setAmount(cleaned === '0' ? '' : cleaned);
+                                        }}
+                                        onFocus={(e) => e.target.select()}
                                         placeholder="0"
                                         style={{ padding: '0.75rem 1rem 0.75rem 36px', fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}
                                         required
@@ -638,8 +647,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                                         <input
                                                             type="text"
-                                                            value={formatNumberWithDots(pVal)}
+                                                            value={numVal > 0 ? formatNumberWithDots(pVal) : ''}
                                                             onChange={(e) => handlePartnerShareChange(partner.id, e.target.value)}
+                                                            onFocus={(e) => e.target.select()}
                                                             placeholder="0"
                                                             style={{
                                                                 width: '180px',
@@ -671,7 +681,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     {numVal > 0 && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handlePartnerShareChange(partner.id, '0')}
+                                                            onClick={() => handlePartnerShareChange(partner.id, '')}
                                                             style={{
                                                                 width: '44px',
                                                                 height: '48px',
