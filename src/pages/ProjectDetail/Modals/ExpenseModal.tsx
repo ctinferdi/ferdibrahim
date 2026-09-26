@@ -849,21 +849,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                         </div>
                                     )}
 
-                                    {/* Explicit Reassurance Note for User Request */}
-                                    <div style={{
-                                        fontSize: '10.5px',
-                                        color: isBalanced ? '#047857' : '#64748b',
-                                        paddingTop: '4px',
-                                        borderTop: '1px solid rgba(0,0,0,0.06)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '5px'
-                                    }}>
-                                        <span>📌</span>
-                                        <span>
-                                            <strong>Gider Tablosu:</strong> Kaydedildiğinde her ortağın verdiği tutar, tablodaki <u>KİM İÇİN</u> sütununa ayrı birer satır olarak işlenir.
-                                        </span>
-                                    </div>
+
                                 </div>
                             </div>
                         )}
