@@ -198,15 +198,52 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         handlePartnerShareChange(partnerId, val.toString());
     };
 
-    // Top total amount change in split mode
+    // Top total amount change in split mode - immediately updates partner inputs
     const handleTopAmountChange = (rawVal: string) => {
         const cleaned = rawVal.replace(/\D/g, '');
         setAmount(cleaned);
         const newTotal = Number(cleaned) || 0;
 
-        // If currently all partner shares are 0, distribute equally automatically
-        const allZero = !project.partners || project.partners.every(p => (Number((partnerShares[p.id] || '0').replace(/\D/g, '')) || 0) === 0);
-        if (allZero && newTotal > 0 && project.partners && project.partners.length > 0) {
+        if (!project.partners || project.partners.length === 0) return;
+
+        if (newTotal === 0) {
+            const newShares: Record<string, string> = {};
+            project.partners.forEach(p => {
+                newShares[p.id] = '0';
+            });
+            setPartnerShares(newShares);
+            return;
+        }
+
+        // Check if only 1 partner was previously active (e.g. clicked "Tümü")
+        const activePartners = project.partners.filter(p => (Number((partnerShares[p.id] || '0').replace(/\D/g, '')) || 0) > 0);
+        if (activePartners.length === 1) {
+            const single = activePartners[0];
+            const newShares: Record<string, string> = {};
+            project.partners.forEach(p => {
+                newShares[p.id] = p.id === single.id ? newTotal.toString() : '0';
+            });
+            setPartnerShares(newShares);
+            return;
+        }
+
+        // Split according to share_percentage or equally among all partners
+        const hasShares = project.partners.every(p => typeof p.share_percentage === 'number' && p.share_percentage > 0);
+        if (hasShares) {
+            let allocated = 0;
+            const newShares: Record<string, string> = {};
+            project.partners.forEach((p, idx) => {
+                if (idx === project.partners!.length - 1) {
+                    const remaining = Math.max(0, newTotal - allocated);
+                    newShares[p.id] = remaining > 0 ? remaining.toString() : '0';
+                } else {
+                    const val = Math.round((newTotal * (p.share_percentage || 0)) / 100);
+                    allocated += val;
+                    newShares[p.id] = val > 0 ? val.toString() : '0';
+                }
+            });
+            setPartnerShares(newShares);
+        } else {
             const count = project.partners.length;
             const perPartner = Math.floor(newTotal / count);
             const remainder = newTotal - (perPartner * count);
@@ -297,8 +334,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                             setPaymentSplitMode('single');
                                         } else {
                                             setPaymentSplitMode('split');
-                                            // Initialize shares if empty and amount exists
-                                            if (Object.keys(partnerShares).length === 0 && amount) {
+                                            // Always sync current amount to partners upon opening split mode
+                                            const curAmt = Number(amount.replace(/\D/g, '')) || 0;
+                                            if (curAmt > 0) {
                                                 handleSplitEqually();
                                             }
                                         }
