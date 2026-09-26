@@ -436,60 +436,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
                                 marginBottom: 0
                             }}>
-                                {/* Section Header */}
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    marginBottom: '10px',
-                                    paddingBottom: '8px',
-                                    borderBottom: '1px solid #e2e8f0'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{
-                                            background: '#eff6ff',
-                                            color: '#2563eb',
-                                            width: '26px',
-                                            height: '26px',
-                                            borderRadius: '7px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '13px',
-                                            fontWeight: 700
-                                        }}>
-                                            👥
-                                        </span>
-                                        <div>
-                                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b', letterSpacing: '0.2px' }}>
-                                                ORTAKLARIN VERDİĞİ TUTARLAR
-                                            </span>
-                                            <div style={{ fontSize: '10.5px', color: '#64748b' }}>
-                                                Hangi ortak ne kadar verdiyse doğrudan kutusuna yazınız
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleResetShares}
-                                        style={{
-                                            padding: '4px 10px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            background: '#fef2f2',
-                                            color: '#b91c1c',
-                                            border: '1px solid #fecaca',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '3px'
-                                        }}
-                                        title="Tüm ortak tutarlarını sıfırla"
-                                    >
-                                        🧹 Sıfırla
-                                    </button>
-                                </div>
+
 
                                 {/* List of Partners */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '230px', overflowY: 'auto', paddingRight: '2px' }}>
