@@ -76,6 +76,8 @@ export interface Installment {
     description?: string;
     paid_at?: string;
     currency?: string; // 'TRY' | 'USD' | 'EUR' | 'GOLD'
+    tl_amount?: number;
+    tl_note?: string;
 }
 
 export interface Apartment {

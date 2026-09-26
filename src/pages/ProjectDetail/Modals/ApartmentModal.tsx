@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apartmentService } from '../../../services/apartmentService';
 import { formatNumberWithDots, parseNumberFromDots, formatMoneyWithCurrency, getCurrencySymbol } from '../../../utils/formatters';
 import FileUploadSection from './FileUploadSection';
+import { Installment } from '../../../types';
 
 interface ApartmentModalProps {
     isOpen: boolean;
@@ -24,17 +25,28 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
     if (!isOpen) return null;
 
     const [currency, setCurrency] = useState<string>('TRY');
-    const [installments, setInstallments] = useState<any[]>([]);
-    const [showInstallments, setShowInstallments] = useState(true);
-    const [showSalesDetails, setShowSalesDetails] = useState(true);
+    const [installments, setInstallments] = useState<Installment[]>([]);
     const [showPlans, setShowPlans] = useState(false);
     const [baseDownpayment, setBaseDownpayment] = useState<string>('0');
+
+    // Parça Ödeme (Kısmi Tahsilat) Modalı State'i
+    const [partialModal, setPartialModal] = useState<{
+        isOpen: boolean;
+        installment: Installment | null;
+        collectedAmount: string;
+        tlNote: string;
+    }>({
+        isOpen: false,
+        installment: null,
+        collectedAmount: '',
+        tlNote: ''
+    });
 
     useEffect(() => {
         const initialCurrency = apartmentFormData.currency || 'TRY';
         setCurrency(initialCurrency);
 
-        const initialInstallments = apartmentFormData.installments || [];
+        const initialInstallments = (apartmentFormData.installments || []) as Installment[];
         setInstallments(initialInstallments);
 
         // İlk açılışta ana peşinatı hesapla: Toplam Alınan - Ödenmiş Taksitler
@@ -44,57 +56,70 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             .reduce((sum: number, ins: any) => sum + (Number(ins.amount) || 0), 0);
         
         setBaseDownpayment(formatNumberWithDots(Math.max(0, totalPaid - paidInstallmentsSum)));
-
-        if (apartmentFormData.status === 'sold') {
-            setShowSalesDetails(true);
-            if (initialInstallments.length > 0) {
-                setShowInstallments(true);
-            }
-        }
     }, [apartmentFormData]);
 
+    // Finansal Özet Hesaplamaları
+    const soldPriceNum = parseNumberFromDots(apartmentFormData.sold_price);
+    const baseDownpaymentNum = parseNumberFromDots(baseDownpayment);
+    const paidInstallmentsSum = installments
+        .filter((ins: any) => ins.status === 'paid')
+        .reduce((sum: number, ins: any) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0)), 0);
+    const totalCollected = baseDownpaymentNum + paidInstallmentsSum;
+    const remainingDebt = Math.max(0, soldPriceNum - totalCollected);
+    const pendingInstallmentsSum = installments
+        .filter((ins: any) => ins.status === 'pending')
+        .reduce((sum: number, ins: any) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0)), 0);
+    const pendingCount = installments.filter(ins => ins.status === 'pending').length;
+    const paidCount = installments.filter(ins => ins.status === 'paid').length;
+
+    // Peşin Satış: Tek tıkla tüm bedeli peşinata eşitle
+    const handleSetFullCashPayment = () => {
+        const fullPrice = apartmentFormData.sold_price || apartmentFormData.price || 0;
+        setBaseDownpayment(formatNumberWithDots(fullPrice));
+        if (installments.length > 0) {
+            if (confirm('Mevcut taksit kayıtları silinsin mi? (Daire tamamen peşin ödendi olarak kaydedilecek)')) {
+                setInstallments([]);
+            }
+        }
+    };
+
+    // Yeni Taksit veya Ara Ödeme Ekleme
     const addPayment = (type: 'paid' | 'pending') => {
         if (type === 'paid') {
-            const newPayment = {
+            const newPayment: Installment = {
                 id: crypto.randomUUID(),
                 amount: 0,
                 due_date: new Date().toISOString().split('T')[0],
                 status: 'paid',
                 description: 'Ara Ödeme / Elden',
-                currency: currency
+                currency: currency,
+                tl_note: ''
             };
             setInstallments([...installments, newPayment]);
         } else {
-            const pendingCount = installments.filter(ins => ins.status === 'pending').length;
             const nextMonth = new Date();
             nextMonth.setMonth(nextMonth.getMonth() + pendingCount + 1);
-            const newInstallment = {
+            const newInstallment: Installment = {
                 id: crypto.randomUUID(),
-                amount: 0,
+                amount: remainingDebt > 0 ? Math.round(remainingDebt / Math.max(1, 4 - pendingCount)) : 0,
                 due_date: nextMonth.toISOString().split('T')[0],
                 status: 'pending',
                 description: `${pendingCount + 1}. Taksit`,
-                currency: currency
+                currency: currency,
+                tl_note: ''
             };
             setInstallments([...installments, newInstallment]);
         }
-        setShowInstallments(true);
     };
 
+    // Kalan Borcu Eşit Taksite Bölme
     const autoSplitRemaining = () => {
-        const soldPriceNum = parseNumberFromDots(apartmentFormData.sold_price);
-        const baseDownpaymentNum = parseNumberFromDots(baseDownpayment);
-        const paidSum = installments
-            .filter(ins => ins.status === 'paid')
-            .reduce((sum, ins) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0)), 0);
-        const currentRemaining = Math.max(0, soldPriceNum - (baseDownpaymentNum + paidSum));
-
-        if (currentRemaining <= 0) {
+        if (remainingDebt <= 0) {
             alert('Kalan borç bulunmamaktadır.');
             return;
         }
 
-        const countStr = prompt(`Kalan borç (${formatMoneyWithCurrency(currentRemaining, currency)}). Kaç eşit taksite bölünsün?`, '3');
+        const countStr = prompt(`Kalan borç (${formatMoneyWithCurrency(remainingDebt, currency)}). Kaç eşit taksite bölünsün?`, '6');
         if (!countStr) return;
         const count = parseInt(countStr);
         if (isNaN(count) || count <= 0) {
@@ -102,9 +127,9 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             return;
         }
 
-        const installmentAmount = Math.floor(currentRemaining / count);
-        const remainder = currentRemaining - (installmentAmount * count);
-        const newRows: any[] = [];
+        const installmentAmount = Math.floor(remainingDebt / count);
+        const remainder = remainingDebt - (installmentAmount * count);
+        const newRows: Installment[] = [];
         for (let i = 1; i <= count; i++) {
             const date = new Date();
             date.setMonth(date.getMonth() + i);
@@ -114,7 +139,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 due_date: date.toISOString().split('T')[0],
                 status: 'pending',
                 description: `${i}. Taksit`,
-                currency: currency
+                currency: currency,
+                tl_note: ''
             });
         }
 
@@ -128,7 +154,6 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
         } else {
             setInstallments([...installments, ...newRows]);
         }
-        setShowInstallments(true);
     };
 
     const updateInstallment = (id: string, field: string, value: any) => {
@@ -139,6 +164,93 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
     const removeInstallment = (id: string) => {
         setInstallments(installments.filter(ins => ins.id !== id));
+    };
+
+    // Taksiti Tamamen Tahsil Et (Tek Tık)
+    const handleFullCollect = (ins: Installment) => {
+        const amt = typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0);
+        const tlInput = currency !== 'TRY' ? prompt(`Tahsilat: ${formatMoneyWithCurrency(amt, ins.currency || currency)}.\nVarsa müşteriden alınan TL tutarı veya kur notu:`, ins.tl_note || '') : null;
+        
+        setInstallments(installments.map(item => {
+            if (item.id === ins.id) {
+                return {
+                    ...item,
+                    status: 'paid',
+                    paid_at: new Date().toISOString().split('T')[0],
+                    tl_note: tlInput !== null ? tlInput : item.tl_note
+                };
+            }
+            return item;
+        }));
+    };
+
+    // Parça Ödeme Modalını Aç
+    const openPartialPaymentModal = (ins: Installment) => {
+        setPartialModal({
+            isOpen: true,
+            installment: ins,
+            collectedAmount: '',
+            tlNote: ''
+        });
+    };
+
+    // Parça Ödemeyi Uygula (Taksiti 2 parçaya böl: Ödenen kısım + Kalan bekleyen bakiye)
+    const handleSavePartialPayment = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!partialModal.installment) return;
+
+        const ins = partialModal.installment;
+        const fullAmt = typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0);
+        const collected = parseNumberFromDots(partialModal.collectedAmount);
+
+        if (collected <= 0) {
+            alert('Lütfen geçerli bir tahsilat tutarı giriniz.');
+            return;
+        }
+
+        if (collected >= fullAmt) {
+            // Tamamı veya fazlası ödendiyse doğrudan ödendi yap
+            setInstallments(installments.map(item => {
+                if (item.id === ins.id) {
+                    return {
+                        ...item,
+                        status: 'paid',
+                        paid_at: new Date().toISOString().split('T')[0],
+                        tl_note: partialModal.tlNote || item.tl_note
+                    };
+                }
+                return item;
+            }));
+            setPartialModal({ isOpen: false, installment: null, collectedAmount: '', tlNote: '' });
+            return;
+        }
+
+        const remaining = fullAmt - collected;
+
+        // 1. Ödenen Kısım
+        const paidEntry: Installment = {
+            ...ins,
+            id: crypto.randomUUID(),
+            amount: collected,
+            status: 'paid',
+            paid_at: new Date().toISOString().split('T')[0],
+            description: `${ins.description || 'Taksit'} (Kısmi Tahsilat)`,
+            tl_note: partialModal.tlNote || ins.tl_note || ''
+        };
+
+        // 2. Kalan Bekleyen Kısım
+        const remainingEntry: Installment = {
+            ...ins,
+            id: crypto.randomUUID(),
+            amount: remaining,
+            status: 'pending',
+            description: `${ins.description || 'Taksit'} (Kalan Bakiye)`,
+            tl_note: ''
+        };
+
+        const updated = installments.flatMap(item => item.id === ins.id ? [paidEntry, remainingEntry] : [item]);
+        setInstallments(updated);
+        setPartialModal({ isOpen: false, installment: null, collectedAmount: '', tlNote: '' });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -202,18 +314,6 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
         }
     };
 
-    // Finansal Özet Hesaplamaları
-    const soldPriceNum = parseNumberFromDots(apartmentFormData.sold_price);
-    const baseDownpaymentNum = parseNumberFromDots(baseDownpayment);
-    const paidInstallmentsSum = installments
-        .filter((ins: any) => ins.status === 'paid')
-        .reduce((sum: number, ins: any) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0)), 0);
-    const totalCollected = baseDownpaymentNum + paidInstallmentsSum;
-    const remainingDebt = Math.max(0, soldPriceNum - totalCollected);
-    const pendingInstallmentsSum = installments
-        .filter((ins: any) => ins.status === 'pending')
-        .reduce((sum: number, ins: any) => sum + (typeof ins.amount === 'string' ? parseNumberFromDots(ins.amount) : (Number(ins.amount) || 0)), 0);
-
     return (
         <div style={{
             position: 'fixed',
@@ -221,8 +321,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(5px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -230,34 +330,44 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             padding: 'var(--spacing-md)'
         }}>
             <div className="card" style={{
-                width: 'min(100%, 640px)',
-                maxHeight: '92vh',
+                width: 'min(100%, 760px)',
+                maxHeight: '94vh',
                 overflow: 'auto',
-                padding: 'var(--spacing-lg)'
+                padding: '24px',
+                borderRadius: '16px',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+                background: '#ffffff'
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
-                    <h2 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>
-                        {editingApartmentId
-                            ? `Daire ${apartmentFormData.apartment_number || '—'} - Düzenle`
-                            : 'Yeni Daire Ekle'}
-                    </h2>
+                {/* Modal Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '14px', borderBottom: '1.5px solid #f1f5f9' }}>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                            {editingApartmentId
+                                ? `🏢 Daire ${apartmentFormData.apartment_number || '—'} Satış & Tahsilat Düzenle`
+                                : '➕ Yeni Daire Ekle'}
+                        </h2>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', fontWeight: 600 }}>
+                            {apartmentFormData.building_name || project?.name || 'Proje Dairesi'}
+                        </div>
+                    </div>
                     {/* Para Birimi Seçici */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         {(['TRY', 'USD', 'EUR', 'GOLD'] as const).map(curr => (
                             <button
                                 key={curr}
                                 type="button"
                                 onClick={() => setCurrency(curr)}
                                 style={{
-                                    padding: '3px 10px',
-                                    borderRadius: '4px',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
+                                    padding: '5px 12px',
+                                    borderRadius: '6px',
+                                    fontSize: '11.5px',
+                                    fontWeight: 800,
                                     border: 'none',
-                                    background: currency === curr ? (curr === 'GOLD' ? '#d97706' : '#3b82f6') : 'transparent',
+                                    background: currency === curr ? (curr === 'GOLD' ? '#d97706' : '#2563eb') : 'transparent',
                                     color: currency === curr ? '#fff' : '#64748b',
+                                    boxShadow: currency === curr ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
                                     cursor: 'pointer',
-                                    transition: 'all 0.15s'
+                                    transition: 'all 0.15s ease'
                                 }}
                             >
                                 {curr === 'TRY' ? '₺ TL' : curr === 'USD' ? '$ USD' : curr === 'EUR' ? '€ EUR' : '🪙 Gr Altın'}
@@ -267,23 +377,24 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ display: 'grid', gap: 'var(--spacing-sm)' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                Bina Adı
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={apartmentFormData.building_name}
-                                onChange={(e) => setApartmentFormData({ ...apartmentFormData, building_name: e.target.value })}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                    <div style={{ display: 'grid', gap: '16px' }}>
+                        
+                        {/* ─── TEMEL BİLGİLER ─── */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Bina Adı
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={apartmentFormData.building_name}
+                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, building_name: e.target.value })}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
                                     Daire No
                                 </label>
                                 <input
@@ -291,12 +402,12 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     required={apartmentFormData.status !== 'common'}
                                     value={apartmentFormData.apartment_number}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, apartment_number: e.target.value })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                                    placeholder={apartmentFormData.status === 'common' ? 'Opsiyonel' : 'Daire numarası'}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 700 }}
+                                    placeholder={apartmentFormData.status === 'common' ? 'Opsiyonel' : 'Örn: 21'}
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
                                     Kat
                                 </label>
                                 <input
@@ -307,314 +418,534 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, floor: parseInt(e.target.value) })}
                                     style={{
                                         width: '100%',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid var(--color-border)',
-                                        backgroundColor: editingApartmentId ? '#f1f5f9' : 'white',
+                                        padding: '9px 12px',
+                                        borderRadius: '8px',
+                                        border: '1.5px solid #cbd5e1',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        backgroundColor: editingApartmentId ? '#f8fafc' : 'white',
                                         cursor: editingApartmentId ? 'not-allowed' : 'text'
                                     }}
                                 />
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    Daire Liste Fiyatı ({getCurrencySymbol(currency)})
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Liste Fiyatı ({getCurrencySymbol(currency)})
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={formatNumberWithDots(apartmentFormData.price)}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, price: e.target.value })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    Daire Alanı (m²)
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Alanı (m²)
                                 </label>
                                 <input
                                     type="number"
                                     required
                                     value={apartmentFormData.square_meters}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, square_meters: parseInt(e.target.value) || 0 })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 700 }}
                                 />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Durum
+                                </label>
+                                <select
+                                    value={apartmentFormData.status}
+                                    onChange={(e) => {
+                                        const newStatus = e.target.value;
+                                        setApartmentFormData({
+                                            ...apartmentFormData,
+                                            status: newStatus,
+                                            price: (newStatus === 'owner' || newStatus === 'common') ? 0 : apartmentFormData.price,
+                                            sold_price: newStatus === 'sold' ? (apartmentFormData.sold_price || apartmentFormData.price) : 0,
+                                            paid_amount: newStatus === 'sold' ? apartmentFormData.paid_amount : 0
+                                        });
+                                    }}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 800, background: '#fff' }}
+                                >
+                                    <option value="available">🟢 Müsait (Satışta)</option>
+                                    <option value="sold">🔵 Satıldı (Tahsilat / Taksit)</option>
+                                    <option value="owner">👤 Mal Sahibi</option>
+                                    <option value="common">🏛️ Ortak Alan</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                Durum
-                            </label>
-                            <select
-                                value={apartmentFormData.status}
-                                onChange={(e) => {
-                                    const newStatus = e.target.value;
-                                    setApartmentFormData({
-                                        ...apartmentFormData,
-                                        status: newStatus,
-                                        price: (newStatus === 'owner' || newStatus === 'common') ? 0 : apartmentFormData.price,
-                                        sold_price: newStatus === 'sold' ? (apartmentFormData.sold_price || apartmentFormData.price) : 0,
-                                        paid_amount: newStatus === 'sold' ? apartmentFormData.paid_amount : 0
-                                    });
-                                }}
-                                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-                            >
-                                <option value="available">Müsait</option>
-                                <option value="owner">Mal Sahibi</option>
-                                <option value="sold">Satıldı</option>
-                                <option value="common">Ortak Alan</option>
-                            </select>
-                        </div>
-
+                        {/* ─── SATILDI BÖLÜMÜ: SATIŞ & TAHSİLAT DETAYLARI ─── */}
                         {apartmentFormData.status === 'sold' && (
-                            <div style={{ padding: 'var(--spacing-md)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'grid', gap: 'var(--spacing-sm)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{
+                                padding: '16px',
+                                background: '#f8fafc',
+                                borderRadius: '14px',
+                                border: '1.5px solid #e2e8f0',
+                                display: 'grid',
+                                gap: '14px'
+                            }}>
+                                {/* Satış Başlığı ve Peşinat Aksiyonları */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={showSalesDetails} 
-                                            onChange={(e) => setShowSalesDetails(e.target.checked)}
-                                            id="chkSalesDetails"
-                                            style={{ cursor: 'pointer' }}
-                                        />
-                                        <label htmlFor="chkSalesDetails" style={{ margin: 0, fontSize: 'var(--font-size-xs)', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                                            Satış & Tahsilat Detayları {showSalesDetails ? '' : '(Gizli)'}
-                                        </label>
+                                        <span style={{ fontSize: '16px' }}>💰</span>
+                                        <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                            SATIŞ BEDELİ & İLK PEŞİNAT
+                                        </span>
                                     </div>
-                                    <span style={{ fontSize: '11px', fontWeight: 700, color: currency === 'GOLD' ? '#d97706' : '#3b82f6', background: currency === 'GOLD' ? '#fef3c7' : '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
-                                        Para Birimi: {currency === 'GOLD' ? '🪙 Gram Altın (gr)' : `${getCurrencySymbol(currency)} ${currency}`}
-                                    </span>
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={handleSetFullCashPayment}
+                                            style={{
+                                                padding: '4px 10px',
+                                                fontSize: '11px',
+                                                fontWeight: 800,
+                                                background: '#ecfdf5',
+                                                color: '#059669',
+                                                border: '1px solid #a7f3d0',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s ease'
+                                            }}
+                                            title="Satış bedelinin tamamı peşin alındı olarak ayarlar"
+                                        >
+                                            ⚡ Tamamı Peşin Alındı (Borçsuz)
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {showSalesDetails && (
-                                    <>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)', marginTop: '4px' }}>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                                    Kaça Satıldı? ({getCurrencySymbol(currency)})
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={formatNumberWithDots(apartmentFormData.sold_price)}
-                                                    onChange={(e) => setApartmentFormData({ ...apartmentFormData, sold_price: e.target.value })}
-                                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#1e40af' }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                                    İlk Peşinat ({getCurrencySymbol(currency)})
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={baseDownpayment}
-                                                    onChange={(e) => setBaseDownpayment(e.target.value)}
-                                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 'bold', color: '#10b981' }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* 4 Renkli Finansal Özet Kartı */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px', marginTop: '4px' }}>
-                                            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '8px' }}>
-                                                <div style={{ fontSize: '9px', fontWeight: 700, color: '#1e40af', textTransform: 'uppercase' }}>Toplam Satış</div>
-                                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
-                                                    {formatMoneyWithCurrency(soldPriceNum, currency)}
-                                                </div>
-                                            </div>
-                                            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '8px' }}>
-                                                <div style={{ fontSize: '9px', fontWeight: 700, color: '#15803d', textTransform: 'uppercase' }}>Toplam Alınan</div>
-                                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#14532d', marginTop: '2px' }}>
-                                                    {formatMoneyWithCurrency(totalCollected, currency)}
-                                                </div>
-                                            </div>
-                                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px' }}>
-                                                <div style={{ fontSize: '9px', fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase' }}>Kalan Borç</div>
-                                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#991b1b', marginTop: '2px' }}>
-                                                    {formatMoneyWithCurrency(remainingDebt, currency)}
-                                                </div>
-                                            </div>
-                                            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', padding: '8px' }}>
-                                                <div style={{ fontSize: '9px', fontWeight: 700, color: '#b45309', textTransform: 'uppercase' }}>Bekleyen Taksit</div>
-                                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>
-                                                    {formatMoneyWithCurrency(pendingInstallmentsSum, currency)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* Taksit & Ara Ödeme Bölümü */}
-                                <div style={{ 
-                                    marginTop: 'var(--spacing-xs)', 
-                                    padding: '10px', 
-                                    background: '#fff', 
-                                    borderRadius: '6px', 
-                                    border: '1px solid #e2e8f0' 
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={showInstallments} 
-                                                onChange={(e) => setShowInstallments(e.target.checked)}
-                                                id="chkInstallments"
-                                                style={{ cursor: 'pointer' }}
+                                {/* Kaça Satıldı ve İlk Peşinat Kutuları */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                                    <div style={{ background: '#ffffff', padding: '12px', borderRadius: '10px', border: '1.5px solid #bfdbfe' }}>
+                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11.5px', fontWeight: 800, color: '#1e40af' }}>
+                                            KAÇA SATILDI? ({getCurrencySymbol(currency)})
+                                        </label>
+                                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                            <input
+                                                type="text"
+                                                value={formatNumberWithDots(apartmentFormData.sold_price)}
+                                                onChange={(e) => setApartmentFormData({ ...apartmentFormData, sold_price: e.target.value })}
+                                                placeholder="0"
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '8px 40px 8px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1.5px solid #93c5fd',
+                                                    fontSize: '18px',
+                                                    fontWeight: 900,
+                                                    color: '#1e3a8a',
+                                                    outline: 'none'
+                                                }}
                                             />
-                                            <label htmlFor="chkInstallments" style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#334155', cursor: 'pointer' }}>
-                                                ÖDEME & TAKSİT PLANI ({installments.length})
-                                            </label>
+                                            <span style={{ position: 'absolute', right: '12px', fontSize: '13px', fontWeight: 900, color: '#1e40af' }}>
+                                                {getCurrencySymbol(currency)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ background: '#ffffff', padding: '12px', borderRadius: '10px', border: '1.5px solid #bbf7d0' }}>
+                                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11.5px', fontWeight: 800, color: '#15803d' }}>
+                                            İLK PEŞİNAT ({getCurrencySymbol(currency)})
+                                        </label>
+                                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                            <input
+                                                type="text"
+                                                value={baseDownpayment}
+                                                onChange={(e) => setBaseDownpayment(e.target.value)}
+                                                placeholder="0"
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '8px 40px 8px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1.5px solid #86efac',
+                                                    fontSize: '18px',
+                                                    fontWeight: 900,
+                                                    color: '#14532d',
+                                                    outline: 'none'
+                                                }}
+                                            />
+                                            <span style={{ position: 'absolute', right: '12px', fontSize: '13px', fontWeight: 900, color: '#15803d' }}>
+                                                {getCurrencySymbol(currency)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4 Net Finansal Özet Rozeti */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                                    <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#1e40af', textTransform: 'uppercase' }}>Toplam Satış</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#1e3a8a', marginTop: '3px' }}>
+                                            {formatMoneyWithCurrency(soldPriceNum, currency)}
+                                        </div>
+                                    </div>
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>Toplam Tahsilat</div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#14532d', marginTop: '3px' }}>
+                                            {formatMoneyWithCurrency(totalCollected, currency)}
+                                        </div>
+                                    </div>
+                                    <div style={{
+                                        background: remainingDebt > 0 ? '#fef2f2' : '#ecfdf5',
+                                        border: `1.5px solid ${remainingDebt > 0 ? '#fecaca' : '#a7f3d0'}`,
+                                        borderRadius: '8px',
+                                        padding: '10px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: remainingDebt > 0 ? '#b91c1c' : '#059669', textTransform: 'uppercase' }}>
+                                            {remainingDebt > 0 ? 'Kalan Borç' : 'Bakiye'}
+                                        </div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: remainingDebt > 0 ? '#991b1b' : '#047857', marginTop: '3px' }}>
+                                            {remainingDebt > 0 ? formatMoneyWithCurrency(remainingDebt, currency) : '✓ Borcu Yok'}
+                                        </div>
+                                    </div>
+                                    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>
+                                            Bekleyen Taksit
+                                        </div>
+                                        <div style={{ fontSize: '15px', fontWeight: 900, color: '#92400e', marginTop: '3px' }}>
+                                            {formatMoneyWithCurrency(pendingInstallmentsSum, currency)}
+                                            {pendingCount > 0 && <span style={{ fontSize: '11px', fontWeight: 700, marginLeft: '4px' }}>({pendingCount})</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ─── TAKSİT VE ÖDEME LİSTESİ BÖLÜMÜ ─── */}
+                                <div style={{
+                                    background: '#ffffff',
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: '1.5px solid #cbd5e1'
+                                }}>
+                                    {/* Başlık ve Aksiyon Butonları */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>
+                                                📅 Ödeme & Taksit Takibi
+                                            </span>
+                                            {installments.length > 0 && (
+                                                <span style={{ fontSize: '11px', fontWeight: 800, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '12px' }}>
+                                                    {paidCount} Ödendi / {installments.length} Toplam
+                                                </span>
+                                            )}
                                         </div>
                                         
-                                        {showInstallments && (
-                                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => addPayment('paid')}
+                                                style={{
+                                                    padding: '5px 10px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 800,
+                                                    background: '#10b981',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
+                                                }}
+                                                title="Müşterinin getirdiği peşin veya elden ara ödemeleri ekler, anında kalan borçtan düşer"
+                                            >
+                                                + Ara Ödeme (Alındı)
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => addPayment('pending')}
+                                                style={{
+                                                    padding: '5px 10px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 800,
+                                                    background: '#2563eb',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    boxShadow: '0 2px 4px rgba(37,99,235,0.2)'
+                                                }}
+                                                title="Gelecek tarihli bekleyen taksit ekler"
+                                            >
+                                                + Gelecek Taksit
+                                            </button>
+                                            {remainingDebt > 0 && (
                                                 <button 
                                                     type="button" 
-                                                    onClick={() => addPayment('paid')}
-                                                    style={{ padding: '3px 8px', fontSize: '10px', fontWeight: 700, background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                                    title="Müşterinin getirdiği 50 bin, 100 bin gibi ara ödemeleri ekler, anında kalan borçtan düşer"
+                                                    onClick={autoSplitRemaining}
+                                                    style={{
+                                                        padding: '5px 10px',
+                                                        fontSize: '11px',
+                                                        fontWeight: 800,
+                                                        background: '#7c3aed',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                        borderRadius: '6px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px',
+                                                        boxShadow: '0 2px 4px rgba(124,58,237,0.2)'
+                                                    }}
+                                                    title="Kalan borcu eşit aylık taksitlere böler"
                                                 >
-                                                    + Ara Ödeme (Alındı)
+                                                    ⚡ Kalanı Eşit Böl
                                                 </button>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => addPayment('pending')}
-                                                    style={{ padding: '3px 8px', fontSize: '10px', fontWeight: 700, background: '#6366f1', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                                    title="İleri tarihli bekleyen taksit ekler"
-                                                >
-                                                    + Gelecek Taksit
-                                                </button>
-                                                {remainingDebt > 0 && (
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={autoSplitRemaining}
-                                                        style={{ padding: '3px 8px', fontSize: '10px', fontWeight: 700, background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                                        title="Kalan borcu eşit taksitlere böler"
-                                                    >
-                                                        ⚡ Eşit Taksitlendir
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                     
-                                    {showInstallments && (
-                                        <div style={{ marginTop: '10px', display: 'grid', gap: '6px' }}>
-                                            {installments.length === 0 ? (
-                                                <div style={{ fontSize: '11px', color: '#94a3b8', textAlign: 'center', padding: '12px', background: '#f8fafc', borderRadius: '4px', fontStyle: 'italic' }}>
-                                                    Henüz taksit veya ara ödeme kaydı yok. Müşteri ödeme getirdiğinde '+ Ara Ödeme' veya '+ Gelecek Taksit' butonlarına basınız.
-                                                </div>
-                                            ) : (
-                                                installments.map((ins) => {
-                                                    const isPaid = ins.status === 'paid';
-                                                    const rowCurrency = ins.currency || currency;
-                                                    return (
-                                                        <div key={ins.id} style={{ 
-                                                            display: 'flex', 
-                                                            gap: '4px', 
+                                    {/* Taksit Kayıtları Listesi */}
+                                    <div style={{ display: 'grid', gap: '8px' }}>
+                                        {installments.length === 0 ? (
+                                            <div style={{
+                                                fontSize: '12px',
+                                                color: '#64748b',
+                                                textAlign: 'center',
+                                                padding: '24px 16px',
+                                                background: '#f8fafc',
+                                                borderRadius: '8px',
+                                                border: '1px dashed #cbd5e1'
+                                            }}>
+                                                {remainingDebt > 0 ? (
+                                                    <div>
+                                                        Kalan borç <strong>{formatMoneyWithCurrency(remainingDebt, currency)}</strong> taksitlendirilmedi.
+                                                        <br />
+                                                        Otomatik bölmek için <strong>"⚡ Kalanı Eşit Böl"</strong> veya tek tek girmek için <strong>"+ Gelecek Taksit"</strong> butonunu kullanabilirsiniz.
+                                                    </div>
+                                                ) : (
+                                                    <div>🎉 Tüm satış bedeli peşinatla karşılanmıştır, bekleyen taksit bulunmuyor.</div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            installments.map((ins, index) => {
+                                                const isPaid = ins.status === 'paid';
+                                                const rowCurrency = ins.currency || currency;
+                                                return (
+                                                    <div
+                                                        key={ins.id}
+                                                        style={{ 
+                                                            display: 'grid',
+                                                            gridTemplateColumns: '1.4fr 1.1fr 1fr auto',
+                                                            gap: '8px', 
                                                             alignItems: 'center', 
-                                                            padding: '5px 6px', 
+                                                            padding: '8px 12px', 
                                                             background: isPaid ? '#f0fdf4' : '#fffbeb', 
-                                                            borderRadius: '4px', 
-                                                            border: `1px solid ${isPaid ? '#bbf7d0' : '#fde68a'}` 
-                                                        }}>
-                                                            {/* Açıklama */}
+                                                            borderRadius: '8px', 
+                                                            border: `1.5px solid ${isPaid ? '#86efac' : '#fcd34d'}`,
+                                                            transition: 'all 0.15s ease'
+                                                        }}
+                                                    >
+                                                        {/* 1. Sütun: Açıklama & Vade Tarihi */}
+                                                        <div>
                                                             <input 
                                                                 type="text"
-                                                                placeholder="Açıklama"
+                                                                placeholder="Açıklama (Örn: 1. Taksit)"
                                                                 value={ins.description || ''}
                                                                 onChange={(e) => updateInstallment(ins.id, 'description', e.target.value)}
-                                                                style={{ flex: 1.2, minWidth: '70px', padding: '4px 6px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                                                            />
-                                                            {/* Tutar */}
-                                                            <input 
-                                                                type="text"
-                                                                placeholder="Tutar"
-                                                                value={formatNumberWithDots(ins.amount)}
-                                                                onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
-                                                                style={{ 
-                                                                    width: '80px', 
-                                                                    padding: '4px 6px', 
-                                                                    fontSize: '10px', 
-                                                                    fontWeight: 'bold', 
-                                                                    borderRadius: '4px', 
-                                                                    border: '1px solid #cbd5e1', 
-                                                                    textAlign: 'right',
-                                                                    color: isPaid ? '#15803d' : '#92400e' 
-                                                                }}
-                                                            />
-                                                            {/* Para Birimi */}
-                                                            <select
-                                                                value={rowCurrency}
-                                                                onChange={(e) => updateInstallment(ins.id, 'currency', e.target.value)}
-                                                                style={{ padding: '3px 2px', fontSize: '10px', fontWeight: 600, borderRadius: '4px', border: '1px solid #cbd5e1', background: '#fff' }}
-                                                            >
-                                                                <option value="TRY">₺ TL</option>
-                                                                <option value="USD">$ USD</option>
-                                                                <option value="EUR">€ EUR</option>
-                                                                <option value="GOLD">🪙 gr</option>
-                                                            </select>
-                                                            {/* Vade / Ödeme Tarihi */}
-                                                            <input 
-                                                                type="date"
-                                                                value={ins.due_date || ''}
-                                                                onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
-                                                                style={{ width: '105px', padding: '4px', fontSize: '10px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                                                            />
-                                                            {/* Durum Toggle Butonu */}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateInstallment(ins.id, 'status', isPaid ? 'pending' : 'paid')}
                                                                 style={{
-                                                                    padding: '3px 6px',
-                                                                    fontSize: '9px',
-                                                                    fontWeight: 800,
-                                                                    borderRadius: '4px',
-                                                                    border: 'none',
-                                                                    background: isPaid ? '#10b981' : '#f59e0b',
-                                                                    color: '#fff',
-                                                                    cursor: 'pointer',
-                                                                    whiteSpace: 'nowrap'
+                                                                    width: '100%',
+                                                                    padding: '4px 6px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 700,
+                                                                    borderRadius: '5px',
+                                                                    border: '1px solid #cbd5e1',
+                                                                    marginBottom: '4px',
+                                                                    color: '#0f172a'
                                                                 }}
-                                                                title={isPaid ? 'Bekliyor durumuna çevir' : 'Ödendi olarak işaretle'}
-                                                            >
-                                                                {isPaid ? '✓ ÖDENDİ' : '⏳ BEKLİYOR'}
-                                                            </button>
-                                                            {/* Sil */}
+                                                            />
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Vade:</span>
+                                                                <input 
+                                                                    type="date"
+                                                                    value={ins.due_date || ''}
+                                                                    onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
+                                                                    style={{
+                                                                        flex: 1,
+                                                                        padding: '2px 4px',
+                                                                        fontSize: '11px',
+                                                                        borderRadius: '4px',
+                                                                        border: '1px solid #cbd5e1',
+                                                                        fontWeight: 600
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {/* 2. Sütun: Tutar & Para Birimi */}
+                                                        <div>
+                                                            <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                                                <input 
+                                                                    type="text"
+                                                                    placeholder="0"
+                                                                    value={formatNumberWithDots(ins.amount)}
+                                                                    onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
+                                                                    style={{ 
+                                                                        flex: 1,
+                                                                        padding: '4px 6px', 
+                                                                        fontSize: '13px', 
+                                                                        fontWeight: 900, 
+                                                                        borderRadius: '5px', 
+                                                                        border: '1px solid #cbd5e1', 
+                                                                        textAlign: 'right',
+                                                                        color: isPaid ? '#15803d' : '#92400e' 
+                                                                    }}
+                                                                />
+                                                                <select
+                                                                    value={rowCurrency}
+                                                                    onChange={(e) => updateInstallment(ins.id, 'currency', e.target.value)}
+                                                                    style={{
+                                                                        padding: '2px 4px',
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 800,
+                                                                        borderRadius: '5px',
+                                                                        border: '1px solid #cbd5e1',
+                                                                        background: '#fff'
+                                                                    }}
+                                                                >
+                                                                    <option value="TRY">₺ TL</option>
+                                                                    <option value="USD">$ USD</option>
+                                                                    <option value="EUR">€ EUR</option>
+                                                                    <option value="GOLD">🪙 gr</option>
+                                                                </select>
+                                                            </div>
+                                                            {/* TL Notu / Kur Alanı */}
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Alınan TL Notu / Kur..."
+                                                                value={ins.tl_note || ''}
+                                                                onChange={(e) => updateInstallment(ins.id, 'tl_note', e.target.value)}
+                                                                title="Örneğin: 70.000 TL nakit elden alındı"
+                                                                style={{
+                                                                    width: '100%',
+                                                                    padding: '2px 6px',
+                                                                    fontSize: '10.5px',
+                                                                    fontWeight: 600,
+                                                                    borderRadius: '4px',
+                                                                    border: '1px dashed #cbd5e1',
+                                                                    color: '#475569',
+                                                                    background: '#ffffff'
+                                                                }}
+                                                            />
+                                                        </div>
+
+                                                        {/* 3. Sütun: Durum ve Hızlı Tahsilat Aksiyonları */}
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                            {isPaid ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (confirm('Bu ödemeyi tekrar bekleyen taksite çevirmek istiyor musunuz?')) {
+                                                                            updateInstallment(ins.id, 'status', 'pending');
+                                                                        }
+                                                                    }}
+                                                                    style={{
+                                                                        padding: '5px 8px',
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 800,
+                                                                        borderRadius: '6px',
+                                                                        border: 'none',
+                                                                        background: '#10b981',
+                                                                        color: '#fff',
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        gap: '3px',
+                                                                        boxShadow: '0 2px 4px rgba(16,185,129,0.2)'
+                                                                    }}
+                                                                    title="Ödendi olarak işaretli. Tıklayarak bekliyora çevirebilirsiniz."
+                                                                >
+                                                                    ✓ TAHSİL EDİLDİ
+                                                                </button>
+                                                            ) : (
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleFullCollect(ins)}
+                                                                        style={{
+                                                                            padding: '4px 6px',
+                                                                            fontSize: '10.5px',
+                                                                            fontWeight: 800,
+                                                                            borderRadius: '5px',
+                                                                            border: 'none',
+                                                                            background: '#059669',
+                                                                            color: '#fff',
+                                                                            cursor: 'pointer',
+                                                                            whiteSpace: 'nowrap'
+                                                                        }}
+                                                                        title="Bu taksitin tamamını tek tıkla tahsil et"
+                                                                    >
+                                                                        ✓ Tamamını Al
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openPartialPaymentModal(ins)}
+                                                                        style={{
+                                                                            padding: '3px 6px',
+                                                                            fontSize: '10px',
+                                                                            fontWeight: 800,
+                                                                            borderRadius: '5px',
+                                                                            border: '1px solid #3b82f6',
+                                                                            background: '#eff6ff',
+                                                                            color: '#1d4ed8',
+                                                                            cursor: 'pointer',
+                                                                            whiteSpace: 'nowrap'
+                                                                        }}
+                                                                        title="Müşteri bu taksitin bir kısmını ödediyse tıkla (Örn: 10 binden 4 bin getirdi)"
+                                                                    >
+                                                                        💰 Parça Ödeme
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
+
+                                                        {/* 4. Sütun: Sil Butonu */}
+                                                        <div>
                                                             <button 
-                                                                type="button"
+                                                                type="button" 
                                                                 onClick={() => removeInstallment(ins.id)}
-                                                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 4px', fontSize: '12px', fontWeight: 700 }}
-                                                                title="Sil"
+                                                                style={{
+                                                                    width: '28px',
+                                                                    height: '28px',
+                                                                    borderRadius: '6px',
+                                                                    border: 'none',
+                                                                    background: '#fee2e2',
+                                                                    color: '#b91c1c',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    fontSize: '13px',
+                                                                    fontWeight: 800,
+                                                                    transition: 'all 0.15s ease'
+                                                                }}
+                                                                title="Bu taksit satırını sil"
                                                             >
                                                                 ✕
                                                             </button>
                                                         </div>
-                                                    );
-                                                })
-                                            )}
-                                            
-                                            {installments.length > 0 && (
-                                                <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '10px' }}>
-                                                    <div>
-                                                        <span style={{ color: '#15803d', fontWeight: 700 }}>
-                                                            Alınan Ara Ödemeler: {formatMoneyWithCurrency(paidInstallmentsSum, currency)}
-                                                        </span>
-                                                        <span style={{ margin: '0 6px', color: '#cbd5e1' }}>|</span>
-                                                        <span style={{ color: '#b45309', fontWeight: 700 }}>
-                                                            Bekleyen Taksitler: {formatMoneyWithCurrency(pendingInstallmentsSum, currency)}
-                                                        </span>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
+                        {/* ─── DAİRE PLANLARI DOSYA YÜKLEME ─── */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <input 
                                 type="checkbox" 
@@ -623,8 +954,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                 id="chkPlans"
                                 style={{ cursor: 'pointer' }}
                             />
-                            <label htmlFor="chkPlans" style={{ margin: 0, fontSize: 'var(--font-size-xs)', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer' }}>
-                                Daire Planları {showPlans ? '' : '(Gizli)'}
+                            <label htmlFor="chkPlans" style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', cursor: 'pointer' }}>
+                                Daire Planları & Belgeleri {showPlans ? '' : '(Göster)'}
                             </label>
                         </div>
 
@@ -638,40 +969,69 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                             />
                         )}
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-sm)' }}>
+                        {/* ─── MÜŞTERİ BİLGİLERİ ─── */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    {apartmentFormData.status === 'owner' ? 'Mal Sahibi Adı' : 'Müşteri Adı (Opsiyonel)'}
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    {apartmentFormData.status === 'owner' ? 'Mal Sahibi Adı' : 'Müşteri Adı Soyadı (Opsiyonel)'}
                                 </label>
                                 <input
                                     type="text"
                                     value={apartmentFormData.customer_name}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, customer_name: e.target.value })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                                    placeholder="Örn: Kadir Erhan"
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '4px', fontSize: 'var(--font-size-sm)', fontWeight: 600 }}>
-                                    Müşteri Telefon (Opsiyonel)
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Müşteri Telefon Numarası
                                 </label>
                                 <input
                                     type="tel"
                                     value={apartmentFormData.customer_phone}
                                     onChange={(e) => setApartmentFormData({ ...apartmentFormData, customer_phone: e.target.value })}
-                                    style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
+                                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                                    placeholder="Örn: 0532 000 00 00"
                                 />
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
-                            <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>
-                                {editingApartmentId ? 'Güncelle' : 'Kaydet'}
+                        {/* Modal Alt Aksiyon Butonları */}
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px', paddingTop: '14px', borderTop: '1.5px solid #f1f5f9' }}>
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{
+                                    flex: 2,
+                                    padding: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: 800,
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                                    color: '#fff',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(37,99,235,0.25)'
+                                }}
+                            >
+                                {editingApartmentId ? '💾 Değişiklikleri Güncelle' : '➕ Daireyi Kaydet'}
                             </button>
                             <button
                                 type="button"
                                 className="btn btn-secondary"
                                 onClick={onClose}
-                                style={{ flex: 1 }}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: 700,
+                                    borderRadius: '10px',
+                                    background: '#f1f5f9',
+                                    color: '#475569',
+                                    border: '1px solid #cbd5e1',
+                                    cursor: 'pointer'
+                                }}
                             >
                                 İptal
                             </button>
@@ -679,6 +1039,151 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                     </div>
                 </form>
             </div>
+
+            {/* ─── PARÇA ÖDEME (KISMİ TAHSİLAT) DİYALOĞU ─── */}
+            {partialModal.isOpen && partialModal.installment && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    backdropFilter: 'blur(3px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1100,
+                    padding: '16px'
+                }}>
+                    <div style={{
+                        background: '#ffffff',
+                        width: 'min(100%, 460px)',
+                        padding: '24px',
+                        borderRadius: '16px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                        border: '1.5px solid #cbd5e1'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '20px' }}>💰</span>
+                                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                                    Parça Ödeme (Kısmi Tahsilat)
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setPartialModal({ isOpen: false, installment: null, collectedAmount: '', tlNote: '' })}
+                                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#94a3b8' }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSavePartialPayment}>
+                            {/* Bilgi Kartı */}
+                            <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '10px', border: '1px solid #bfdbfe', marginBottom: '16px' }}>
+                                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700 }}>SEÇİLİ TAKSİT BİLGİSİ:</div>
+                                <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
+                                    {partialModal.installment.description || 'Taksit'} — {formatMoneyWithCurrency(partialModal.installment.amount, partialModal.installment.currency || currency)}
+                                </div>
+                            </div>
+
+                            {/* Alınan Tutar */}
+                            <div style={{ marginBottom: '14px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>
+                                    Bu Sefer Alınan Tutar ({getCurrencySymbol(partialModal.installment.currency || currency)})
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    autoFocus
+                                    placeholder="Örn: 4.000"
+                                    value={partialModal.collectedAmount}
+                                    onChange={(e) => setPartialModal({ ...partialModal, collectedAmount: formatNumberWithDots(e.target.value) })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 14px',
+                                        fontSize: '18px',
+                                        fontWeight: 900,
+                                        borderRadius: '8px',
+                                        border: '2px solid #2563eb',
+                                        color: '#0f172a',
+                                        outline: 'none'
+                                    }}
+                                />
+                                {parseNumberFromDots(partialModal.collectedAmount) > 0 && (
+                                    <div style={{ fontSize: '11px', color: '#059669', fontWeight: 700, marginTop: '4px' }}>
+                                        ✓ Kalan bakiye: {formatMoneyWithCurrency(Math.max(0, (typeof partialModal.installment.amount === 'string' ? parseNumberFromDots(partialModal.installment.amount) : Number(partialModal.installment.amount)) - parseNumberFromDots(partialModal.collectedAmount)), partialModal.installment.currency || currency)} olarak açık kalacak.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Alınan TL Notu / Kur */}
+                            <div style={{ marginBottom: '18px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                                    Müşteriden Alınan TL Tutarı / Kur Notu (Opsiyonel)
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Örn: 140.000 TL nakit alındı (Kur: 35.00)"
+                                    value={partialModal.tlNote}
+                                    onChange={(e) => setPartialModal({ ...partialModal, tlNote: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '9px 12px',
+                                        fontSize: '12.5px',
+                                        fontWeight: 600,
+                                        borderRadius: '8px',
+                                        border: '1.5px solid #cbd5e1',
+                                        color: '#334155'
+                                    }}
+                                />
+                                <div style={{ fontSize: '10.5px', color: '#64748b', marginTop: '3px' }}>
+                                    Dövizli borçtan düşülecek tutarın karşılığında ne kadar TL aldığınızı takip etmek içindir.
+                                </div>
+                            </div>
+
+                            {/* Aksiyon Butonları */}
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        flex: 2,
+                                        padding: '10px',
+                                        fontSize: '13px',
+                                        fontWeight: 800,
+                                        background: '#2563eb',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    💾 Parça Ödemeyi Kaydet
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPartialModal({ isOpen: false, installment: null, collectedAmount: '', tlNote: '' })}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        fontSize: '13px',
+                                        fontWeight: 700,
+                                        background: '#f1f5f9',
+                                        color: '#475569',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Vazgeç
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
