@@ -437,7 +437,7 @@ const ProjectDetail: React.FC = () => {
                     date: expenseDate,
                     category,
                     description,
-                    amount: Number(amount.replace(/\./g, '')),
+                    amount: Number(amount.replace(/\D/g, '')),
                     project_id: project.id,
                     partner_id: selectedPartner || undefined,
                     payment_method: paymentMethod,
@@ -452,7 +452,7 @@ const ProjectDetail: React.FC = () => {
                     const activeContributions = project.partners
                         .map(p => {
                             const raw = partnerShares[p.id] || '0';
-                            const parsed = Number(raw.replace(/\./g, ''));
+                            const parsed = Number(raw.replace(/\D/g, ''));
                             return { partnerId: p.id, partnerName: p.name, amount: parsed };
                         })
                         .filter(p => p.amount > 0);
@@ -491,7 +491,7 @@ const ProjectDetail: React.FC = () => {
                         date: expenseDate,
                         category,
                         description,
-                        amount: Number(amount.replace(/\./g, '')),
+                        amount: Number(amount.replace(/\D/g, '')),
                         project_id: project.id,
                         partner_id: selectedPartner || undefined,
                         payment_method: paymentMethod,
