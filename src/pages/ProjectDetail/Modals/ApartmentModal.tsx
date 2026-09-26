@@ -756,28 +756,33 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                 onChange={(e) => updateInstallment(ins.id, 'description', e.target.value)}
                                                                 style={{
                                                                     width: '100%',
-                                                                    padding: '4px 6px',
-                                                                    fontSize: '12px',
+                                                                    height: '36px',
+                                                                    boxSizing: 'border-box',
+                                                                    padding: '6px 10px',
+                                                                    fontSize: '13px',
                                                                     fontWeight: 700,
-                                                                    borderRadius: '5px',
+                                                                    borderRadius: '6px',
                                                                     border: '1px solid #cbd5e1',
-                                                                    marginBottom: '4px',
+                                                                    marginBottom: '6px',
                                                                     color: '#0f172a'
                                                                 }}
                                                             />
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                                <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Vade:</span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', height: '28px' }}>
+                                                                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, minWidth: '34px' }}>Vade:</span>
                                                                 <input 
                                                                     type="date"
                                                                     value={ins.due_date || ''}
                                                                     onChange={(e) => updateInstallment(ins.id, 'due_date', e.target.value)}
                                                                     style={{
                                                                         flex: 1,
-                                                                        padding: '2px 4px',
+                                                                        height: '28px',
+                                                                        boxSizing: 'border-box',
+                                                                        padding: '2px 6px',
                                                                         fontSize: '11px',
-                                                                        borderRadius: '4px',
+                                                                        borderRadius: '5px',
                                                                         border: '1px solid #cbd5e1',
-                                                                        fontWeight: 600
+                                                                        fontWeight: 600,
+                                                                        color: '#334155'
                                                                     }}
                                                                 />
                                                             </div>
@@ -785,7 +790,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
 
                                                         {/* 2. Sütun: Tutar & Para Birimi */}
                                                         <div>
-                                                            <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>
                                                                 <input 
                                                                     type="text"
                                                                     placeholder="0"
@@ -793,10 +798,12 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                     onChange={(e) => updateInstallment(ins.id, 'amount', e.target.value)}
                                                                     style={{ 
                                                                         flex: 1,
-                                                                        padding: '4px 6px', 
-                                                                        fontSize: '13px', 
+                                                                        height: '36px',
+                                                                        boxSizing: 'border-box',
+                                                                        padding: '6px 10px', 
+                                                                        fontSize: '14px', 
                                                                         fontWeight: 900, 
-                                                                        borderRadius: '5px', 
+                                                                        borderRadius: '6px', 
                                                                         border: '1px solid #cbd5e1', 
                                                                         textAlign: 'right',
                                                                         color: isPaid ? '#15803d' : '#92400e' 
@@ -806,12 +813,15 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                     value={rowCurrency}
                                                                     onChange={(e) => updateInstallment(ins.id, 'currency', e.target.value)}
                                                                     style={{
-                                                                        padding: '2px 4px',
-                                                                        fontSize: '11px',
+                                                                        height: '36px',
+                                                                        boxSizing: 'border-box',
+                                                                        padding: '4px 8px',
+                                                                        fontSize: '12px',
                                                                         fontWeight: 800,
-                                                                        borderRadius: '5px',
+                                                                        borderRadius: '6px',
                                                                         border: '1px solid #cbd5e1',
-                                                                        background: '#fff'
+                                                                        background: '#fff',
+                                                                        cursor: 'pointer'
                                                                     }}
                                                                 >
                                                                     <option value="TRY">₺ TL</option>
@@ -829,10 +839,12 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                 title="Örneğin: 70.000 TL nakit elden alındı"
                                                                 style={{
                                                                     width: '100%',
-                                                                    padding: '2px 6px',
-                                                                    fontSize: '10.5px',
+                                                                    height: '28px',
+                                                                    boxSizing: 'border-box',
+                                                                    padding: '2px 8px',
+                                                                    fontSize: '11px',
                                                                     fontWeight: 600,
-                                                                    borderRadius: '4px',
+                                                                    borderRadius: '5px',
                                                                     border: '1px dashed #cbd5e1',
                                                                     color: '#475569',
                                                                     background: '#ffffff'
@@ -841,7 +853,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                         </div>
 
                                                         {/* 3. Sütun: Durum ve Hızlı Tahsilat Aksiyonları */}
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                                             {isPaid ? (
                                                                 <button
                                                                     type="button"
@@ -851,7 +863,9 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                         }
                                                                     }}
                                                                     style={{
-                                                                        padding: '5px 8px',
+                                                                        height: '70px',
+                                                                        boxSizing: 'border-box',
+                                                                        padding: '6px 8px',
                                                                         fontSize: '11px',
                                                                         fontWeight: 800,
                                                                         borderRadius: '6px',
@@ -875,15 +889,20 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                         type="button"
                                                                         onClick={() => handleFullCollect(ins)}
                                                                         style={{
-                                                                            padding: '4px 6px',
-                                                                            fontSize: '10.5px',
+                                                                            height: '36px',
+                                                                            boxSizing: 'border-box',
+                                                                            padding: '4px 8px',
+                                                                            fontSize: '11px',
                                                                             fontWeight: 800,
-                                                                            borderRadius: '5px',
+                                                                            borderRadius: '6px',
                                                                             border: 'none',
                                                                             background: '#059669',
                                                                             color: '#fff',
                                                                             cursor: 'pointer',
-                                                                            whiteSpace: 'nowrap'
+                                                                            whiteSpace: 'nowrap',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center'
                                                                         }}
                                                                         title="Bu taksitin tamamını tek tıkla tahsil et"
                                                                     >
@@ -893,15 +912,20 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                         type="button"
                                                                         onClick={() => openPartialPaymentModal(ins)}
                                                                         style={{
-                                                                            padding: '3px 6px',
-                                                                            fontSize: '10px',
+                                                                            height: '28px',
+                                                                            boxSizing: 'border-box',
+                                                                            padding: '2px 8px',
+                                                                            fontSize: '10.5px',
                                                                             fontWeight: 800,
                                                                             borderRadius: '5px',
                                                                             border: '1px solid #3b82f6',
                                                                             background: '#eff6ff',
                                                                             color: '#1d4ed8',
                                                                             cursor: 'pointer',
-                                                                            whiteSpace: 'nowrap'
+                                                                            whiteSpace: 'nowrap',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center'
                                                                         }}
                                                                         title="Müşteri bu taksitin bir kısmını ödediyse tıkla (Örn: 10 binden 4 bin getirdi)"
                                                                     >
@@ -912,13 +936,14 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                         </div>
 
                                                         {/* 4. Sütun: Sil Butonu */}
-                                                        <div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             <button 
                                                                 type="button" 
                                                                 onClick={() => removeInstallment(ins.id)}
                                                                 style={{
-                                                                    width: '28px',
-                                                                    height: '28px',
+                                                                    width: '34px',
+                                                                    height: '34px',
+                                                                    boxSizing: 'border-box',
                                                                     borderRadius: '6px',
                                                                     border: 'none',
                                                                     background: '#fee2e2',
@@ -927,7 +952,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                                     display: 'flex',
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
-                                                                    fontSize: '13px',
+                                                                    fontSize: '14px',
                                                                     fontWeight: 800,
                                                                     transition: 'all 0.15s ease'
                                                                 }}
