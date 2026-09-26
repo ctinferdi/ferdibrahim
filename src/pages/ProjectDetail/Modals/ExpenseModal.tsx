@@ -563,8 +563,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     background: isPaying ? '#ffffff' : '#f8fafc',
                                                     border: isPaying ? '2px solid #2563eb' : '1px solid #e2e8f0',
                                                     borderRadius: '12px',
-                                                    padding: '12px 14px',
-                                                    boxShadow: isPaying ? '0 4px 12px rgba(37, 99, 235, 0.12)' : 'none',
+                                                    padding: '12px 16px',
+                                                    boxShadow: isPaying ? '0 4px 14px rgba(37, 99, 235, 0.12)' : 'none',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'space-between',
@@ -575,25 +575,25 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                 {/* Left: Avatar & Info */}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
                                                     <div style={{
-                                                        width: '38px',
-                                                        height: '38px',
+                                                        width: '42px',
+                                                        height: '42px',
                                                         borderRadius: '50%',
                                                         background: avatarGradient,
                                                         color: '#ffffff',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        fontSize: '12.5px',
+                                                        fontSize: '13px',
                                                         fontWeight: 800,
                                                         flexShrink: 0,
                                                         letterSpacing: '0.5px',
-                                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                                        boxShadow: '0 2px 6px rgba(0,0,0,0.12)'
                                                     }}>
                                                         {initials}
                                                     </div>
                                                     <div style={{ minWidth: 0 }}>
                                                         <div style={{
-                                                            fontSize: '13.5px',
+                                                            fontSize: '14.5px',
                                                             fontWeight: 800,
                                                             color: '#0f172a',
                                                             whiteSpace: 'nowrap',
@@ -615,7 +615,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             </span>
                                                             {isPaying ? (
                                                                 <span style={{
-                                                                    fontSize: '11px',
+                                                                    fontSize: '11.5px',
                                                                     fontWeight: 800,
                                                                     color: '#059669',
                                                                     display: 'flex',
@@ -633,7 +633,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                {/* Right: Large Manual Input */}
+                                                {/* Right: Extra Large Manual Input */}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                                         <input
@@ -642,25 +642,27 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             onChange={(e) => handlePartnerShareChange(partner.id, e.target.value)}
                                                             placeholder="0"
                                                             style={{
-                                                                width: '150px',
-                                                                padding: '10px 36px 10px 14px',
-                                                                fontSize: '16px',
-                                                                fontWeight: 800,
+                                                                width: '180px',
+                                                                height: '48px',
+                                                                padding: '8px 46px 8px 14px',
+                                                                fontSize: '22px',
+                                                                fontWeight: 900,
+                                                                letterSpacing: '-0.3px',
                                                                 textAlign: 'right',
                                                                 borderRadius: '10px',
                                                                 border: isPaying ? '2px solid #2563eb' : '1.5px solid #cbd5e1',
                                                                 background: isPaying ? '#ffffff' : '#f8fafc',
                                                                 color: isPaying ? '#0f172a' : '#64748b',
-                                                                boxShadow: isPaying ? '0 2px 6px rgba(37,99,235,0.08)' : 'none',
+                                                                boxShadow: isPaying ? '0 2px 8px rgba(37,99,235,0.1)' : 'none',
                                                                 outline: 'none',
                                                                 transition: 'all 0.15s ease'
                                                             }}
                                                         />
                                                         <span style={{
                                                             position: 'absolute',
-                                                            right: '12px',
-                                                            fontSize: '12px',
-                                                            fontWeight: 800,
+                                                            right: '14px',
+                                                            fontSize: '13px',
+                                                            fontWeight: 900,
                                                             color: isPaying ? '#2563eb' : '#94a3b8',
                                                             pointerEvents: 'none'
                                                         }}>TL</span>
@@ -671,13 +673,13 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             type="button"
                                                             onClick={() => handlePartnerShareChange(partner.id, '0')}
                                                             style={{
-                                                                width: '40px',
-                                                                height: '44px',
+                                                                width: '44px',
+                                                                height: '48px',
                                                                 display: 'flex',
                                                                 alignItems: 'center',
                                                                 justifyContent: 'center',
-                                                                fontSize: '14px',
-                                                                fontWeight: 800,
+                                                                fontSize: '16px',
+                                                                fontWeight: 900,
                                                                 background: '#fef2f2',
                                                                 border: '1.5px solid #fecaca',
                                                                 borderRadius: '10px',
