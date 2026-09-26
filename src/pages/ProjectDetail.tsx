@@ -72,6 +72,8 @@ const ProjectDetail: React.FC = () => {
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+    const [partnerShares, setPartnerShares] = useState<Record<string, string>>({});
+    const [paymentSplitMode, setPaymentSplitMode] = useState<'single' | 'split'>('single');
 
     const [checkFormData, setCheckFormData] = useState<Omit<Check, 'id' | 'user_id' | 'created_at'>>({
         check_number: '',
@@ -421,6 +423,8 @@ const ProjectDetail: React.FC = () => {
         setAmount('');
         setEditingExpenseId(null);
         setErrorMsg(null);
+        setPartnerShares({});
+        setPaymentSplitMode('single');
     };
 
     const handleSaveExpense = async (e: React.FormEvent) => {
@@ -428,28 +432,76 @@ const ProjectDetail: React.FC = () => {
         if (saving || !project?.id) return;
         setSaving(true);
         try {
-            const data = {
-                date: expenseDate,
-                category,
-                description,
-                amount: Number(amount.replace(/\./g, '')),
-                project_id: project.id,
-                partner_id: selectedPartner || undefined,
-                payment_method: paymentMethod,
-                recipient
-            };
-
             if (editingExpenseId) {
+                const data = {
+                    date: expenseDate,
+                    category,
+                    description,
+                    amount: Number(amount.replace(/\./g, '')),
+                    project_id: project.id,
+                    partner_id: selectedPartner || undefined,
+                    payment_method: paymentMethod,
+                    recipient
+                };
                 await expenseService.updateExpense(editingExpenseId, data);
             } else {
                 if (!user?.id) throw new Error('Oturum bilgisi bulunamadı');
-                await expenseService.addExpense(data, user.id);
+
+                // Check if split mode is active and multiple partners exist
+                if (paymentSplitMode === 'split' && project.partners && project.partners.length > 1) {
+                    const activeContributions = project.partners
+                        .map(p => {
+                            const raw = partnerShares[p.id] || '0';
+                            const parsed = Number(raw.replace(/\./g, ''));
+                            return { partnerId: p.id, partnerName: p.name, amount: parsed };
+                        })
+                        .filter(p => p.amount > 0);
+
+                    if (activeContributions.length === 0) {
+                        throw new Error('Lütfen en az bir ortak için tutar giriniz.');
+                    }
+
+                    if (activeContributions.length === 1) {
+                        const single = activeContributions[0];
+                        await expenseService.addExpense({
+                            date: expenseDate,
+                            category,
+                            description,
+                            amount: single.amount,
+                            project_id: project.id,
+                            partner_id: single.partnerId,
+                            payment_method: paymentMethod,
+                            recipient
+                        }, user.id);
+                    } else {
+                        const newExpenses = activeContributions.map(c => ({
+                            date: expenseDate,
+                            category,
+                            description,
+                            amount: c.amount,
+                            project_id: project.id,
+                            partner_id: c.partnerId,
+                            payment_method: paymentMethod,
+                            recipient
+                        }));
+                        await expenseService.addExpenses(newExpenses, user.id);
+                    }
+                } else {
+                    const data = {
+                        date: expenseDate,
+                        category,
+                        description,
+                        amount: Number(amount.replace(/\./g, '')),
+                        project_id: project.id,
+                        partner_id: selectedPartner || undefined,
+                        payment_method: paymentMethod,
+                        recipient
+                    };
+                    await expenseService.addExpense(data, user.id);
+                }
             }
             setShowExpenseModal(false);
             resetExpenseForm();
-            // Optimistic update: manually update the local state if needed
-            // But since we use subscribeToExpenses, it might refresh anyway.
-            // Let's call loadAllData(false) as it was, but without blocking the modal close.
             loadAllData(false);
         } catch (error: any) {
             setErrorMsg(error.message);
@@ -905,7 +957,7 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} loading={loadingExpenses} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
+                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} loading={loadingExpenses} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setPaymentSplitMode('single'); setPartnerShares({}); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
                         {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} loading={loadingChecks} onEdit={(c) => {
                             setEditingCheckId(c.id);
                             setCheckFormData({
@@ -1311,7 +1363,33 @@ const ProjectDetail: React.FC = () => {
 
 
             {/* Modals */}
-            <ExpenseModal isOpen={showExpenseModal} onClose={() => setShowExpenseModal(false)} onSave={handleSaveExpense} project={project} editingExpenseId={editingExpenseId} expenseDate={expenseDate} setExpenseDate={setExpenseDate} selectedPartner={selectedPartner} setSelectedPartner={setSelectedPartner} paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} recipient={recipient} setRecipient={setRecipient} category={category} setCategory={setCategory} description={description} setDescription={setDescription} amount={amount} setAmount={setAmount} saving={saving} errorMsg={errorMsg} />
+            <ExpenseModal
+                isOpen={showExpenseModal}
+                onClose={() => setShowExpenseModal(false)}
+                onSave={handleSaveExpense}
+                project={project}
+                editingExpenseId={editingExpenseId}
+                expenseDate={expenseDate}
+                setExpenseDate={setExpenseDate}
+                selectedPartner={selectedPartner}
+                setSelectedPartner={setSelectedPartner}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                recipient={recipient}
+                setRecipient={setRecipient}
+                category={category}
+                setCategory={setCategory}
+                description={description}
+                setDescription={setDescription}
+                amount={amount}
+                setAmount={setAmount}
+                partnerShares={partnerShares}
+                setPartnerShares={setPartnerShares}
+                paymentSplitMode={paymentSplitMode}
+                setPaymentSplitMode={setPaymentSplitMode}
+                saving={saving}
+                errorMsg={errorMsg}
+            />
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={project?.id || id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} projectImages={projectImages} />

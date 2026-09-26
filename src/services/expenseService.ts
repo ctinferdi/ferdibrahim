@@ -67,6 +67,36 @@ export const expenseService = {
         if (error) throw error;
     },
 
+    addExpenses: async (expensesList: Omit<Expense, 'id'>[], userId: string): Promise<void> => {
+        const rows = expensesList.map(expense => {
+            const data: any = {
+                date: expense.date,
+                amount: expense.amount || 0,
+                category: toTurkishUpperCase(expense.category || ''),
+                description: toTurkishUpperCase(expense.description || ''),
+                user_id: userId
+            };
+
+            if (expense.project_id) data.project_id = expense.project_id;
+            if (expense.partner_id && expense.partner_id.trim() !== '') {
+                data.partner_id = expense.partner_id;
+            }
+            if (expense.payment_method && expense.payment_method.trim() !== '') {
+                data.payment_method = toTurkishUpperCase(expense.payment_method);
+            }
+            if (expense.recipient && expense.recipient.trim() !== '') {
+                data.recipient = toTurkishUpperCase(expense.recipient);
+            }
+            return data;
+        });
+
+        const { error } = await supabase
+            .from('expenses')
+            .insert(rows);
+
+        if (error) throw error;
+    },
+
     updateExpense: async (id: string, expense: Partial<Expense>): Promise<void> => {
         const data: any = {};
 
