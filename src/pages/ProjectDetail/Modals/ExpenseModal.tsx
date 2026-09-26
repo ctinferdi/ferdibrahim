@@ -67,11 +67,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
 
     const hasMultiplePartners = Boolean(project.partners && project.partners.length > 1);
 
-    // Numeric total amount from top input
-    const totalNum = useMemo(() => {
-        return Number(amount.replace(/\D/g, '')) || 0;
-    }, [amount]);
-
     // Sum of partner shares
     const partnerSum = useMemo(() => {
         if (!project.partners) return 0;
@@ -106,62 +101,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         return `${paying.length} Ortak`;
     }, [partnerShares, project.partners]);
 
-    const isBalanced = totalNum > 0 && partnerSum === totalNum;
-    const isOver = totalNum > 0 && partnerSum > totalNum;
-    const remainingToDistribute = Math.max(0, totalNum - partnerSum);
-
-    // Handle split equally among all partners
-    const handleSplitEqually = () => {
-        if (!project.partners || project.partners.length === 0) return;
-        const target = totalNum || partnerSum || 0;
-        if (target <= 0) return;
-
-        const count = project.partners.length;
-        const perPartner = Math.floor(target / count);
-        const remainder = target - (perPartner * count);
-
-        const newShares: Record<string, string> = {};
-        project.partners.forEach((p, idx) => {
-            const val = perPartner + (idx === 0 ? remainder : 0);
-            newShares[p.id] = val > 0 ? val.toString() : '0';
-        });
-        setPartnerShares(newShares);
-        setAmount(target.toString());
-    };
-
-    // Handle split by share percentage
-    const handleSplitByPercentage = () => {
-        if (!project.partners || project.partners.length === 0) return;
-        const target = totalNum || partnerSum || 0;
-        if (target <= 0) return;
-
-        let allocated = 0;
-        const newShares: Record<string, string> = {};
-        project.partners.forEach((p, idx) => {
-            if (idx === project.partners!.length - 1) {
-                const remaining = Math.max(0, target - allocated);
-                newShares[p.id] = remaining > 0 ? remaining.toString() : '0';
-            } else {
-                const val = Math.round((target * (p.share_percentage || 0)) / 100);
-                allocated += val;
-                newShares[p.id] = val > 0 ? val.toString() : '0';
-            }
-        });
-        setPartnerShares(newShares);
-        setAmount(target.toString());
-    };
-
-    // Handle clearing partner inputs
-    const handleResetShares = () => {
-        const newShares: Record<string, string> = {};
-        project.partners?.forEach(p => {
-            newShares[p.id] = '0';
-        });
-        setPartnerShares(newShares);
-        setAmount('0');
-    };
-
-    // Handle individual partner amount change
+    // Handle individual partner amount change (user types manually)
     const handlePartnerShareChange = (partnerId: string, rawVal: string) => {
         const cleaned = rawVal.replace(/\D/g, '');
         const updated = {
@@ -170,7 +110,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         };
         setPartnerShares(updated);
 
-        // Recalculate total amount from all partners
+        // Auto-sum all partners and set as total amount
         let sum = 0;
         project.partners?.forEach(p => {
             const val = p.id === partnerId ? cleaned : (updated[p.id] || '0');
@@ -179,99 +119,14 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         setAmount(sum.toString());
     };
 
-    // Give 100% of the total to one partner
-    const handleGiveAllToPartner = (partnerId: string) => {
-        const target = totalNum || partnerSum || 0;
+    // Clear all partner inputs
+    const handleResetShares = () => {
         const newShares: Record<string, string> = {};
         project.partners?.forEach(p => {
-            newShares[p.id] = p.id === partnerId ? (target > 0 ? target.toString() : '0') : '0';
+            newShares[p.id] = '0';
         });
         setPartnerShares(newShares);
-        if (target > 0) setAmount(target.toString());
-    };
-
-    // Give specific percentage share of total to one partner
-    const handleGiveSharePercentageToPartner = (partnerId: string, pct: number) => {
-        const target = totalNum || partnerSum || 0;
-        if (target <= 0) return;
-        const val = Math.round((target * pct) / 100);
-        handlePartnerShareChange(partnerId, val.toString());
-    };
-
-    // Top total amount change in split mode - immediately updates partner inputs
-    const handleTopAmountChange = (rawVal: string) => {
-        const cleaned = rawVal.replace(/\D/g, '');
-        setAmount(cleaned);
-        const newTotal = Number(cleaned) || 0;
-
-        if (!project.partners || project.partners.length === 0) return;
-
-        if (newTotal === 0) {
-            const newShares: Record<string, string> = {};
-            project.partners.forEach(p => {
-                newShares[p.id] = '0';
-            });
-            setPartnerShares(newShares);
-            return;
-        }
-
-        // Check if only 1 partner was previously active (e.g. clicked "Tümü")
-        const activePartners = project.partners.filter(p => (Number((partnerShares[p.id] || '0').replace(/\D/g, '')) || 0) > 0);
-        if (activePartners.length === 1) {
-            const single = activePartners[0];
-            const newShares: Record<string, string> = {};
-            project.partners.forEach(p => {
-                newShares[p.id] = p.id === single.id ? newTotal.toString() : '0';
-            });
-            setPartnerShares(newShares);
-            return;
-        }
-
-        // Split according to share_percentage or equally among all partners
-        const hasShares = project.partners.every(p => typeof p.share_percentage === 'number' && p.share_percentage > 0);
-        if (hasShares) {
-            let allocated = 0;
-            const newShares: Record<string, string> = {};
-            project.partners.forEach((p, idx) => {
-                if (idx === project.partners!.length - 1) {
-                    const remaining = Math.max(0, newTotal - allocated);
-                    newShares[p.id] = remaining > 0 ? remaining.toString() : '0';
-                } else {
-                    const val = Math.round((newTotal * (p.share_percentage || 0)) / 100);
-                    allocated += val;
-                    newShares[p.id] = val > 0 ? val.toString() : '0';
-                }
-            });
-            setPartnerShares(newShares);
-        } else {
-            const count = project.partners.length;
-            const perPartner = Math.floor(newTotal / count);
-            const remainder = newTotal - (perPartner * count);
-
-            const newShares: Record<string, string> = {};
-            project.partners.forEach((p, idx) => {
-                const val = perPartner + (idx === 0 ? remainder : 0);
-                newShares[p.id] = val > 0 ? val.toString() : '0';
-            });
-            setPartnerShares(newShares);
-        }
-    };
-
-    // Distribute remaining amount evenly among partners with 0 or all
-    const handleDistributeRemaining = () => {
-        if (!project.partners || remainingToDistribute <= 0) return;
-        const zeroPartners = project.partners.filter(p => (Number((partnerShares[p.id] || '0').replace(/\D/g, '')) || 0) === 0);
-        const targets = zeroPartners.length > 0 ? zeroPartners : project.partners;
-        const perPartner = Math.floor(remainingToDistribute / targets.length);
-        const remainder = remainingToDistribute - (perPartner * targets.length);
-
-        const newShares = { ...partnerShares };
-        targets.forEach((p, idx) => {
-            const current = Number((newShares[p.id] || '0').replace(/\D/g, '')) || 0;
-            const add = perPartner + (idx === 0 ? remainder : 0);
-            newShares[p.id] = (current + add).toString();
-        });
-        setPartnerShares(newShares);
+        setAmount('0');
     };
 
     return (
@@ -334,11 +189,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                             setPaymentSplitMode('single');
                                         } else {
                                             setPaymentSplitMode('split');
-                                            // Always sync current amount to partners upon opening split mode
-                                            const curAmt = Number(amount.replace(/\D/g, '')) || 0;
-                                            if (curAmt > 0) {
-                                                handleSplitEqually();
-                                            }
                                         }
                                     }}
                                     style={{
@@ -376,7 +226,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                             </div>
                         )}
 
-                        {/* Date & Kimin Adına (When Single Payer) */}
+                        {/* Date & Ödemeyi Yapan (When Single Payer) */}
                         <div style={{ display: 'grid', gridTemplateColumns: (paymentSplitMode === 'single' && project.partners && project.partners.length > 0) ? '1fr 1fr' : '1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
                             <div className="form-group" style={{ marginBottom: 0 }}>
                                 <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>TARİH</label>
@@ -486,7 +336,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                 </div>
                             </div>
                         ) : (
-                            /* MULTI-PARTNER SPLIT AMOUNT SECTION */
+                            /* MULTI-PARTNER DIRECT MANUAL INPUT SECTION */
                             <div style={{
                                 background: '#f8fafc',
                                 border: '1.5px solid #e2e8f0',
@@ -517,145 +367,41 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                             fontSize: '13px',
                                             fontWeight: 700
                                         }}>
-                                            💰
+                                            👥
                                         </span>
-                                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b', letterSpacing: '0.2px' }}>
-                                            TOPLAM GİDER TUTARI (TL)
-                                        </span>
+                                        <div>
+                                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b', letterSpacing: '0.2px' }}>
+                                                ORTAKLARIN VERDİĞİ TUTARLAR
+                                            </span>
+                                            <div style={{ fontSize: '10.5px', color: '#64748b' }}>
+                                                Hangi ortak ne kadar verdiyse doğrudan kutusuna yazınız
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
-                                        {project.partners?.length} Ortaklı
-                                    </span>
-                                </div>
-
-                                {/* Toplam Tutar Input Box */}
-                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                    <span style={{
-                                        position: 'absolute',
-                                        left: '14px',
-                                        fontSize: '1.25rem',
-                                        fontWeight: 800,
-                                        color: '#2563eb'
-                                    }}>₺</span>
-                                    <input
-                                        type="text"
-                                        value={formatNumberWithDots(amount)}
-                                        onChange={(e) => handleTopAmountChange(e.target.value)}
-                                        placeholder="0"
-                                        style={{
-                                            width: '100%',
-                                            padding: '10px 14px 10px 38px',
-                                            fontSize: '1.35rem',
-                                            fontWeight: 800,
-                                            color: '#0f172a',
-                                            background: '#ffffff',
-                                            border: '1.5px solid #cbd5e1',
-                                            borderRadius: '10px',
-                                            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)',
-                                            outline: 'none',
-                                            transition: 'border-color 0.2s, box-shadow 0.2s'
-                                        }}
-                                    />
-                                </div>
-
-                                {/* Quick Division Toolbar Row */}
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: '1fr 1fr auto',
-                                    gap: '6px',
-                                    marginBottom: '14px'
-                                }}>
-                                    <button
-                                        type="button"
-                                        onClick={handleSplitEqually}
-                                        style={{
-                                            padding: '6px 10px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            background: '#eef2ff',
-                                            color: '#4338ca',
-                                            border: '1px solid #c7d2fe',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '5px',
-                                            transition: 'all 0.15s'
-                                        }}
-                                        title="Toplam tutarı tüm ortaklara kuruşu kuruşuna eşit böler"
-                                    >
-                                        <span>⚖️</span>
-                                        <span>Eşit Böl</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={handleSplitByPercentage}
-                                        style={{
-                                            padding: '6px 10px',
-                                            fontSize: '11px',
-                                            fontWeight: 700,
-                                            background: '#fffbeb',
-                                            color: '#b45309',
-                                            border: '1px solid #fde68a',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '5px',
-                                            transition: 'all 0.15s'
-                                        }}
-                                        title="Toplam tutarı ortakların hisse yüzdelerine göre böler"
-                                    >
-                                        <span>📊</span>
-                                        <span>Hisseye Göre</span>
-                                    </button>
-
                                     <button
                                         type="button"
                                         onClick={handleResetShares}
                                         style={{
-                                            padding: '6px 12px',
+                                            padding: '4px 10px',
                                             fontSize: '11px',
                                             fontWeight: 700,
                                             background: '#fef2f2',
                                             color: '#b91c1c',
                                             border: '1px solid #fecaca',
-                                            borderRadius: '8px',
+                                            borderRadius: '6px',
                                             cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '4px',
-                                            transition: 'all 0.15s'
+                                            gap: '3px'
                                         }}
-                                        title="Tüm tutarları sıfırlar"
+                                        title="Tüm ortak tutarlarını sıfırla"
                                     >
-                                        <span>🧹</span>
-                                        <span>Sıfırla</span>
+                                        🧹 Sıfırla
                                     </button>
                                 </div>
 
-                                {/* Partner Inputs Header */}
-                                <div style={{
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    color: '#475569',
-                                    marginBottom: '8px',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
-                                    <span>👥 ORTAKLARIN VERDİĞİ TUTARLAR:</span>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 500 }}>
-                                        Kendi tutarını yazabilir veya [Tümü] seçebilirsiniz
-                                    </span>
-                                </div>
-
                                 {/* List of Partners */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '210px', overflowY: 'auto', paddingRight: '2px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '230px', overflowY: 'auto', paddingRight: '2px' }}>
                                     {project.partners?.map((partner, index) => {
                                         const pVal = partnerShares[partner.id] || '';
                                         const numVal = Number(pVal.replace(/\D/g, '')) || 0;
@@ -739,7 +485,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                {/* Right: Input & Actions */}
+                                                {/* Right: Manual Input */}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                                         <input
@@ -748,12 +494,12 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             onChange={(e) => handlePartnerShareChange(partner.id, e.target.value)}
                                                             placeholder="0"
                                                             style={{
-                                                                width: '110px',
-                                                                padding: '6px 26px 6px 8px',
-                                                                fontSize: '12.5px',
-                                                                fontWeight: 700,
+                                                                width: '120px',
+                                                                padding: '7px 28px 7px 10px',
+                                                                fontSize: '13px',
+                                                                fontWeight: 800,
                                                                 textAlign: 'right',
-                                                                borderRadius: '7px',
+                                                                borderRadius: '8px',
                                                                 border: isPaying ? '1.5px solid #3b82f6' : '1px solid #cbd5e1',
                                                                 background: isPaying ? '#ffffff' : '#f8fafc',
                                                                 color: isPaying ? '#0f172a' : '#64748b',
@@ -762,132 +508,66 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                         />
                                                         <span style={{
                                                             position: 'absolute',
-                                                            right: '7px',
-                                                            fontSize: '10px',
+                                                            right: '8px',
+                                                            fontSize: '10.5px',
                                                             fontWeight: 700,
                                                             color: '#94a3b8',
                                                             pointerEvents: 'none'
                                                         }}>TL</span>
                                                     </div>
 
-                                                    <div style={{ display: 'flex', gap: '3px' }}>
+                                                    {numVal > 0 && (
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleGiveAllToPartner(partner.id)}
+                                                            onClick={() => handlePartnerShareChange(partner.id, '0')}
                                                             style={{
-                                                                padding: '5px 8px',
-                                                                fontSize: '10px',
+                                                                padding: '6px 8px',
+                                                                fontSize: '11px',
                                                                 fontWeight: 700,
-                                                                background: '#f1f5f9',
-                                                                border: '1px solid #cbd5e1',
-                                                                borderRadius: '5px',
+                                                                background: '#fef2f2',
+                                                                border: '1px solid #fecaca',
+                                                                borderRadius: '6px',
                                                                 cursor: 'pointer',
-                                                                color: '#334155',
-                                                                transition: 'all 0.1s'
+                                                                color: '#b91c1c'
                                                             }}
-                                                            title="Toplam tutarın tamamını tek başına bu ortağa yazar"
+                                                            title="Bu ortağın tutarını sıfırla"
                                                         >
-                                                            Tümü
+                                                            ✕
                                                         </button>
-                                                        {numVal > 0 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handlePartnerShareChange(partner.id, '0')}
-                                                                style={{
-                                                                    padding: '5px 7px',
-                                                                    fontSize: '10px',
-                                                                    fontWeight: 700,
-                                                                    background: '#fef2f2',
-                                                                    border: '1px solid #fecaca',
-                                                                    borderRadius: '5px',
-                                                                    cursor: 'pointer',
-                                                                    color: '#b91c1c'
-                                                                }}
-                                                                title="Bu ortağın tutarını sıfırla"
-                                                            >
-                                                                ✕
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Summary & Live Status Verification Card */}
+                                {/* Summary & Total Card */}
                                 <div style={{
                                     marginTop: '12px',
-                                    padding: '10px 12px',
+                                    padding: '10px 14px',
                                     borderRadius: '10px',
-                                    background: isBalanced ? '#ecfdf5' : isOver ? '#fef2f2' : '#fffbeb',
-                                    border: `1px solid ${isBalanced ? '#a7f3d0' : isOver ? '#fecaca' : '#fde68a'}`,
+                                    background: partnerSum > 0 ? '#ecfdf5' : '#f8fafc',
+                                    border: `1px solid ${partnerSum > 0 ? '#a7f3d0' : '#e2e8f0'}`,
                                     display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '6px'
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    color: partnerSum > 0 ? '#065f46' : '#64748b'
                                 }}>
-                                    <div style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        fontSize: '11.5px',
-                                        fontWeight: 700,
-                                        color: isBalanced ? '#065f46' : isOver ? '#991b1b' : '#92400e'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span>{isBalanced ? '✅' : isOver ? '⚠️' : 'ℹ️'}</span>
-                                            <span>
-                                                <strong>Dağıtılan:</strong> {formatNumberWithDots(partnerSum.toString())} TL
-                                                {totalNum > 0 && ` / ${formatNumberWithDots(totalNum.toString())} TL`}
-                                            </span>
-                                        </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span>💰</span>
                                         <span>
-                                            {contributingCount > 1
-                                                ? `👥 ${contributingCount} Ortak Paylaştı`
-                                                : contributingCount === 1
-                                                ? `👤 ${contributingDetails}`
-                                                : `⚠️ Tutar girilmedi`}
+                                            <strong>TOPLAM GİDER:</strong> {formatNumberWithDots(partnerSum.toString())} TL
                                         </span>
                                     </div>
-
-                                    {/* Difference Message if Any */}
-                                    {!isBalanced && totalNum > 0 && (
-                                        <div style={{
-                                            fontSize: '11px',
-                                            color: isOver ? '#b91c1c' : '#b45309',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'space-between',
-                                            paddingTop: '4px',
-                                            borderTop: '1px dashed rgba(0,0,0,0.1)'
-                                        }}>
-                                            <span>
-                                                {isOver
-                                                    ? `Ortakların toplamı fatura tutarından ${formatNumberWithDots((partnerSum - totalNum).toString())} TL fazla!`
-                                                    : `Dağıtılacak kalan: ${formatNumberWithDots(remainingToDistribute.toString())} TL`}
-                                            </span>
-                                            {!isOver && remainingToDistribute > 0 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleDistributeRemaining}
-                                                    style={{
-                                                        padding: '2px 8px',
-                                                        fontSize: '10px',
-                                                        fontWeight: 700,
-                                                        background: '#fef3c7',
-                                                        color: '#92400e',
-                                                        border: '1px solid #fde68a',
-                                                        borderRadius: '4px',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    Kalanı Dağıt ⚡
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-
-
+                                    <span>
+                                        {contributingCount > 1
+                                            ? `👥 ${contributingCount} Ortak Paylaştı`
+                                            : contributingCount === 1
+                                            ? `👤 ${contributingDetails}`
+                                            : `⚠️ Henüz tutar girilmedi`}
+                                    </span>
                                 </div>
                             </div>
                         )}
