@@ -650,11 +650,10 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             value={numVal > 0 ? formatNumberWithDots(pVal) : ''}
                                                             onChange={(e) => handlePartnerShareChange(partner.id, e.target.value)}
                                                             onFocus={(e) => e.target.select()}
-                                                            placeholder="0"
                                                             style={{
                                                                 width: '180px',
                                                                 height: '48px',
-                                                                padding: '8px 46px 8px 14px',
+                                                                padding: numVal > 0 ? '8px 46px 8px 14px' : '8px 58px 8px 14px',
                                                                 fontSize: '22px',
                                                                 fontWeight: 900,
                                                                 letterSpacing: '-0.3px',
@@ -668,14 +667,37 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                                 transition: 'all 0.15s ease'
                                                             }}
                                                         />
-                                                        <span style={{
+                                                        <div style={{
                                                             position: 'absolute',
                                                             right: '14px',
-                                                            fontSize: '13px',
-                                                            fontWeight: 900,
-                                                            color: isPaying ? '#2563eb' : '#94a3b8',
-                                                            pointerEvents: 'none'
-                                                        }}>TL</span>
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            pointerEvents: 'none',
+                                                            userSelect: 'none'
+                                                        }}>
+                                                            {numVal === 0 && (
+                                                                <span style={{
+                                                                    fontSize: '22px',
+                                                                    fontWeight: 900,
+                                                                    color: '#94a3b8',
+                                                                    letterSpacing: '-0.3px',
+                                                                    lineHeight: 1
+                                                                }}>
+                                                                    0
+                                                                </span>
+                                                            )}
+                                                            <span style={{
+                                                                fontSize: '13px',
+                                                                fontWeight: 900,
+                                                                color: isPaying ? '#2563eb' : '#94a3b8',
+                                                                lineHeight: 1
+                                                            }}>
+                                                                TL
+                                                            </span>
+                                                        </div>
                                                     </div>
 
                                                     {numVal > 0 && (
