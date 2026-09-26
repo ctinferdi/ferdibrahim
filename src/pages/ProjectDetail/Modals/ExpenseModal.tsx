@@ -488,39 +488,40 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                 key={partner.id}
                                                 style={{
                                                     background: isPaying ? '#ffffff' : '#f8fafc',
-                                                    border: isPaying ? '1.5px solid #3b82f6' : '1px solid #e2e8f0',
-                                                    borderRadius: '10px',
-                                                    padding: '9px 12px',
-                                                    boxShadow: isPaying ? '0 2px 6px rgba(59, 130, 246, 0.12)' : 'none',
+                                                    border: isPaying ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 14px',
+                                                    boxShadow: isPaying ? '0 4px 12px rgba(37, 99, 235, 0.12)' : 'none',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'space-between',
-                                                    gap: '10px',
+                                                    gap: '12px',
                                                     transition: 'all 0.15s ease'
                                                 }}
                                             >
                                                 {/* Left: Avatar & Info */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
                                                     <div style={{
-                                                        width: '34px',
-                                                        height: '34px',
+                                                        width: '38px',
+                                                        height: '38px',
                                                         borderRadius: '50%',
                                                         background: avatarGradient,
                                                         color: '#ffffff',
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         justifyContent: 'center',
-                                                        fontSize: '11px',
+                                                        fontSize: '12.5px',
                                                         fontWeight: 800,
                                                         flexShrink: 0,
-                                                        letterSpacing: '0.5px'
+                                                        letterSpacing: '0.5px',
+                                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                                                     }}>
                                                         {initials}
                                                     </div>
                                                     <div style={{ minWidth: 0 }}>
                                                         <div style={{
-                                                            fontSize: '12.5px',
-                                                            fontWeight: 700,
+                                                            fontSize: '13.5px',
+                                                            fontWeight: 800,
                                                             color: '#0f172a',
                                                             whiteSpace: 'nowrap',
                                                             overflow: 'hidden',
@@ -528,21 +529,21 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                         }}>
                                                             {partner.name}
                                                         </div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
                                                             <span style={{
-                                                                fontSize: '10px',
-                                                                fontWeight: 600,
+                                                                fontSize: '11px',
+                                                                fontWeight: 700,
                                                                 background: '#f1f5f9',
                                                                 color: '#475569',
-                                                                padding: '1px 5px',
-                                                                borderRadius: '4px'
+                                                                padding: '2px 6px',
+                                                                borderRadius: '5px'
                                                             }}>
                                                                 Hisse: %{partner.share_percentage}
                                                             </span>
                                                             {isPaying ? (
                                                                 <span style={{
-                                                                    fontSize: '10px',
-                                                                    fontWeight: 700,
+                                                                    fontSize: '11px',
+                                                                    fontWeight: 800,
                                                                     color: '#059669',
                                                                     display: 'flex',
                                                                     alignItems: 'center',
@@ -551,7 +552,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                                     ✓ Ödüyor
                                                                 </span>
                                                             ) : (
-                                                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                                                <span style={{ fontSize: '11px', color: '#94a3b8' }}>
                                                                     Ödemedi (0 TL)
                                                                 </span>
                                                             )}
@@ -559,8 +560,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                     </div>
                                                 </div>
 
-                                                {/* Right: Manual Input */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                                {/* Right: Large Manual Input */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                                         <input
                                                             type="text"
@@ -568,24 +569,26 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             onChange={(e) => handlePartnerShareChange(partner.id, e.target.value)}
                                                             placeholder="0"
                                                             style={{
-                                                                width: '120px',
-                                                                padding: '7px 28px 7px 10px',
-                                                                fontSize: '13px',
+                                                                width: '150px',
+                                                                padding: '10px 36px 10px 14px',
+                                                                fontSize: '16px',
                                                                 fontWeight: 800,
                                                                 textAlign: 'right',
-                                                                borderRadius: '8px',
-                                                                border: isPaying ? '1.5px solid #3b82f6' : '1px solid #cbd5e1',
+                                                                borderRadius: '10px',
+                                                                border: isPaying ? '2px solid #2563eb' : '1.5px solid #cbd5e1',
                                                                 background: isPaying ? '#ffffff' : '#f8fafc',
                                                                 color: isPaying ? '#0f172a' : '#64748b',
-                                                                outline: 'none'
+                                                                boxShadow: isPaying ? '0 2px 6px rgba(37,99,235,0.08)' : 'none',
+                                                                outline: 'none',
+                                                                transition: 'all 0.15s ease'
                                                             }}
                                                         />
                                                         <span style={{
                                                             position: 'absolute',
-                                                            right: '8px',
-                                                            fontSize: '10.5px',
-                                                            fontWeight: 700,
-                                                            color: '#94a3b8',
+                                                            right: '12px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 800,
+                                                            color: isPaying ? '#2563eb' : '#94a3b8',
                                                             pointerEvents: 'none'
                                                         }}>TL</span>
                                                     </div>
@@ -595,14 +598,19 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                                             type="button"
                                                             onClick={() => handlePartnerShareChange(partner.id, '0')}
                                                             style={{
-                                                                padding: '6px 8px',
-                                                                fontSize: '11px',
-                                                                fontWeight: 700,
+                                                                width: '40px',
+                                                                height: '44px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '14px',
+                                                                fontWeight: 800,
                                                                 background: '#fef2f2',
-                                                                border: '1px solid #fecaca',
-                                                                borderRadius: '6px',
+                                                                border: '1.5px solid #fecaca',
+                                                                borderRadius: '10px',
                                                                 cursor: 'pointer',
-                                                                color: '#b91c1c'
+                                                                color: '#b91c1c',
+                                                                transition: 'all 0.15s ease'
                                                             }}
                                                             title="Bu ortağın tutarını sıfırla"
                                                         >
