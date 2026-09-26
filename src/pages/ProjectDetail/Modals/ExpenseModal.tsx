@@ -287,59 +287,53 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 {/* Form Body */}
                 <div style={{ padding: 'var(--spacing-lg)', overflowY: 'auto', flex: 1 }}>
                     <form onSubmit={onSave}>
-                        {/* Split Mode Selector (Only when creating a new expense and project has multiple partners) */}
+                        {/* Ortak Dağıtımı Tetikleyici Butonu (Ödemeyi Yapan Ortakları Seçin) */}
                         {!editingExpenseId && hasMultiplePartners && (
-                            <div style={{
-                                marginBottom: 'var(--spacing-md)',
-                                background: '#f1f5f9',
-                                padding: '4px',
-                                borderRadius: '12px',
-                                display: 'flex',
-                                gap: '4px'
-                            }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentSplitMode('single')}
-                                    style={{
-                                        flex: 1,
-                                        padding: '9px 12px',
-                                        fontSize: '12px',
-                                        fontWeight: 700,
-                                        borderRadius: '9px',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        background: paymentSplitMode === 'single' ? '#ffffff' : 'transparent',
-                                        color: paymentSplitMode === 'single' ? '#1e293b' : '#64748b',
-                                        boxShadow: paymentSplitMode === 'single' ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                                        transition: 'all 0.15s ease'
-                                    }}
-                                >
-                                    👤 Tek Kişi Ödedi
-                                </button>
+                            <div style={{ marginBottom: 'var(--spacing-md)' }}>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setPaymentSplitMode('split');
-                                        // Initialize shares if empty and amount exists
-                                        if (Object.keys(partnerShares).length === 0 && amount) {
-                                            handleSplitEqually();
+                                        if (paymentSplitMode === 'split') {
+                                            setPaymentSplitMode('single');
+                                        } else {
+                                            setPaymentSplitMode('split');
+                                            // Initialize shares if empty and amount exists
+                                            if (Object.keys(partnerShares).length === 0 && amount) {
+                                                handleSplitEqually();
+                                            }
                                         }
                                     }}
                                     style={{
-                                        flex: 1.2,
-                                        padding: '9px 12px',
-                                        fontSize: '12px',
+                                        width: '100%',
+                                        padding: '9px 14px',
+                                        fontSize: '12.5px',
                                         fontWeight: 700,
-                                        borderRadius: '9px',
-                                        border: 'none',
+                                        borderRadius: '10px',
+                                        border: paymentSplitMode === 'split' ? '1.5px solid #2563eb' : '1.5px dashed #93c5fd',
                                         cursor: 'pointer',
-                                        background: paymentSplitMode === 'split' ? '#2563eb' : 'transparent',
-                                        color: paymentSplitMode === 'split' ? '#ffffff' : '#64748b',
-                                        boxShadow: paymentSplitMode === 'split' ? '0 2px 6px rgba(37,99,235,0.3)' : 'none',
-                                        transition: 'all 0.15s ease'
+                                        background: paymentSplitMode === 'split' ? '#2563eb' : '#eff6ff',
+                                        color: paymentSplitMode === 'split' ? '#ffffff' : '#1d4ed8',
+                                        boxShadow: paymentSplitMode === 'split' ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s ease'
                                     }}
                                 >
-                                    👥 Ortaklar Arası Paylaştır
+                                    <span>{paymentSplitMode === 'split' ? '✓' : '👥'}</span>
+                                    <span>{paymentSplitMode === 'split' ? 'Ödemeyi Yapan Ortakları Seçin (Aktif)' : 'Ödemeyi Yapan Ortakları Seçin'}</span>
+                                    {paymentSplitMode === 'split' && (
+                                        <span style={{
+                                            fontSize: '11px',
+                                            opacity: 0.9,
+                                            marginLeft: '6px',
+                                            fontWeight: 500,
+                                            textDecoration: 'underline'
+                                        }}>
+                                            (Tek Kişiye Dön)
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         )}
