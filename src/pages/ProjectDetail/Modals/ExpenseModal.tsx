@@ -361,7 +361,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                             {/* Dropdown only visible in single payer mode */}
                             {paymentSplitMode === 'single' && project.partners && project.partners.length > 0 && (
                                 <div className="form-group" style={{ marginBottom: 0 }}>
-                                    <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>KİMİN ADINA (ÖDEYEN)</label>
+                                    <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)', fontSize: '0.75rem', fontWeight: 700 }}>ÖDEMEYİ YAPAN</label>
                                     <select
                                         className="form-input"
                                         value={selectedPartner}
