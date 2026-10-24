@@ -79,7 +79,7 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                             >
                                 <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
                                 <span style={{ fontSize: '9px', marginTop: '2px', fontWeight: isActive ? 700 : 500, textAlign: 'center' }}>
-                                    {item.label.split(' ')[1]}
+                                    {item.path === '/' ? 'Ana Sayfa' : item.label.split(' ')[1]}
                                 </span>
                             </Link>
                         );
@@ -120,7 +120,7 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                         >
                             <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
                             <span style={{ fontSize: '10px', marginTop: '2px', fontWeight: isActive ? 700 : 500 }}>
-                                {item.label.split(' ')[1]}
+                                {item.path === '/' ? 'Ana Sayfa' : item.label.split(' ')[1]}
                             </span>
                         </Link>
                     );

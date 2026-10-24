@@ -205,8 +205,7 @@ const Projects: React.FC = () => {
         <Layout>
             {loading && <div style={{ textAlign: 'center', padding: '10px', background: '#e0f2fe', color: '#0369a1', borderRadius: '8px', marginBottom: '10px' }}>Veriler yükleniyor...</div>}
             <div className="animate-fadeIn" style={{ opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                    <h1 className="mb-0">Projeler</h1>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 'var(--spacing-sm)', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                     <button className="btn btn-primary" onClick={() => {
                         setErrorMsg(null);
                         setShowModal(true);
@@ -247,7 +246,6 @@ const Projects: React.FC = () => {
                                             <div
                                                 className="card"
                                                 onClick={() => {
-                                                    localStorage.setItem('dashboard_selected_project_id', project.id);
                                                     navigate(`/projeler/${project.slug || project.id}`);
                                                 }}
                                                 style={{
@@ -431,7 +429,7 @@ const Projects: React.FC = () => {
                                 <div className="form-group">
                                     <label className="form-label">ORTAKLAR VE PAY ORANLARI</label>
                                     {partners.map((partner, index) => (
-                                        <div key={index} style={{
+                                        <div key={index} className="project-partner-fields" style={{
                                             display: 'grid',
                                             gridTemplateColumns: '1fr 1fr auto auto',
                                             gap: 'var(--spacing-sm)',

@@ -1,4 +1,4 @@
-import { FurnitureItem, FloorPlanData, Column, RoofConfig } from './types';
+import { FloorPlanData } from './types';
 
 export interface CatalogItem {
     type: string;

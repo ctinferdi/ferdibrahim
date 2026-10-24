@@ -11,7 +11,7 @@ interface ApartmentTableProps {
     loading?: boolean;
 }
 
-const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, formatCurrency, sendingCode, loading }) => {
+const ApartmentTable: React.FC<ApartmentTableProps> = ({ apartments, onEdit, onReset, sendingCode, loading }) => {
     const [visibleAptIds, setVisibleAptIds] = React.useState<Set<string>>(new Set());
 
     const toggleFinancials = (id: string) => {

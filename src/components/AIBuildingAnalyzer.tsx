@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 // @ts-ignore
 import DxfParser from 'dxf-parser';
+import { requestAI } from '../services/aiService';
 
 export interface BuildingAnalysisResult {
     floors: number;
@@ -41,8 +42,6 @@ interface DxfSummary {
     entityCount: number;
     minX: number; minY: number; maxX: number; maxY: number;
 }
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 // DXF dosyasını parse edip özet çıkar
 function parseDxf(text: string): DxfSummary | null {
@@ -215,8 +214,6 @@ const AIBuildingAnalyzer: React.FC<AIBuildingAnalyzerProps> = ({
         const imageFiles = uploadedFiles.filter(f => !f.isDxf);
 
         let prompt = '';
-        const parts: any[] = [];
-
         if (dxfFile && dxfSummary) {
             // DXF layer isimlerinden kat bilgisi çıkarmaya çalış
             const layerHints = dxfSummary.layers
@@ -250,8 +247,6 @@ Bu bilgilere dayanarak bina hakkında aşağıdaki JSON formatında tahminde bul
   "windowRows": 2,
   "confidence": <güven yüzdesi 0-100>
 }`;
-            parts.push({ text: prompt });
-
         } else {
             prompt = `Sen bir bina analiz uzmanısın. Bu bina görseli/görsellerine bakarak bilgileri JSON formatında çıkar.
 
@@ -272,36 +267,18 @@ Sadece şu JSON'u döndür, başka hiçbir şey yazma:
   "buildingName": <binada tabela varsa yaz, yoksa null>,
   "confidence": <doğruluk yüzdesi 0-100>
 }`;
-            parts.push({ text: prompt });
-            for (const file of imageFiles) {
-                parts.push({ inline_data: { mime_type: file.mimeType, data: file.base64 } });
-            }
         }
 
         try {
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts }],
-                        generationConfig: { temperature: 0.1, maxOutputTokens: 1024 }
-                    })
-                }
-            );
-
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(`Gemini API hatası: ${response.status} — ${errData?.error?.message || ''}`);
-            }
-
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) throw new Error('Gemini geçerli JSON döndürmedi');
-
-            const result = JSON.parse(jsonMatch[0]) as BuildingAnalysisResult;
+            const result = await requestAI<BuildingAnalysisResult>({
+                task: 'building-analysis',
+                prompt,
+                files: imageFiles.map(file => ({
+                    name: file.name,
+                    mimeType: file.mimeType,
+                    data: file.base64,
+                })),
+            });
             setAnalysisResult(result);
             setManualResult(result);
             setManualMode(true);

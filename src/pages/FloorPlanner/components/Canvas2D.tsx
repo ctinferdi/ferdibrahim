@@ -38,6 +38,7 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
     // Selection & Manipulation
     const [selectedFurnitureId, setSelectedFurnitureId] = useState<string | null>(null);
     const [selectedWallId, setSelectedWallId] = useState<string | null>(null);
+    const [wallPropertyDraft, setWallPropertyDraft] = useState({ length: '', thickness: '', height: '' });
     const [draggingVertex, setDraggingVertex] = useState<{ wallId: string; vertex: 'start' | 'end' } | null>(null);
     const [isDraggingFurniture, setIsDraggingFurniture] = useState(false);
     const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -764,12 +765,19 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
         setDraggingVertex(null);
     };
 
-    const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-        e.preventDefault();
-        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-        const newScale = Math.max(15, Math.min(150, scale * zoomFactor));
-        setScale(newScale);
-    };
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const handleWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            setScale(current => Math.max(15, Math.min(150, current * zoomFactor)));
+        };
+
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
+        return () => canvas.removeEventListener('wheel', handleWheel);
+    }, []);
 
     // Manual Length Commit
     const commitManualWallLength = (lengthMeters: number) => {
@@ -851,6 +859,63 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
 
     const activeSelectedWall = planData.walls.find(w => w.id === selectedWallId);
 
+    useEffect(() => {
+        if (!activeSelectedWall) {
+            setWallPropertyDraft({ length: '', thickness: '', height: '' });
+            return;
+        }
+
+        setWallPropertyDraft({
+            length: Math.hypot(activeSelectedWall.end.x - activeSelectedWall.start.x, activeSelectedWall.end.y - activeSelectedWall.start.y).toFixed(2),
+            thickness: (activeSelectedWall.thickness * 100).toFixed(0),
+            height: (activeSelectedWall.height ?? 2.8).toFixed(2),
+        });
+    }, [
+        activeSelectedWall?.id,
+        activeSelectedWall?.start.x,
+        activeSelectedWall?.start.y,
+        activeSelectedWall?.end.x,
+        activeSelectedWall?.end.y,
+        activeSelectedWall?.thickness,
+        activeSelectedWall?.height,
+    ]);
+
+    const commitWallProperty = (property: 'length' | 'thickness' | 'height', rawValue: string) => {
+        if (!activeSelectedWall) return;
+
+        const value = Number.parseFloat(rawValue);
+        const min = property === 'thickness' ? 1 : 0.1;
+        const max = property === 'length' ? 200 : property === 'thickness' ? 100 : 30;
+        if (!Number.isFinite(value) || value < min || value > max) {
+            const fallback = property === 'length'
+                ? Math.hypot(activeSelectedWall.end.x - activeSelectedWall.start.x, activeSelectedWall.end.y - activeSelectedWall.start.y).toFixed(2)
+                : property === 'thickness'
+                    ? (activeSelectedWall.thickness * 100).toFixed(0)
+                    : (activeSelectedWall.height ?? 2.8).toFixed(2);
+            setWallPropertyDraft(current => ({ ...current, [property]: fallback }));
+            return;
+        }
+
+        const dx = activeSelectedWall.end.x - activeSelectedWall.start.x;
+        const dy = activeSelectedWall.end.y - activeSelectedWall.start.y;
+        const currentLength = Math.hypot(dx, dy);
+        const nextWalls = planData.walls.map(wall => {
+            if (wall.id !== activeSelectedWall.id) return wall;
+            if (property === 'length') {
+                const directionX = currentLength > 0 ? dx / currentLength : 1;
+                const directionY = currentLength > 0 ? dy / currentLength : 0;
+                return {
+                    ...wall,
+                    end: { x: wall.start.x + directionX * value, y: wall.start.y + directionY * value },
+                };
+            }
+            if (property === 'thickness') return { ...wall, thickness: value / 100 };
+            return { ...wall, height: value };
+        });
+
+        onChange({ ...planData, walls: nextWalls });
+    };
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', background: '#f8fafc', userSelect: 'none' }}>
             <canvas
@@ -858,7 +923,6 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
-                onWheel={handleWheel}
                 style={{
                     display: 'block',
                     width: '100%',
@@ -950,7 +1014,7 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
                 </div>
             )}
 
-            {/* Quick action bar for selected Wall */}
+            {/* Parametric properties for the selected wall */}
             {activeSelectedWall && (
                 <div style={{
                     position: 'absolute',
@@ -958,17 +1022,44 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
                     left: '50%',
                     transform: 'translateX(-50%)',
                     background: '#ffffff',
-                    padding: '8px 16px',
-                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    borderRadius: '14px',
                     boxShadow: '0 8px 30px rgba(0,0,0,0.18)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    gap: '8px',
                     zIndex: 20
                 }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b' }}>
-                        🧱 Seçili Duvar: {Math.hypot(activeSelectedWall.end.x - activeSelectedWall.start.x, activeSelectedWall.end.y - activeSelectedWall.start.y).toFixed(2)} m
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', marginRight: 2 }}>
+                        🧱 DUVAR ÖZELLİKLERİ
                     </span>
+
+                    {([
+                        ['length', 'Uzunluk', 'm', '0.05'],
+                        ['thickness', 'Kalınlık', 'cm', '1'],
+                        ['height', 'Yükseklik', 'm', '0.05'],
+                    ] as const).map(([property, label, unit, step]) => (
+                        <label key={property} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: '#64748b' }}>
+                            {label}
+                            <input
+                                aria-label={`Duvar ${label.toLowerCase()}`}
+                                type="number"
+                                min={property === 'thickness' ? 1 : 0.1}
+                                max={property === 'length' ? 200 : property === 'thickness' ? 100 : 30}
+                                step={step}
+                                value={wallPropertyDraft[property]}
+                                onChange={e => setWallPropertyDraft(current => ({ ...current, [property]: e.target.value }))}
+                                onBlur={e => commitWallProperty(property, e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') e.currentTarget.blur();
+                                }}
+                                style={{ width: 58, padding: '5px 4px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 11, color: '#0f172a' }}
+                            />
+                            <span>{unit}</span>
+                        </label>
+                    ))}
 
                     {/* Change Wall Type */}
                     <select
@@ -980,7 +1071,8 @@ const Canvas2D: React.FC<Canvas2DProps> = ({
                                 walls: planData.walls.map(w => w.id === activeSelectedWall.id ? { ...w, wallType: newType } : w)
                             });
                         }}
-                        style={{ padding: '4px 8px', fontSize: '11px', fontWeight: 700, borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }}
+                        aria-label="Duvar tipi"
+                        style={{ padding: '5px 8px', fontSize: '11px', fontWeight: 700, borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }}
                     >
                         <option value="standard">Standart Duvar (2.8m)</option>
                         <option value="balcony_glass">🪟 Cam Korkuluklu Balkon</option>

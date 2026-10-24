@@ -155,7 +155,7 @@ const Apartments = () => {
                 </div>
 
                 {/* Filters */}
-                <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="apartments-filter-row" style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '300px', position: 'relative' }}>
                         <input
                             type="text"

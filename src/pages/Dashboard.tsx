@@ -21,11 +21,6 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [savingNote, setSavingNote] = useState(false);
 
-    // Proje Filtresi State
-    const [selectedProjectId, setSelectedProjectId] = useState<string>(() => {
-        return localStorage.getItem('dashboard_selected_project_id') || 'all';
-    });
-
     useEffect(() => {
         let authCtx = { accessibleIds: [] as string[], isSuperAdmin: false };
 
@@ -61,14 +56,6 @@ const Dashboard = () => {
             setNotes(nts);
             setLoading(false);
             
-            // Eğer tek bir proje varsa veya kayıtlı seçim varsa eşle
-            const saved = localStorage.getItem('dashboard_selected_project_id');
-            if (saved && (saved === 'all' || filteredProjects.some((p: Project) => p.id === saved))) {
-                setSelectedProjectId(saved);
-            } else if (filteredProjects.length === 1) {
-                setSelectedProjectId(filteredProjects[0].id);
-            }
-
             authCtx = { accessibleIds, isSuperAdmin };
             return authCtx;
         };
@@ -100,11 +87,6 @@ const Dashboard = () => {
             unsubNotes();
         };
     }, [user?.id, user?.email]);
-
-    const handleSelectProject = (projectId: string) => {
-        setSelectedProjectId(projectId);
-        localStorage.setItem('dashboard_selected_project_id', projectId);
-    };
 
     const handleAddNote = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -150,16 +132,9 @@ const Dashboard = () => {
         }).format(amount);
     };
 
-    // Seçili Projeye Göre Filtrelenmiş Veriler
-    const selectedProject = projects.find(p => p.id === selectedProjectId);
-
-    const displayExpenses = selectedProjectId === 'all'
-        ? expenses
-        : expenses.filter(e => e.project_id === selectedProjectId);
-
-    const displayChecks = selectedProjectId === 'all'
-        ? checks
-        : checks.filter(c => c.project_id === selectedProjectId);
+    // Ana sayfa bütün erişilebilir projelerin verilerini birlikte gösterir.
+    const displayExpenses = expenses;
+    const displayChecks = checks;
 
     const pendingChecks = displayChecks.filter(c => c.status === 'pending');
     const totalCheckAmount = pendingChecks.reduce((sum, c) => sum + c.amount, 0);
@@ -180,127 +155,15 @@ const Dashboard = () => {
     return (
         <Layout>
             <div className="animate-fadeIn">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)', flexWrap: 'wrap', gap: '8px' }}>
-                    <h1 style={{ margin: 0, fontSize: 'var(--font-size-xl)' }}>Ana Sayfa</h1>
-                    {selectedProject && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '12px', fontWeight: 800, color: '#4f46e5', background: '#eef2ff', padding: '4px 12px', borderRadius: '20px', border: '1px solid #c7d2fe' }}>
-                                🏗️ {selectedProject.name}
-                            </span>
-                            <Link
-                                to={`/projeler/${selectedProject.slug || selectedProject.id}`}
-                                className="btn btn-primary"
-                                style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-                            >
-                                Proje Detayına Git ↗
-                            </Link>
-                        </div>
-                    )}
-                </div>
-
-                {/* ─── PROJE FİLTRESİ / SEÇİMİ BARI ─── */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    flexWrap: 'wrap',
-                    marginBottom: 'var(--spacing-md)',
-                    padding: '8px 12px',
-                    background: '#fff',
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-                }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                        PROJE:
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => handleSelectProject('all')}
-                        style={{
-                            padding: '5px 12px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            border: selectedProjectId === 'all' ? '1px solid #4f46e5' : '1px solid #e2e8f0',
-                            background: selectedProjectId === 'all' ? '#4f46e5' : '#f8fafc',
-                            color: selectedProjectId === 'all' ? '#fff' : '#64748b',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s'
-                        }}
-                    >
-                        🌐 TÜM PROJELER (GENEL BAKIŞ)
-                    </button>
-                    {projects.map((p) => {
-                        const isSelected = selectedProjectId === p.id;
-                        return (
-                            <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => handleSelectProject(p.id)}
-                                style={{
-                                    padding: '5px 14px',
-                                    borderRadius: '6px',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    border: isSelected ? '1px solid #4f46e5' : '1px solid #e2e8f0',
-                                    background: isSelected ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f8fafc',
-                                    color: isSelected ? '#fff' : '#334155',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.15s',
-                                    boxShadow: isSelected ? '0 2px 6px rgba(102, 126, 234, 0.35)' : 'none'
-                                }}
-                            >
-                                🏗️ {p.name}
-                            </button>
-                        );
-                    })}
-                </div>
-
                 {/* ─── ÜST İSTATİSTİK KARTLARI ─── */}
-                <div style={{
+                <div className="dashboard-stats-grid" style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                     gap: 'var(--spacing-sm)',
                     marginBottom: 'var(--spacing-sm)'
                 }}>
-                    {/* 1. Proje Kartı */}
-                    {selectedProject ? (
-                        <Link to={`/projeler/${selectedProject.slug || selectedProject.id}`} className="card" style={{
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            color: 'white',
-                            border: 'none',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            textDecoration: 'none',
-                            transition: 'transform 0.2s, box-shadow 0.2s',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between'
-                        }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-3px)';
-                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'none';
-                            }}>
-                            <div>
-                                <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>🏗️</div>
-                                <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-xs)', marginBottom: '0.2rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                                    SEÇİLİ PROJE
-                                </h3>
-                                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {selectedProject.name}
-                                </div>
-                            </div>
-                            <p style={{ marginTop: '0.5rem', marginBottom: 0, opacity: 0.9, fontSize: 'var(--font-size-xs)', fontWeight: 600 }}>
-                                {selectedProject.partners?.length ? `${selectedProject.partners.length} Ortak` : 'Tek Sahip'} • Detaylara Git ↗
-                            </p>
-                        </Link>
-                    ) : (
-                        <Link to="/projeler" className="card" style={{
+                    {/* Aktif projeler */}
+                    <Link to="/projeler" className="card" style={{
                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                             color: 'white',
                             border: 'none',
@@ -327,8 +190,7 @@ const Dashboard = () => {
                             <p style={{ marginTop: '0.5rem', marginBottom: 0, opacity: 0.9, fontSize: 'var(--font-size-xs)' }}>
                                 Toplam {projects.length} proje • Projeler ↗
                             </p>
-                        </Link>
-                    )}
+                    </Link>
 
                     {/* 2. Bekleyen Çekler Kartı */}
                     <Link to="/cekler" className="card" style={{
@@ -350,7 +212,7 @@ const Dashboard = () => {
                         }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>💳</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-xs)', marginBottom: '0.2rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                            BEKLEYEN ÇEKLER {selectedProject ? `(${selectedProject.name})` : ''}
+                            BEKLEYEN ÇEKLER
                         </h3>
                         <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 800 }}>
                             {formatCurrency(totalCheckAmount)}
@@ -370,7 +232,7 @@ const Dashboard = () => {
                     }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>💰</div>
                         <h3 style={{ color: 'white', opacity: 0.9, fontSize: 'var(--font-size-xs)', marginBottom: '0.2rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                            TOPLAM GİDER {selectedProject ? `(${selectedProject.name})` : ''}
+                            TOPLAM GİDER
                         </h3>
                         <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 800 }}>
                             {formatCurrency(totalExpenseAmount)}
@@ -394,7 +256,7 @@ const Dashboard = () => {
                                 <span style={{ fontSize: '1.8rem' }}>⚠️</span>
                                 <div>
                                     <h3 style={{ margin: 0, color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>
-                                        Vadesi Yaklaşan Çekler! {selectedProject ? `(${selectedProject.name})` : ''}
+                                        Vadesi Yaklaşan Çekler!
                                     </h3>
                                     <p style={{ margin: '3px 0 0 0', color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)' }}>
                                         Önümüzdeki 7 gün içinde <strong>{upcomingChecks.length} adet</strong> çekin vadesi doluyor.
@@ -409,35 +271,22 @@ const Dashboard = () => {
                 )}
 
                 {/* ─── ALT İKİ SÜTUN: SON HAREKETLER & HIZLI NOTLAR ─── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-lg)', alignItems: 'stretch', marginBottom: 'var(--spacing-xl)' }}>
+                <div className="dashboard-lower-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-lg)', alignItems: 'stretch', marginBottom: 'var(--spacing-xl)' }}>
                     {/* Son Hareketler */}
                     <div className="card" style={{ height: '100%', margin: 0, display: 'flex', flexDirection: 'column' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <h2 style={{ margin: 0, fontSize: 'var(--font-size-md)' }}>SON HAREKETLER</h2>
-                                {selectedProject && (
-                                    <span style={{ fontSize: '11px', color: '#4f46e5', fontWeight: 800, background: '#eef2ff', padding: '2px 8px', borderRadius: '4px' }}>
-                                        {selectedProject.name}
-                                    </span>
-                                )}
                             </div>
-                            {selectedProject ? (
-                                <Link to={`/projeler/${selectedProject.slug || selectedProject.id}`} style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>
-                                    PROJE DETAYINA GİT →
-                                </Link>
-                            ) : (
-                                <Link to="/projeler" style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>
-                                    TÜMÜNE GİT →
-                                </Link>
-                            )}
+                            <Link to="/projeler" style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}>
+                                TÜMÜNE GİT →
+                            </Link>
                         </div>
 
                         {displayExpenses.length === 0 && displayChecks.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)', color: 'var(--color-text-light)', flex: 1 }}>
                                 <p style={{ fontSize: '12px' }}>
-                                    {selectedProject
-                                        ? `"${selectedProject.name}" projesine ait henüz harcama veya çek kaydı bulunmuyor.`
-                                        : 'Henüz kayıt bulunmuyor. Harcama veya çek ekleyerek başlayın.'}
+                                    Henüz kayıt bulunmuyor. Harcama veya çek ekleyerek başlayın.
                                 </p>
                             </div>
                         ) : (

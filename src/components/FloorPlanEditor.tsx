@@ -618,10 +618,10 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
     const show3D = viewMode !== '2d';
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#0f172a' }}>
+        <div className="floor-plan-editor" style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#0f172a' }}>
 
             {/* ── Top bar ── */}
-            <div style={{ height: '46px', background: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', padding: '0 14px', flexShrink: 0, borderBottom: '1px solid #334155' }}>
+            <div className="floor-plan-editor-topbar" style={{ height: '46px', background: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', padding: '0 14px', flexShrink: 0, borderBottom: '1px solid #334155' }}>
                 <span style={{ fontSize: '15px', fontWeight: 800, color: 'white' }}>📐 Kat Planı Editörü</span>
                 {projectName && <span style={{ fontSize: '12px', color: '#64748b' }}>— {projectName}</span>}
                 <div style={{ flex: 1 }} />
@@ -648,7 +648,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
             </div>
 
             {/* ── Floor tabs ── */}
-            <div style={{ background: '#1e293b', display: 'flex', alignItems: 'center', gap: '3px', padding: '5px 10px', flexShrink: 0, overflowX: 'auto', borderBottom: '1px solid #334155' }}>
+            <div className="floor-plan-editor-floor-tabs" style={{ background: '#1e293b', display: 'flex', alignItems: 'center', gap: '3px', padding: '5px 10px', flexShrink: 0, overflowX: 'auto', borderBottom: '1px solid #334155' }}>
                 {[...floors].sort((a, b) => b.floor - a.floor).map(f => {
                     const ri = floors.indexOf(f);
                     return (
@@ -672,11 +672,11 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
             </div>
 
             {/* ── Content ── */}
-            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            <div className="floor-plan-editor-content" style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
 
                 {/* Left toolbar */}
                 {show2D && (
-                    <div style={{ width: '170px', background: '#0f172a', display: 'flex', flexDirection: 'column', gap: '3px', padding: '10px 8px', flexShrink: 0, overflowY: 'auto', borderRight: '1px solid #1e293b' }}>
+                    <div className="floor-plan-editor-tools" style={{ width: '170px', background: '#0f172a', display: 'flex', flexDirection: 'column', gap: '3px', padding: '10px 8px', flexShrink: 0, overflowY: 'auto', borderRight: '1px solid #1e293b' }}>
                         <div style={sectionLabel}>ARAÇLAR</div>
                         {([
                             { t: 'select', icon: '↖', lbl: 'Seç / Taşı' },
@@ -826,7 +826,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
 
                 {/* ── 2D Canvas ── */}
                 {show2D && (
-                    <div style={{ flex: viewMode === '2d' ? 1 : '0 0 55%', position: 'relative', overflow: 'hidden', borderRight: viewMode === 'split' ? '2px solid #334155' : 'none' }}>
+                    <div className="floor-plan-editor-canvas" style={{ flex: viewMode === '2d' ? 1 : '0 0 55%', position: 'relative', overflow: 'hidden', borderRight: viewMode === 'split' ? '2px solid #334155' : 'none' }}>
                         {/* Zoom indicator */}
                         <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(15,23,42,0.8)', color: '#64748b', padding: '3px 8px', borderRadius: '5px', fontSize: '11px', zIndex: 10 }}>
                             Zoom: {Math.round(zoom * 100)}% | X:{(cursor.x * PX_TO_M).toFixed(1)}m Y:{(cursor.y * PX_TO_M).toFixed(1)}m
@@ -1036,7 +1036,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
 
                 {/* ── 3D View ── */}
                 {show3D && (
-                    <div style={{ flex: viewMode === '3d' ? 1 : '0 0 45%', position: 'relative', background: '#0a0f1a' }}>
+                    <div className="floor-plan-editor-3d-view" style={{ flex: viewMode === '3d' ? 1 : '0 0 45%', position: 'relative', background: '#0a0f1a' }}>
                         <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10, background: 'rgba(15,23,42,0.85)', borderRadius: '8px', padding: '6px 12px', color: '#64748b', fontSize: '11px' }}>
                             🖱️ Sol sürükle: döndür &nbsp;|&nbsp; Sağ sürükle: kaydır &nbsp;|&nbsp; Scroll: zoom
                         </div>
@@ -1074,7 +1074,7 @@ const FloorPlanEditor: React.FC<Props> = ({ isOpen, onClose, projectName }) => {
 
                 {/* Room list panel (only in 3D full mode) */}
                 {viewMode === '3d' && (
-                    <div style={{ width: '190px', background: '#0f172a', padding: '10px 8px', flexShrink: 0, overflowY: 'auto', borderLeft: '1px solid #1e293b' }}>
+                    <div className="floor-plan-editor-room-list" style={{ width: '190px', background: '#0f172a', padding: '10px 8px', flexShrink: 0, overflowY: 'auto', borderLeft: '1px solid #1e293b' }}>
                         <div style={sectionLabel}>{fd.label.toUpperCase()} — ODALAR</div>
                         {fd.rooms.length === 0 && <p style={{ fontSize: '11px', color: '#475569' }}>Oda yok.<br />2D görünümde çizin.</p>}
                         {fd.rooms.map(r => (
@@ -1137,7 +1137,7 @@ const PropertiesSidebar = ({ id, fd, update, onClose }: any) => {
     const inputStyle = { background: '#1e293b', border: '1px solid #334155', color: 'white', padding: '6px', borderRadius: '4px', fontSize: '13px', width: '100%' };
 
     return (
-        <div style={{ width: '220px', background: '#0f172a', borderLeft: '1px solid #1e293b', padding: '15px', color: 'white', flexShrink: 0, overflowY: 'auto' }}>
+        <div className="floor-plan-editor-properties" style={{ width: '220px', background: '#0f172a', borderLeft: '1px solid #1e293b', padding: '15px', color: 'white', flexShrink: 0, overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid #334155', paddingBottom: '10px' }}>
                 <div style={{ fontSize: '13px', fontWeight: 800 }}>{isRoom ? 'ODA AYARLARI' : isWall ? 'DUVAR AYARLARI' : isCol ? 'KOLON AYARLARI' : 'ELAMAN AYARLARI'}</div>
                 <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '16px' }}>✕</button>

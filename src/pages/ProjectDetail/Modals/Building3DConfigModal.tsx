@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import Building3D, { Building3DConfig } from '../../../components/Building3D';
 import { Apartment } from '../../../types';
+import { requestAI } from '../../../services/aiService';
 
 export type { Building3DConfig };
 
@@ -205,8 +206,6 @@ const Building3DConfigModal: React.FC<Props> = ({ projectId, onClose, onApply })
         setAiError('');
 
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
             // Seçilen tek PDF dosyası (varsa)
             const pdfFile = files.find(f => f.name.toLowerCase().endsWith('.pdf'));
             const singleFile = pdfFile ?? files[0];
@@ -244,8 +243,7 @@ const Building3DConfigModal: React.FC<Props> = ({ projectId, onClose, onApply })
                 return;
             }
 
-            // ── ADIM 2: Gemini ile analiz (PDF metin çıkarma başarısız/yetersizse) ──
-            if (!apiKey) throw new Error('QUOTA'); // API key yoksa direkt manuel moda geç
+            // ── ADIM 2: Sunucu tarafındaki Gemini hattıyla analiz ──
 
             const readFile = (file: File): Promise<{ data: string; mimeType: string }> =>
                 new Promise((resolve, reject) => {
@@ -265,48 +263,11 @@ const Building3DConfigModal: React.FC<Props> = ({ projectId, onClose, onApply })
 {"buildingWidth":0,"buildingDepth":0,"floorCount":4,"aptsPerFloor":4,"hasBasement":false,"hasBalcony":true,"balconyDepth":1.2,"windowCount":2,"floorHeight":3.0,"roofType":"flat","facadeSuggestion":"krem","confidence":0.85,"notes":""}
 buildingWidth=ön cephe metre, buildingDepth=derinlik metre, cm ise /100, mm ise /1000.`;
 
-            const parts = [
-                { text: prompt },
-                { inline_data: { mime_type: fileData.mimeType, data: fileData.data } },
-            ];
-
-            const MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
-            let lastErr = '';
-            let rawText = '';
-
-            for (const model of MODELS) {
-                try {
-                    const res = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-                        {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [{ parts }],
-                                generationConfig: { maxOutputTokens: 300, temperature: 0.1 },
-                            }),
-                        }
-                    );
-                    if (!res.ok) {
-                        const errTxt = await res.text();
-                        if (res.status === 429 || errTxt.includes('RESOURCE_EXHAUSTED')) { lastErr = 'QUOTA'; continue; }
-                        throw new Error(`${model} hata: ${res.status}`);
-                    }
-                    const data = await res.json();
-                    rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-                    if (rawText) break;
-                } catch (innerErr: any) {
-                    if (innerErr.message === 'QUOTA' || (innerErr.message || '').includes('RESOURCE_EXHAUSTED')) { lastErr = 'QUOTA'; continue; }
-                    throw innerErr;
-                }
-            }
-
-            if (!rawText && lastErr === 'QUOTA') throw new Error('QUOTA');
-
-            const match = rawText.match(/\{[\s\S]*\}/);
-            if (!match) throw new Error('AI yanıtı geçersiz format döndürdü');
-
-            const d = JSON.parse(match[0]);
+            const d = await requestAI<any>({
+                task: 'building-analysis',
+                prompt,
+                files: [{ mimeType: fileData.mimeType, data: fileData.data }],
+            });
             const wM = toMetres(d.buildingWidth ?? 20);
             const dM = toMetres(d.buildingDepth ?? wM * 0.5);
 

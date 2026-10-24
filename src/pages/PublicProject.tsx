@@ -4,11 +4,11 @@ import { apartmentService } from '../services/apartmentService';
 import { projectService } from '../services/projectService';
 import { userService } from '../services/userService';
 import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
+import { isVideoProjectMedia } from '../utils/projectMedia';
 
 const Building3D = lazy(() => import('../components/Building3D'));
 const Viewer3D = lazy(() => import('./FloorPlanner/components/Viewer3D'));
 import { SAMPLE_APARTMENT } from './FloorPlanner/sampleData';
-import { FloorPlanData } from './FloorPlanner/types';
 import { loadBuilding3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {
@@ -17,6 +17,49 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; t
     owner:     { label: 'MAL SAHİBİ', bg: 'linear-gradient(135deg,#f59e0b,#d97706)', glow: '0 0 18px rgba(245,158,11,0.45)', text: '#fff' },
     common:    { label: 'ORTAK', bg: '#334155', glow: 'none', text: '#94a3b8', dim: true },
 };
+
+function getFloorApartmentSpans(apartments: Apartment[], columnCount: number): Map<string, number> {
+    const units = apartments.filter(apartment => apartment.status !== 'common');
+    if (units.length === 0) return new Map();
+
+    const totalArea = units.reduce((total, apartment) => (
+        total + (Number.isFinite(apartment.square_meters) && apartment.square_meters > 0 ? apartment.square_meters : 1)
+    ), 0);
+    const spans = units.map((apartment, index) => {
+        const area = Number.isFinite(apartment.square_meters) && apartment.square_meters > 0
+            ? apartment.square_meters
+            : 1;
+        const exactSpan = columnCount * area / totalArea;
+        return {
+            id: apartment.id,
+            index,
+            span: Math.max(1, Math.floor(exactSpan)),
+            remainder: exactSpan - Math.floor(exactSpan),
+        };
+    });
+
+    let allocatedColumns = spans.reduce((total, item) => total + item.span, 0);
+    while (allocatedColumns > columnCount) {
+        const item = spans
+            .filter(candidate => candidate.span > 1)
+            .sort((a, b) => b.span - a.span || a.remainder - b.remainder)[0];
+        if (!item) break;
+        item.span -= 1;
+        allocatedColumns -= 1;
+    }
+
+    while (allocatedColumns < columnCount) {
+        const item = spans
+            .filter(candidate => candidate.remainder >= 0)
+            .sort((a, b) => b.remainder - a.remainder || a.index - b.index)[0];
+        if (!item) break;
+        item.span += 1;
+        item.remainder = -1;
+        allocatedColumns += 1;
+    }
+
+    return new Map(spans.map(item => [item.id, item.span]));
+}
 
 const PublicProject: React.FC = () => {
     const { publicCode } = useParams<{ publicCode: string }>();
@@ -114,17 +157,18 @@ const PublicProject: React.FC = () => {
 
     const availableApartments = apartments.filter(a => a.status === 'available');
     const floors = [...new Set(apartments.map(a => a.floor))].sort((a, b) => b - a);
-    const maxAptsPerFloor = floors.length > 0 ? Math.max(...floors.map(f => apartments.filter(a => a.floor === f).length)) : 1;
+    const gridColumnCount = Math.max(1, ...floors.map(floor => apartments
+        .filter(apartment => apartment.floor === floor && apartment.status !== 'common').length));
     const companyName = project.company_name || userCompany?.company_name || 'Firma Adı';
     const companyAddress = project.company_address || userCompany?.company_address;
     const companyLocation = project.company_location || userCompany?.company_location;
     const whatsappNum = project.whatsapp_number || userCompany?.whatsapp_number;
 
     return (
-        <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)', overflowX: 'auto' }}>
+        <div className="public-project-page" style={{ minHeight: '100vh', background: 'linear-gradient(180deg,#0f172a 0%,#1e1b4b 60%,#0f172a 100%)', overflowX: 'hidden' }}>
 
             {/* HERO HEADER */}
-            <div style={{
+            <div className="public-project-hero" style={{
                 background: 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%)',
                 padding: '14px 24px',
                 textAlign: 'center',
@@ -132,7 +176,7 @@ const PublicProject: React.FC = () => {
                 overflow: 'hidden',
                 boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
             }}>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', maxWidth: '1200px', margin: '0 auto' }}>
+                <div className="public-project-header-row" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', maxWidth: '1200px', margin: '0 auto' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', textAlign: 'left' }}>
                         <span style={{ fontSize: '36px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>🏢</span>
                         <div>
@@ -157,7 +201,7 @@ const PublicProject: React.FC = () => {
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                        <div style={{
+                        <div className="public-project-sales-count" style={{
                             background: 'rgba(255,255,255,0.25)',
                             backdropFilter: 'blur(10px)',
                             borderRadius: '30px',
@@ -207,7 +251,7 @@ const PublicProject: React.FC = () => {
 
             {/* IMAGE GALLERY */}
             {projectImages.length > 0 && (
-                <div style={{ maxWidth: '1200px', margin: '24px auto 0', padding: '0 16px' }}>
+                <div className="public-project-gallery" style={{ maxWidth: '1200px', margin: '24px auto 0', padding: '0 16px' }}>
                     <div style={{
                         overflowX: 'auto',
                         display: 'flex',
@@ -218,14 +262,15 @@ const PublicProject: React.FC = () => {
                         {projectImages.map((img, idx) => (
                             <div
                                 key={img.id}
-                                onClick={() => setLightboxIndex(idx)}
+                                className="public-project-media-card"
+                                onClick={isVideoProjectMedia(img) ? undefined : () => setLightboxIndex(idx)}
                                 style={{
                                     flexShrink: 0,
                                     width: '260px',
                                     height: '170px',
                                     borderRadius: '12px',
                                     overflow: 'hidden',
-                                    cursor: 'pointer',
+                                    cursor: isVideoProjectMedia(img) ? 'default' : 'pointer',
                                     scrollSnapAlign: 'start',
                                     border: '2px solid #334155',
                                     transition: 'transform 0.18s ease, border-color 0.18s ease',
@@ -233,12 +278,14 @@ const PublicProject: React.FC = () => {
                                 onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#6366f1'; }}
                                 onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#334155'; }}
                             >
-                                <img src={img.url} alt={img.name || `Resim ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                {isVideoProjectMedia(img)
+                                    ? <video src={img.url} aria-label={img.name || `Proje videosu ${idx + 1}`} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                    : <img src={img.url} alt={img.name || `Resim ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                             </div>
                         ))}
                     </div>
                     <p style={{ color: '#475569', fontSize: '11px', marginTop: '6px', textAlign: 'right' }}>
-                        {projectImages.length} proje resmi — büyütmek için tıkla
+                        {projectImages.length} proje fotoğrafı/video — fotoğrafı büyüt, videoyu oynat
                     </p>
                 </div>
             )}
@@ -304,6 +351,7 @@ const PublicProject: React.FC = () => {
                         const floorApts = apartments
                             .filter(a => a.floor === floor)
                             .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+                        const apartmentSpans = getFloorApartmentSpans(floorApts, gridColumnCount);
                         
                         const hasAvailableApts = floorApts.some(a => a.status === 'available');
 
@@ -344,11 +392,12 @@ const PublicProject: React.FC = () => {
                                             🔒 Satılık daire bulunmuyor
                                         </div>
                                     )}
-                                    <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, maxAptsPerFloor)}, 1fr)`, gap: '6px', minWidth: 0, overflow: 'hidden', alignItems: 'stretch' }}>
+                                    <div className="apt-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(1, gridColumnCount)}, minmax(0, 1fr))`, gap: '6px', minWidth: 0, overflow: 'hidden', alignItems: 'stretch' }}>
                                         {floorApts.map(apt => {
+                                            const apartmentSpan = apartmentSpans.get(apt.id) || 1;
                                             if (apt.status !== 'available' && apt.status !== 'common') {
                                                 return (
-                                                    <div key={apt.id} style={{ minWidth: 0, borderRadius: '10px', padding: '10px 6px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+                                                    <div key={apt.id} style={{ minWidth: 0, gridColumn: `span ${apartmentSpan}`, borderRadius: '10px', padding: '10px 6px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
                                                         <div style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.45)', textAlign: 'center' }}>
                                                             Daire {apt.apartment_number || '—'}
                                                         </div>
@@ -364,7 +413,7 @@ const PublicProject: React.FC = () => {
                                                     key={apt.id}
                                                     className={`apt-card ${isCommon ? 'common' : 'available'}`}
                                                     onClick={() => !isCommon && setSelectedApartment(apt)}
-                                                    style={{ minWidth: 0, gridColumn: isCommon ? '1 / -1' : undefined, background: cfg.bg, borderRadius: '10px', padding: '10px 8px', cursor: isCommon ? 'default' : 'pointer', boxShadow: cfg.glow, display: 'flex', flexDirection: 'column', gap: '3px', border: isCommon ? '1px solid #334155' : '1px solid rgba(255,255,255,0.15)', position: 'relative', overflow: 'hidden', opacity: cfg.dim ? 0.8 : 1 }}
+                                                    style={{ minWidth: 0, gridColumn: isCommon ? '1 / -1' : `span ${apartmentSpan}`, background: cfg.bg, borderRadius: '10px', padding: '10px 8px', cursor: isCommon ? 'default' : 'pointer', boxShadow: cfg.glow, display: 'flex', flexDirection: 'column', gap: '3px', border: isCommon ? '1px solid #334155' : '1px solid rgba(255,255,255,0.15)', position: 'relative', overflow: 'hidden', opacity: cfg.dim ? 0.8 : 1 }}
                                                 >
                                                     {!isCommon && (<div style={{ position: 'absolute', top: 0, left: '-50%', width: '30%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)', transform: 'skewX(-20deg)', pointerEvents: 'none' }} />)}
                                                     <div style={{ fontSize: '11px', fontWeight: 800, color: cfg.text, lineHeight: 1.2 }}>
@@ -443,6 +492,7 @@ const PublicProject: React.FC = () => {
             {/* MODAL */}
             {selectedApartment && (
                 <div
+                    className="public-apartment-overlay"
                     onClick={() => setSelectedApartment(null)}
                     style={{
                         position: 'fixed', inset: 0,
@@ -456,6 +506,7 @@ const PublicProject: React.FC = () => {
                     }}
                 >
                     <div
+                        className="public-apartment-modal"
                         onClick={e => e.stopPropagation()}
                         style={{
                             background: '#1e293b',
@@ -659,6 +710,7 @@ const PublicProject: React.FC = () => {
             {/* LIGHTBOX */}
             {lightboxIndex !== null && projectImages[lightboxIndex] && (
                 <div
+                    className="public-media-lightbox"
                     onClick={() => setLightboxIndex(null)}
                     style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
                 >
@@ -666,12 +718,22 @@ const PublicProject: React.FC = () => {
                     {lightboxIndex > 0 && (
                         <button onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }} style={{ position: 'absolute', left: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>‹</button>
                     )}
-                    <img
-                        src={projectImages[lightboxIndex].url}
-                        alt={projectImages[lightboxIndex].name}
-                        onClick={e => e.stopPropagation()}
-                        style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}
-                    />
+                    {isVideoProjectMedia(projectImages[lightboxIndex])
+                        ? <video
+                            src={projectImages[lightboxIndex].url}
+                            aria-label={projectImages[lightboxIndex].name || 'Proje videosu'}
+                            controls
+                            autoPlay
+                            playsInline
+                            onClick={e => e.stopPropagation()}
+                            style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}
+                        />
+                        : <img
+                            src={projectImages[lightboxIndex].url}
+                            alt={projectImages[lightboxIndex].name}
+                            onClick={e => e.stopPropagation()}
+                            style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}
+                        />}
                     {lightboxIndex < projectImages.length - 1 && (
                         <button onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }} style={{ position: 'absolute', right: '16px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '20px' }}>›</button>
                     )}

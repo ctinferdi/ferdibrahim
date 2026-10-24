@@ -207,9 +207,9 @@ const Settings: React.FC = () => {
             <div>
                 <h1 className="mb-lg">Ayarlar</h1>
 
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', alignItems: 'start' }}>
+                <div className="settings-user-management-layout">
 
-                    <div className="card" style={{ padding: '20px' }}>
+                    <div className="card settings-create-user-panel" style={{ padding: '20px' }}>
                         <h2 className="mb-xs" style={{ fontSize: '1.2rem' }}>Yeni Kullanıcı Oluştur</h2>
                         <p className="mb-md" style={{ color: 'var(--color-text-light)', fontSize: '0.85rem' }}>
                             Panele giriş yapabilecek yeni bir kullanıcı hesabı oluşturun.
@@ -249,11 +249,16 @@ const Settings: React.FC = () => {
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type={showPassword ? 'text' : 'password'}
-                                        className="form-input"
+                                        className="form-input password-input"
                                         value={newUserPassword}
                                         onChange={(e) => setNewUserPassword(e.target.value)}
                                         required
                                         minLength={6}
+                                        autoComplete="new-password"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        spellCheck={false}
+                                        placeholder="Büyük/küçük harf ve sembol kullanabilirsiniz"
                                         style={{ width: '100%', margin: 0, paddingRight: '40px' }}
                                     />
                                     <button
@@ -273,6 +278,9 @@ const Settings: React.FC = () => {
                                         {showPassword ? '🙈' : '👁️'}
                                     </button>
                                 </div>
+                                <small style={{ display: 'block', marginTop: '5px', color: 'var(--color-text-light)', fontSize: '11px' }}>
+                                    Büyük/küçük harf, rakam ve semboller serbesttir. En az 6 karakter.
+                                </small>
                             </div>
 
                             <button
@@ -284,17 +292,21 @@ const Settings: React.FC = () => {
                                 {loading ? 'Oluşturuluyor...' : 'Kullanıcıyı Oluştur'}
                             </button>
                         </form>
+                    </div>
 
-                        {/* User List */}
-                        <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
-                            <h2 className="mb-md" style={{ fontSize: '1.1rem', fontWeight: 700 }}>Kayıtlı Kullanıcılar</h2>
+                    {/* User List */}
+                    <div className="card settings-users-panel">
+                        <div className="settings-users-heading">
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Kayıtlı Kullanıcılar</h2>
+                            <span className="settings-users-count">{users.length} kullanıcı</span>
+                        </div>
 
-                            {loadingUsers ? (
+                        {loadingUsers ? (
                                 <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)' }}>
                                     <div className="spinner"></div>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div className="settings-users-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                     {users.map((u: any) => {
                                         const isSuper = ['ctinferdi@gmail.com'].includes((u.email || '').toLowerCase());
                                         const hasProjects = (u.accessible_projects || []).length > 0;
@@ -442,7 +454,6 @@ const Settings: React.FC = () => {
                                     )}
                                 </div>
                             )}
-                        </div>
                     </div>
                     {/* Delete Confirmation Modal */}
                     {showDeleteModal && (

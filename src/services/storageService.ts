@@ -2,7 +2,8 @@ import { supabase } from '../config/supabase';
 import { PlanFile } from '../types';
 
 const ALLOWED_PLAN_EXTENSIONS = ['pdf', 'dwg', 'jpg', 'jpeg', 'png', 'tiff', 'tif'];
-const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+const ALLOWED_PROJECT_MEDIA_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'm4v', 'mov', 'webm'];
+export const MAX_PROJECT_MEDIA_SIZE = 10 * 1024 * 1024;
 
 class StorageService {
     private bucketName = 'apartment-plans';
@@ -55,11 +56,11 @@ class StorageService {
         return data.publicUrl;
     }
 
-    async uploadProjectImage(file: File, projectId: string): Promise<{ url: string; path: string }> {
+    async uploadProjectMedia(file: File, projectId: string): Promise<{ url: string; path: string }> {
         const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
 
-        if (!ALLOWED_IMAGE_EXTENSIONS.includes(fileExt)) {
-            throw new Error(`Desteklenmeyen resim türü: .${fileExt}. İzin verilenler: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`);
+        if (!ALLOWED_PROJECT_MEDIA_EXTENSIONS.includes(fileExt)) {
+            throw new Error(`Desteklenmeyen dosya türü: .${fileExt}. İzin verilenler: ${ALLOWED_PROJECT_MEDIA_EXTENSIONS.join(', ')}`);
         }
 
         const fileName = `project-images/${projectId}/${Date.now()}.${fileExt}`;
@@ -75,6 +76,10 @@ class StorageService {
             .getPublicUrl(fileName);
 
         return { url: publicUrl, path: fileName };
+    }
+
+    async uploadProjectImage(file: File, projectId: string): Promise<{ url: string; path: string }> {
+        return this.uploadProjectMedia(file, projectId);
     }
 
     async deleteProjectImageFromStorage(storagePath: string): Promise<void> {

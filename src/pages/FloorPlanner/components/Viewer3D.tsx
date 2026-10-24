@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { FloorPlanData, Room, Wall, Opening } from '../types';
+import { FloorPlanData } from '../types';
 import { createFurniture3D } from '../furniture3D';
 
 interface Viewer3DProps {
@@ -319,6 +319,12 @@ const Viewer3D: React.FC<Viewer3DProps> = ({
             map: createParquetTexture('light'),
             roughness: 0.45,
             metalness: 0.05
+        });
+
+        const marbleMat = new THREE.MeshStandardMaterial({
+            map: createMarbleTexture(),
+            roughness: 0.3,
+            metalness: 0.02
         });
 
         const balconyTileMat = new THREE.MeshStandardMaterial({

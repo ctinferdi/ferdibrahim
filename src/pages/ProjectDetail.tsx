@@ -3,11 +3,11 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import { projectService } from '../services/projectService';
-import { storageService } from '../services/storageService';
+import { MAX_PROJECT_MEDIA_SIZE, storageService } from '../services/storageService';
 import { expenseService } from '../services/expenseService';
 import { checkService } from '../services/checkService';
 import { apartmentService } from '../services/apartmentService';
-import { Project, Expense, Check, Apartment } from '../types';
+import { Project, Expense, Check, Apartment, ProjectImage } from '../types';
 import { supabase } from '../config/supabase';
 
 
@@ -17,6 +17,7 @@ import CheckTable from './ProjectDetail/CheckTable';
 import ApartmentTable from './ProjectDetail/ApartmentTable';
 import SummaryCards from './ProjectDetail/SummaryCards';
 import QRCode from '../components/QRCode';
+import { isVideoProjectMedia } from '../utils/projectMedia';
 
 // Modals
 import ExpenseModal from './ProjectDetail/Modals/ExpenseModal';
@@ -157,8 +158,9 @@ const ProjectDetail: React.FC = () => {
     const [showQRSection, setShowQRSection] = useState(false);
     const [showCompanySection, setShowCompanySection] = useState(false);
     const [showImagesSection, setShowImagesSection] = useState(false);
-    const [projectImages, setProjectImages] = useState<any[]>([]);
+    const [projectImages, setProjectImages] = useState<ProjectImage[]>([]);
     const [imageUploading, setImageUploading] = useState(false);
+    const [mediaUploadError, setMediaUploadError] = useState<string | null>(null);
 
     // Load project images separately (not in polling loop)
     useEffect(() => {
@@ -285,7 +287,6 @@ const ProjectDetail: React.FC = () => {
             }
 
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
-            localStorage.setItem('dashboard_selected_project_id', proj.id);
 
             // Phase 3: Handle individual results
             if (results.length === 1) {
@@ -863,7 +864,7 @@ const ProjectDetail: React.FC = () => {
                     gap: 'var(--spacing-md)'
                 }}>
                     {/* Left Side: Actions */}
-                    <div style={{
+                    <div className="project-toolbar-actions" style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 'var(--spacing-md)'
@@ -930,7 +931,7 @@ const ProjectDetail: React.FC = () => {
 
                     {/* Left Column - Main Table */}
                     <div className="table-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+                        <div className="project-detail-heading-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                             <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, margin: 0, color: 'var(--color-dark)' }}>
                                 {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
                             </h2>
@@ -981,7 +982,8 @@ const ProjectDetail: React.FC = () => {
                         {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
 
-                    {/* Right Column - Floor Plan (Fixed side) */}
+                    {/* Building plan belongs to the apartments tab only. */}
+                    {activeTab === 'apartments' && (
                     <div className="floor-plan-column" style={{ width: '500px', borderLeft: '2px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)', paddingRight: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
 
                         {activeTab === 'apartments' && (
@@ -1059,14 +1061,14 @@ const ProjectDetail: React.FC = () => {
                             <div style={{ padding: 'var(--spacing-sm)', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: 'var(--spacing-md)' }}>
                                 <div onClick={() => setShowImagesSection(!showImagesSection)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showImagesSection ? '8px' : '0' }}>
                                     <h3 style={{ fontSize: '11px', fontWeight: 800, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                        🖼️ Bina Resimleri ({projectImages.length})
+                                        🖼️ Bina Resimleri ve Videoları ({projectImages.length})
                                     </h3>
                                     <span style={{ fontSize: '10px' }}>{showImagesSection ? '▼' : '◀'}</span>
                                 </div>
                                 {showImagesSection && (
                                     <>
                                         <p style={{ fontSize: '9px', color: 'var(--color-text-light)', margin: '0 0 8px' }}>
-                                            Cephe ve proje resimleri — müşteriler public sayfada görecek
+                                            JPG, PNG, WEBP, GIF, MP4, MOV veya WEBM — dosya başına en fazla 10 MB
                                         </p>
                                         <label style={{
                                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -1075,25 +1077,33 @@ const ProjectDetail: React.FC = () => {
                                             color: '#64748b', fontSize: '11px', marginBottom: '10px',
                                             background: '#fff'
                                         }}>
-                                            {imageUploading ? '⏳ Yükleniyor...' : '📷 Resim Ekle (JPG, PNG)'}
+                                            {imageUploading ? '⏳ Yükleniyor...' : '📷 Resim veya Video Ekle'}
                                             <input
                                                 type="file"
-                                                accept="image/*"
+                                                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.m4v,.mov"
                                                 multiple
                                                 style={{ display: 'none' }}
                                                 disabled={imageUploading}
                                                 onChange={async (e) => {
                                                     const files = Array.from(e.target.files || []);
                                                     if (!files.length || !project) return;
+                                                    const oversizedFile = files.find(file => file.size > MAX_PROJECT_MEDIA_SIZE);
+                                                    if (oversizedFile) {
+                                                        setMediaUploadError(`${oversizedFile.name}: dosya boyutu 10 MB sınırını aşıyor.`);
+                                                        e.target.value = '';
+                                                        return;
+                                                    }
                                                     setImageUploading(true);
+                                                    setMediaUploadError(null);
                                                     try {
                                                         for (const file of files) {
-                                                            const { url, path } = await storageService.uploadProjectImage(file, project.id);
+                                                            const { url, path } = await storageService.uploadProjectMedia(file, project.id);
                                                             const img = await projectService.addProjectImage({ project_id: project.id, url, storage_path: path, name: file.name });
                                                             setProjectImages(prev => [...prev, img]);
                                                         }
                                                     } catch (err) {
                                                         console.error('Image upload failed:', err);
+                                                        setMediaUploadError(err instanceof Error ? err.message : 'Dosya yüklenemedi. Lütfen tekrar deneyin.');
                                                     } finally {
                                                         setImageUploading(false);
                                                         e.target.value = '';
@@ -1101,11 +1111,14 @@ const ProjectDetail: React.FC = () => {
                                                 }}
                                             />
                                         </label>
+                                        {mediaUploadError && <p role="alert" style={{ color: '#dc2626', fontSize: '11px', margin: '-4px 0 8px' }}>{mediaUploadError}</p>}
                                         {projectImages.length > 0 && (
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '6px' }}>
+                                            <div className="project-media-admin-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '6px' }}>
                                                 {projectImages.map(img => (
                                                     <div key={img.id} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', background: '#e2e8f0' }}>
-                                                        <img src={img.url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                        {isVideoProjectMedia(img)
+                                                            ? <video src={img.url} aria-label={img.name || 'Proje videosu'} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                            : <img src={img.url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                                                         <button
                                                             onClick={async () => {
                                                                 if (!window.confirm('Bu resmi sil?')) return;
@@ -1153,16 +1166,27 @@ const ProjectDetail: React.FC = () => {
                                         {(() => {
                                             const cleanSlug = project.slug ? project.slug.replace(/-/g, '') : '';
                                             const publicPath = `${cleanSlug ? cleanSlug + 'proje/p/' : 'p/'}${project.public_code}`;
-                                            const fullUrl = `https://www.insaathesapp.com/${publicPath}`;
+                                            // In local development, keep the preview link on the same host/port
+                                            // so the public page shows the local code instead of the live site.
+                                            const appOrigin = import.meta.env.DEV
+                                                ? window.location.origin
+                                                : 'https://www.insaathesapp.com';
+                                            const fullUrl = new URL(publicPath, `${appOrigin}/`).toString();
                                             const storedDims = (() => { try { return JSON.parse(localStorage.getItem(`building_dims_${project.id}`) || '{}'); } catch { return {}; } })();
                                             const dimParam = (storedDims.w && storedDims.w >= 8) ? `&bw=${storedDims.w}&bd=${storedDims.d}` : '';
                                             const url3d = `${fullUrl}?view=3d${dimParam}`;
+                                            const downloadQr = (url: string, suffix: string) => {
+                                                const link = document.createElement('a');
+                                                link.download = `${project.name}-${suffix}-qr.png`;
+                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
+                                                link.click();
+                                            };
                                             return (
                                                 <>
                                                     <div style={{ fontSize: '9px', color: 'var(--color-text-light)', marginBottom: '6px', wordBreak: 'break-all', background: '#f1f5f9', borderRadius: '4px', padding: '4px 6px' }}>
                                                         {publicPath}
                                                     </div>
-                                                    <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                                                    <div className="project-qr-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '6px', marginBottom: '8px' }}>
                                                         <a
                                                             href={fullUrl}
                                                             target="_blank"
@@ -1173,35 +1197,29 @@ const ProjectDetail: React.FC = () => {
                                                             🔗 Sayfa
                                                         </a>
                                                         <button
-                                                            onClick={() => {
-                                                                const link = document.createElement('a');
-                                                                link.download = `${project.name}-qr.png`;
-                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(fullUrl)}`;
-                                                                link.click();
-                                                            }}
+                                                            onClick={() => downloadQr(fullUrl, '2d')}
                                                             className="btn"
-                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#10b981', color: 'white', flex: 1 }}
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.35rem', background: '#10b981', color: 'white', minWidth: 0 }}
                                                         >
-                                                            💾 İndir
+                                                            💾 2D QR İndir
                                                         </button>
                                                         <button
-                                                            onClick={() => {
-                                                                const link = document.createElement('a');
-                                                                link.download = `${project.name}-3d-qr.png`;
-                                                                link.href = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url3d)}`;
-                                                                link.click();
-                                                            }}
+                                                            onClick={() => downloadQr(url3d, '3d')}
                                                             className="btn"
-                                                            style={{ fontSize: '9px', padding: '0.3rem 0.6rem', background: '#6366f1', color: 'white', flex: 1 }}
+                                                            style={{ fontSize: '9px', padding: '0.3rem 0.35rem', background: '#6366f1', color: 'white', minWidth: 0 }}
                                                         >
-                                                            📦 3D QR
+                                                            💾 3D QR İndir
                                                         </button>
                                                     </div>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ fontSize: '9px', color: '#475569', fontWeight: 700, letterSpacing: 0.5 }}>2D KAREKOD</div>
-                                                        <QRCode value={fullUrl} size={120} />
-                                                        <div style={{ fontSize: '9px', color: '#6366f1', fontWeight: 700, letterSpacing: 0.5, marginTop: '4px' }}>3D KAREKOD</div>
-                                                        <QRCode value={url3d} size={120} />
+                                                    <div className="project-qr-grid">
+                                                        <div className="project-qr-card">
+                                                            <div style={{ fontSize: '9px', color: '#475569', fontWeight: 700, letterSpacing: 0.5 }}>2D KAREKOD</div>
+                                                            <QRCode value={fullUrl} size={120} />
+                                                        </div>
+                                                        <div className="project-qr-card">
+                                                            <div style={{ fontSize: '9px', color: '#6366f1', fontWeight: 700, letterSpacing: 0.5 }}>3D KAREKOD</div>
+                                                            <QRCode value={url3d} size={120} />
+                                                        </div>
                                                     </div>
                                                 </>
                                             );
@@ -1358,6 +1376,7 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
             </div>
 

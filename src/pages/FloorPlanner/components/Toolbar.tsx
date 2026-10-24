@@ -15,7 +15,7 @@ interface ToolbarProps {
     onUploadBlueprintClick: () => void;
     onAIAutoModel?: () => void;
     isAIProcessing?: boolean;
-    hasBlueprint?: boolean;
+    hasPlanSource?: boolean;
     onLoadSample: () => void;
     onClear: () => void;
     onSave: () => void;
@@ -38,7 +38,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     onUploadBlueprintClick,
     onAIAutoModel,
     isAIProcessing,
-    hasBlueprint,
+    hasPlanSource,
     onLoadSample,
     onClear,
     onSave,
@@ -47,7 +47,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     onToggleViewMode3D
 }) => {
     return (
-        <div style={{
+        <div className="floor-planner-toolbar" style={{
             height: '54px',
             background: '#ffffff',
             borderBottom: '1px solid #e2e8f0',
@@ -287,30 +287,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
             {/* Right: Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {onAIAutoModel && (
-                    <button
-                        onClick={onAIAutoModel}
-                        disabled={isAIProcessing}
-                        style={{
-                            padding: '6px 14px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 800,
-                            border: 'none',
-                            background: 'linear-gradient(135deg, #7c3aed, #c026d3, #2563eb)',
-                            color: '#ffffff',
-                            cursor: isAIProcessing ? 'wait' : 'pointer',
-                            boxShadow: '0 2px 10px rgba(192, 38, 211, 0.45)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px'
-                        }}
-                        title="Yapay zeka yüklü mimari planı analiz edip otomatik olarak tüm duvarları, kapıları, pencereleri ve mobilyaları 3D modeller"
-                    >
-                        ✨ {isAIProcessing ? 'Yapay Zeka Modelliyor...' : 'AI ile Otomatik 3D Modelle'}
-                    </button>
-                )}
-
                 <button
                     onClick={onUploadBlueprintClick}
                     style={{
@@ -379,6 +355,28 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 >
                     {saving ? 'Kaydediliyor...' : '💾 Planı Kaydet'}
                 </button>
+                {onAIAutoModel && (
+                    <button
+                        onClick={onAIAutoModel}
+                        disabled={isAIProcessing || !hasPlanSource}
+                        style={{
+                            padding: '6px 9px',
+                            borderRadius: '6px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            border: '1px solid #e2e8f0',
+                            background: '#f8fafc',
+                            color: hasPlanSource ? '#475569' : '#94a3b8',
+                            cursor: isAIProcessing ? 'wait' : hasPlanSource ? 'pointer' : 'not-allowed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}
+                        title={hasPlanSource ? 'İsteğe bağlı: yüklenen planla AI taslağı oluştur' : 'AI taslağı için önce bir plan yükleyin'}
+                    >
+                        ✨ {isAIProcessing ? 'Analiz...' : 'AI Taslağı'}
+                    </button>
+                )}
             </div>
         </div>
     );

@@ -20,7 +20,7 @@ interface ApartmentModalProps {
 const ApartmentModal: React.FC<ApartmentModalProps> = ({
     isOpen, onClose, id, project, editingApartmentId,
     apartmentFormData, setApartmentFormData,
-    setEditingApartmentId, setApartments, formatCurrency
+    setEditingApartmentId, setApartments
 }) => {
     if (!isOpen) return null;
 
@@ -729,7 +729,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                                                 )}
                                             </div>
                                         ) : (
-                                            installments.map((ins, index) => {
+                                            installments.map(ins => {
                                                 const isPaid = ins.status === 'paid';
                                                 const rowCurrency = ins.currency || currency;
                                                 return (

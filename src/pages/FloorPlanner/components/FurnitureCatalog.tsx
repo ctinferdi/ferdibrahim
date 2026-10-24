@@ -25,7 +25,7 @@ const FurnitureCatalog: React.FC<FurnitureCatalogProps> = ({
         : CATALOG_ITEMS.filter(item => item.category === activeCategory);
 
     return (
-        <div style={{
+        <div className="floor-planner-catalog" style={{
             width: '280px',
             height: '100%',
             background: '#ffffff',
@@ -76,7 +76,7 @@ const FurnitureCatalog: React.FC<FurnitureCatalogProps> = ({
             </div>
 
             {/* Item List */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignContent: 'start' }}>
+            <div className="floor-planner-catalog-grid" style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', alignContent: 'start' }}>
                 {filteredItems.map(item => {
                     const isSelected = selectedItem?.type === item.type;
                     return (

@@ -4,13 +4,15 @@ import Canvas2D from './components/Canvas2D';
 import Viewer3D from './components/Viewer3D';
 import FurnitureCatalog from './components/FurnitureCatalog';
 import Toolbar from './components/Toolbar';
-import { FloorPlanData, WallType, Wall } from './types';
+import { FloorPlanData, WallType } from './types';
 import { SAMPLE_APARTMENT, CatalogItem } from './sampleData';
 import { projectService } from '../../services/projectService';
 import { apartmentService } from '../../services/apartmentService';
 import { Project, Apartment } from '../../types';
-import DxfParser from 'dxf-parser';
-import { generateAIBuildingModel } from './aiModeler';
+import { analyzeFloorPlan, createPlanDraft, makePlanPreview, parseDxfGeometry, FloorPlanDraftInfo } from './floorPlanAI';
+import { FloorPlanAIRequest } from '../../services/aiService';
+
+type PlanSource = FloorPlanAIRequest['source'];
 
 const FloorPlanner: React.FC = () => {
     // Plan Data
@@ -34,6 +36,10 @@ const FloorPlanner: React.FC = () => {
     const [activeWallType, setActiveWallType] = useState<WallType>('standard');
     const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
     const [isAIProcessing, setIsAIProcessing] = useState<boolean>(false);
+    const [pendingSource, setPendingSource] = useState<PlanSource | null>(null);
+    const [analysisPreview, setAnalysisPreview] = useState<FloorPlanData | null>(null);
+    const [draftInfo, setDraftInfo] = useState<FloorPlanDraftInfo | null>(null);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
 
     // Projects & Apartments binding
     const [projects, setProjects] = useState<Project[]>([]);
@@ -69,6 +75,10 @@ const FloorPlanner: React.FC = () => {
     };
 
     const handleSave = async () => {
+        if (analysisPreview) {
+            alert('Önce AI taslağını onaylayın veya iptal edin.');
+            return;
+        }
         setSaving(true);
         try {
             localStorage.setItem('saved_floor_plan_data', JSON.stringify(planData));
@@ -90,13 +100,19 @@ const FloorPlanner: React.FC = () => {
     };
 
     const handleLoadSample = () => {
+        if (isAIProcessing) return;
         if (window.confirm('Örnek 2+1 lüks daire planı yüklensin mi? Mevcut çiziminiz değiştirilecektir.')) {
             setPlanData(SAMPLE_APARTMENT);
+            setAnalysisPreview(null);
+            setDraftInfo(null);
+            setPendingSource(null);
+            setAnalysisError(null);
             localStorage.setItem('saved_floor_plan_data', JSON.stringify(SAMPLE_APARTMENT));
         }
     };
 
     const handleClear = () => {
+        if (isAIProcessing) return;
         if (window.confirm('Tüm çizimi temizlemek istediğinizden emin misiniz?')) {
             const emptyPlan: FloorPlanData = {
                 id: 'plan_' + Date.now(),
@@ -110,155 +126,128 @@ const FloorPlanner: React.FC = () => {
                 roof: { enabled: false, type: 'pitched', height: 1.8, overhang: 0.6, color: '#9a3412' }
             };
             setPlanData(emptyPlan);
+            setAnalysisPreview(null);
+            setDraftInfo(null);
+            setPendingSource(null);
+            setAnalysisError(null);
             localStorage.setItem('saved_floor_plan_data', JSON.stringify(emptyPlan));
         }
     };
 
     const handleToggleRoof = () => {
-        setPlanData(prev => ({
+        const update = (prev: FloorPlanData): FloorPlanData => ({
             ...prev,
             roof: {
                 ...(prev.roof || { type: 'pitched', height: 1.8, overhang: 0.6, color: '#9a3412' }),
                 enabled: !prev.roof?.enabled
             }
-        }));
+        });
+        if (analysisPreview) setAnalysisPreview(prev => prev ? update(prev) : prev);
+        else setPlanData(update);
     };
 
-    // 🤖 AI Architectural Modeler Handler
-    const handleAIAutoModel = () => {
+    const handleAIAutoModel = async () => {
+        if (!pendingSource) {
+            setAnalysisError('Önce bir PDF, DXF veya plan görseli yükleyin.');
+            return;
+        }
         setIsAIProcessing(true);
-        setTimeout(() => {
-            const aiPlan = generateAIBuildingModel(planData.blueprint?.url);
-            setPlanData(aiPlan);
-            localStorage.setItem('saved_floor_plan_data', JSON.stringify(aiPlan));
+        setAnalysisError(null);
+        setAnalysisPreview(null);
+        setDraftInfo(null);
+        try {
+            const result = await analyzeFloorPlan({ task: 'floor-plan', source: pendingSource });
+            const draft = createPlanDraft(result, pendingSource.name, planData.blueprint);
+            setAnalysisPreview(draft.plan);
+            setDraftInfo(draft.info);
+            setViewType('2d');
+        } catch (error) {
+            setAnalysisError(error instanceof Error ? error.message : 'Plan analizi tamamlanamadı.');
+        } finally {
             setIsAIProcessing(false);
-
-            if (window.confirm('🎉 Yapay Zeka mimari planı başarıyla analiz etti ve 3D modelledi!\n\n• 4 Adet Daire (Salon, Mutfak, Yatak Odası, Çocuk Odası, Banyo)\n• Merdiven Evi, Asansör ve Kat Koridoru\n• 48 Duvar ve Cam Korkuluklu Balkonlar\n• Çelik Giriş Kapıları, Fransız Pencereler ve Betonarme Kolonlar\n• Lüks Mobilyalar, Mutfak Tezgahları ve Vitrifiyeler\n\nŞimdi 3D Gerçekçi Görünüme geçmek ister misiniz?')) {
-                setViewType('3d');
-                setViewMode3D('orbit');
-            }
-        }, 900);
+        }
     };
 
-    // Blueprint / DXF / DWG / PDF file import handler
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (isAIProcessing) return;
         const file = e.target.files?.[0];
         if (!file) return;
+        setAnalysisError(null);
+        setAnalysisPreview(null);
+        setDraftInfo(null);
+        try {
+            if (file.size > 3 * 1024 * 1024) {
+                throw new Error('Dosya 3 MB sınırını aşıyor. Planı küçültüp tekrar deneyin.');
+            }
 
-        const fileName = file.name.toLowerCase();
-
-        // 1. DXF CAD Vector File
-        if (fileName.endsWith('.dxf')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const text = event.target?.result as string;
-                    const parser = new DxfParser();
-                    const dxf = parser.parseSync(text);
-
-                    if (dxf && dxf.entities) {
-                        const newWalls: Wall[] = [];
-                        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-
-                        // Find bounds first
-                        dxf.entities.forEach((entity: any) => {
-                            if (entity.type === 'LINE' && entity.vertices && entity.vertices.length >= 2) {
-                                const [v1, v2] = entity.vertices;
-                                minX = Math.min(minX, v1.x, v2.x);
-                                maxX = Math.max(maxX, v1.x, v2.x);
-                                minY = Math.min(minY, v1.y, v2.y);
-                                maxY = Math.max(maxY, v1.y, v2.y);
-                            }
-                        });
-
-                        const spanX = maxX - minX;
-                        // Determine scale factor: if span is in mm (>1000), convert to meters
-                        let scaleFactor = 1;
-                        if (spanX > 500) scaleFactor = 0.001; // mm to m
-                        else if (spanX > 50) scaleFactor = 0.01; // cm to m
-
-                        dxf.entities.forEach((entity: any, i: number) => {
-                            if (entity.type === 'LINE' && entity.vertices && entity.vertices.length >= 2) {
-                                const [v1, v2] = entity.vertices;
-                                const wLen = Math.hypot(v2.x - v1.x, v2.y - v1.y) * scaleFactor;
-                                // Filter out very tiny line segments (< 0.2m)
-                                if (wLen >= 0.2) {
-                                    newWalls.push({
-                                        id: `dxf_w_${i}_${Date.now()}`,
-                                        start: {
-                                            x: Math.round((v1.x - minX) * scaleFactor * 10) / 10,
-                                            y: Math.round((v1.y - minY) * scaleFactor * 10) / 10
-                                        },
-                                        end: {
-                                            x: Math.round((v2.x - minX) * scaleFactor * 10) / 10,
-                                            y: Math.round((v2.y - minY) * scaleFactor * 10) / 10
-                                        },
-                                        thickness: 0.20,
-                                        height: 2.80,
-                                        wallType: 'standard'
-                                    });
-                                }
-                            }
-                        });
-
-                        if (newWalls.length > 0) {
-                            setPlanData(prev => ({
-                                ...prev,
-                                walls: [...prev.walls, ...newWalls]
-                            }));
-                            alert(`🎉 Başarılı! DXF dosyasından ${newWalls.length} adet mimari duvar kat planına aktarıldı.`);
-                        } else {
-                            alert('DXF dosyasında çizgi katmanı bulunamadı.');
-                        }
-                    }
-                } catch (err: any) {
-                    console.error('DXF parse error:', err);
-                    alert(`DXF dosyası okunurken hata oluştu: ${err.message}`);
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.dxf')) {
+                const parsed = parseDxfGeometry(await file.text());
+                setPendingSource({ kind: 'dxf', name: file.name, geometry: parsed.geometry });
+                setPlanData(prev => ({
+                    ...prev,
+                    blueprint: { url: parsed.previewUrl, name: file.name, x: 0, y: 0, scale: parsed.previewScale, opacity: 0.45 },
+                }));
+            } else {
+                const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+                const mimeType = isPdf ? 'application/pdf' : file.type;
+                if (!['application/pdf', 'image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) {
+                    throw new Error('PDF, DXF, JPG, PNG veya WEBP dosyası yükleyin.');
                 }
-            };
-            reader.readAsText(file);
-        }
-        // 2. Image blueprint (PNG, JPG, SVG)
-        else if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const dataUrl = event.target?.result as string;
+                const previewUrl = await makePlanPreview(file);
+                const data = previewUrl.split(',')[1] || '';
+                if (!data) throw new Error('Plan görüntüsü hazırlanamadı.');
+                setPendingSource({ kind: 'media', name: file.name, mimeType: 'image/jpeg', data });
                 setPlanData(prev => ({
                     ...prev,
                     blueprint: {
-                        url: dataUrl,
+                        url: previewUrl,
                         name: file.name,
                         x: 0,
                         y: 0,
-                        scale: 0.02,
-                        opacity: 0.45
-                    }
+                        scale: 0.012,
+                        opacity: 0.45,
+                    },
                 }));
-                alert(`✅ Mimari plan resmi arka plan olarak yerleştirildi! Artık üzerine kolayca duvar çizebilirsiniz.`);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            alert('Lütfen geçerli bir .DXF veya Resim (.jpg, .png) mimari plan dosyası seçiniz.');
+            }
+        } catch (error) {
+            setPendingSource(null);
+            setAnalysisError(error instanceof Error ? error.message : 'Dosya açılamadı.');
+        } finally {
+            e.target.value = '';
         }
-
-        // Reset input
-        e.target.value = '';
     };
+
+    const handleApplyAIPlan = () => {
+        if (!analysisPreview) return;
+        setPlanData(analysisPreview);
+        setAnalysisPreview(null);
+        setDraftInfo(null);
+        setPendingSource(null);
+        setAnalysisError(null);
+    };
+
+    const handleDiscardAIPlan = () => {
+        setAnalysisPreview(null);
+        setDraftInfo(null);
+    };
+
+    const displayedPlan = analysisPreview || planData;
 
     return (
         <Layout>
-            <div style={{ height: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f8fafc' }}>
+            <div className="floor-planner-shell" style={{ height: 'calc(100vh - 40px)', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f8fafc' }}>
                 {/* Hidden file input */}
                 <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileUpload}
-                    accept=".dxf,.png,.jpg,.jpeg,.svg"
+                    accept=".dxf,.pdf,.png,.jpg,.jpeg,.webp"
                     style={{ display: 'none' }}
                 />
 
                 {/* Top Project Binding Bar */}
-                <div style={{
+                <div className="floor-planner-project-bar" style={{
                     padding: '8px 16px',
                     background: '#ffffff',
                     borderBottom: '1px solid #e2e8f0',
@@ -273,8 +262,13 @@ const FloorPlanner: React.FC = () => {
                             📐 Kat Planı & 3D Mimari Stüdyo
                         </span>
                         <span style={{ fontSize: '11px', color: '#64748b', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px' }}>
-                            {planData.walls.length} Duvar • {planData.openings.length} Açıklık • {planData.furniture.length} Mobilya • {planData.columns?.length || 0} Kolon
+                            {displayedPlan.walls.length} Duvar • {displayedPlan.openings.length} Açıklık • {displayedPlan.furniture.length} Mobilya • {displayedPlan.columns?.length || 0} Kolon
                         </span>
+                        {pendingSource && (
+                            <span style={{ fontSize: '11px', color: '#0369a1', background: '#e0f2fe', padding: '3px 8px', borderRadius: '4px' }}>
+                                📄 Kaynak: {pendingSource.name}
+                            </span>
+                        )}
                         {planData.blueprint && (
                             <span style={{ fontSize: '11px', color: '#0284c7', background: '#e0f2fe', padding: '3px 8px', borderRadius: '4px' }}>
                                 📁 Altlık Plan: Aktif
@@ -323,12 +317,12 @@ const FloorPlanner: React.FC = () => {
                     onToggleOrtho={() => setOrthoMode(!orthoMode)}
                     activeWallType={activeWallType}
                     onChangeWallType={setActiveWallType}
-                    roofEnabled={planData.roof?.enabled}
+                    roofEnabled={displayedPlan.roof?.enabled}
                     onToggleRoof={handleToggleRoof}
-                    onUploadBlueprintClick={() => fileInputRef.current?.click()}
+                    onUploadBlueprintClick={() => { if (!isAIProcessing) fileInputRef.current?.click(); }}
                     onAIAutoModel={handleAIAutoModel}
                     isAIProcessing={isAIProcessing}
-                    hasBlueprint={Boolean(planData.blueprint)}
+                    hasPlanSource={Boolean(pendingSource)}
                     onLoadSample={handleLoadSample}
                     onClear={handleClear}
                     onSave={handleSave}
@@ -338,7 +332,35 @@ const FloorPlanner: React.FC = () => {
                 />
 
                 {/* Workspace Body */}
-                <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+                <div className="floor-planner-workspace" style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+                    {(analysisPreview || analysisError) && (
+                        <div style={{
+                            position: 'absolute', top: 8, left: 8, right: 8, zIndex: 40,
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                            padding: '10px 12px', borderRadius: 10,
+                            border: analysisError ? '1px solid #fecaca' : '1px solid #c4b5fd',
+                            background: analysisError ? 'rgba(254,242,242,0.97)' : 'rgba(250,245,255,0.97)',
+                            boxShadow: '0 4px 18px rgba(15,23,42,0.12)',
+                        }}>
+                            <div style={{ fontSize: 12, color: analysisError ? '#991b1b' : '#4c1d95', fontWeight: 700 }}>
+                                {analysisError ? `⚠️ ${analysisError}` : (
+                                    <>
+                                        ✨ AI taslağı hazır: {analysisPreview?.walls.length} duvar, {analysisPreview?.rooms.length} oda, {analysisPreview?.openings.length} açıklık.
+                                        {' '}Güven %{Math.round((draftInfo?.confidence || 0) * 100)}, ölçek %{Math.round((draftInfo?.scaleConfidence || 0) * 100)}.
+                                        {draftInfo?.warnings.length ? ` ${draftInfo.warnings[0]}` : ''}
+                                    </>
+                                )}
+                            </div>
+                            {analysisPreview ? (
+                                <div style={{ display: 'flex', flexShrink: 0, gap: 6 }}>
+                                    <button onClick={handleDiscardAIPlan} style={{ border: '1px solid #cbd5e1', background: '#fff', borderRadius: 7, padding: '6px 10px', cursor: 'pointer', fontWeight: 700 }}>İptal</button>
+                                    <button onClick={handleApplyAIPlan} style={{ border: 0, background: '#7c3aed', color: '#fff', borderRadius: 7, padding: '6px 12px', cursor: 'pointer', fontWeight: 800 }}>Taslağı Kullan</button>
+                                </div>
+                            ) : (
+                                <button onClick={() => setAnalysisError(null)} style={{ border: 0, background: 'transparent', color: '#991b1b', cursor: 'pointer', fontWeight: 800 }}>Kapat</button>
+                            )}
+                        </div>
+                    )}
                     {/* Left Furniture & Structure Catalog Drawer (only in 2D) */}
                     {viewType === '2d' && (
                         <FurnitureCatalog
@@ -351,62 +373,11 @@ const FloorPlanner: React.FC = () => {
                     )}
 
                     {/* Center Canvas / 3D Viewer */}
-                    <div style={{ flex: 1, height: '100%', position: 'relative', overflow: 'hidden' }}>
-                        {/* Floating AI Auto-Model Banner when blueprint is active */}
-                        {viewType === '2d' && planData.blueprint && (
-                            <div style={{
-                                position: 'absolute',
-                                top: 12,
-                                right: 20,
-                                background: 'linear-gradient(135deg, rgba(15,23,42,0.94), rgba(30,41,59,0.94))',
-                                backdropFilter: 'blur(12px)',
-                                border: '1px solid rgba(139,92,246,0.6)',
-                                boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
-                                borderRadius: '14px',
-                                padding: '10px 16px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '14px',
-                                zIndex: 30
-                            }}>
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ fontSize: '13px' }}>📁</span>
-                                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc' }}>
-                                            Altlık Mimari Plan Algılandı
-                                        </span>
-                                    </div>
-                                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                                        Yapay Zeka bu planı görüp tek tıkla 3D modelledin mi?
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={handleAIAutoModel}
-                                    disabled={isAIProcessing}
-                                    style={{
-                                        padding: '7px 16px',
-                                        borderRadius: '8px',
-                                        border: 'none',
-                                        background: 'linear-gradient(135deg, #7c3aed, #c026d3, #2563eb)',
-                                        color: '#ffffff',
-                                        fontSize: '11px',
-                                        fontWeight: 800,
-                                        cursor: isAIProcessing ? 'wait' : 'pointer',
-                                        boxShadow: '0 4px 15px rgba(192, 38, 211, 0.45)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
-                                    }}
-                                >
-                                    ✨ {isAIProcessing ? 'Modelleniyor...' : 'AI ile 3D Yap'}
-                                </button>
-                            </div>
-                        )}
-
+                    <div className="floor-planner-canvas" style={{ flex: 1, height: '100%', position: 'relative', overflow: 'hidden' }}>
                         {viewType === '2d' ? (
                             <Canvas2D
-                                planData={planData}
-                                onChange={setPlanData}
+                                planData={displayedPlan}
+                                onChange={(nextPlan) => analysisPreview ? setAnalysisPreview(nextPlan) : setPlanData(nextPlan)}
                                 activeTool={activeTool}
                                 selectedCatalogItem={selectedCatalogItem}
                                 onItemPlaced={() => setSelectedCatalogItem(null)}
@@ -415,7 +386,7 @@ const FloorPlanner: React.FC = () => {
                             />
                         ) : (
                             <Viewer3D
-                                planData={planData}
+                                planData={displayedPlan}
                                 viewMode={viewMode3D}
                                 onToggleViewMode={setViewMode3D}
                             />
