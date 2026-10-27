@@ -102,6 +102,7 @@ export function loadBuilding3DConfig(projectId: string): Building3DConfig {
 
 interface Props {
     projectId: string;
+    isOpen?: boolean;
     onClose:   () => void;
     onApply:   (cfg: Building3DConfig) => void;
 }
@@ -142,7 +143,7 @@ const pickBestFiles = (files: File[]): File[] => {
     return selected;
 };
 
-const Building3DConfigModal: React.FC<Props> = ({ projectId, onClose, onApply }) => {
+const Building3DConfigModal: React.FC<Props> = ({ projectId, isOpen = true, onClose, onApply }) => {
     const [step,           setStep]           = useState<Step>('upload');
     const [files,          setFiles]          = useState<File[]>([]);
     const [aiResult,       setAiResult]       = useState<AiResult | null>(null);
@@ -328,6 +329,8 @@ buildingWidth=ön cephe metre, buildingDepth=derinlik metre, cm ise /100, mm ise
     };
 
     const showPreview = step === 'preview' || (step === 'manual' && manPreviewOn);
+
+    if (!isOpen) return null;
 
     return (
         <div style={s.overlay} onClick={onClose}>

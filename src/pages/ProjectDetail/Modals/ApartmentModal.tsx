@@ -15,15 +15,14 @@ interface ApartmentModalProps {
     setEditingApartmentId: (id: string | null) => void;
     setApartments: (apts: any[]) => void;
     formatCurrency: (val: number) => string;
+    onSaved?: () => void;
 }
 
 const ApartmentModal: React.FC<ApartmentModalProps> = ({
     isOpen, onClose, id, project, editingApartmentId,
     apartmentFormData, setApartmentFormData,
-    setEditingApartmentId, setApartments
+    setEditingApartmentId, setApartments, onSaved
 }) => {
-    if (!isOpen) return null;
-
     const [currency, setCurrency] = useState<string>('TRY');
     const [installments, setInstallments] = useState<Installment[]>([]);
     const [showPlans, setShowPlans] = useState(false);
@@ -56,7 +55,13 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             .reduce((sum: number, ins: any) => sum + (Number(ins.amount) || 0), 0);
         
         setBaseDownpayment(formatNumberWithDots(Math.max(0, totalPaid - paidInstallmentsSum)));
-    }, [apartmentFormData]);
+    }, [editingApartmentId]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setPartialModal(current => current.isOpen ? { ...current, isOpen: false } : current);
+        }
+    }, [isOpen]);
 
     // Finansal Özet Hesaplamaları
     const soldPriceNum = parseNumberFromDots(apartmentFormData.sold_price);
@@ -289,6 +294,7 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             } else {
                 await apartmentService.addApartment(cleanData, project?.user_id || '');
             }
+            onSaved?.();
             onClose();
             setEditingApartmentId(null);
             setApartmentFormData({
@@ -306,6 +312,11 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
                 sort_order: 0,
                 project_id: id || ''
             });
+            setCurrency('TRY');
+            setInstallments([]);
+            setShowPlans(false);
+            setBaseDownpayment('0');
+            setPartialModal({ isOpen: false, installment: null, collectedAmount: '', tlNote: '' });
             const allApartments = await apartmentService.getApartments();
             setApartments(allApartments.filter(a => a.project_id === id));
         } catch (error: any) {
@@ -313,6 +324,8 @@ const ApartmentModal: React.FC<ApartmentModalProps> = ({
             alert(`Hata: ${error.message || 'Daire işlemi sırasında bir hata oluştu!'}`);
         }
     };
+
+    if (!isOpen) return null;
 
     return (
         <div style={{

@@ -6,6 +6,7 @@ import { supabase } from '../config/supabase';
 import { Check, CheckInput, CheckStatus, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import CheckModal from './ProjectDetail/Modals/CheckModal';
+import { deleteConfirmationService } from '../services/deleteConfirmationService';
 
 
 const Checks = () => {
@@ -20,7 +21,7 @@ const Checks = () => {
 
     // Security Code State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [receivedCode, setReceivedCode] = useState('');
+    const [deleteChallengeId, setDeleteChallengeId] = useState('');
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
     const [deletingCheckInfo, setDeletingCheckInfo] = useState<{ id: string, name: string } | null>(null);
     const [sendingCode, setSendingCode] = useState(false);
@@ -193,19 +194,14 @@ const Checks = () => {
             setSendingCode(true);
             setDeletingCheckInfo({ id, name });
             try {
-                const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                    body: {
-                        targetName: name,
-                        actionType: 'check',
-                        userEmail: user?.email
-                    }
+                const challengeId = await deleteConfirmationService.request({
+                    targetId: id,
+                    targetName: name,
+                    actionType: 'check',
                 });
-
-                if (error) throw error;
-                if (data?.code) {
-                    setReceivedCode(data.code);
-                    setShowDeleteModal(true);
-                }
+                setDeleteChallengeId(challengeId);
+                setDeleteConfirmCode('');
+                setShowDeleteModal(true);
             } catch (error: any) {
                 console.error('Code trigger error:', error);
                 alert('Güvenlik kodu gönderilemedi: ' + error.message);
@@ -216,19 +212,18 @@ const Checks = () => {
     };
 
     const handleDeleteConfirm = async () => {
-        if (deleteConfirmCode === receivedCode && deletingCheckInfo) {
+        if (deleteChallengeId && deletingCheckInfo) {
             try {
+                await deleteConfirmationService.verify(deleteChallengeId, deleteConfirmCode);
                 await deleteCheck(deletingCheckInfo.id);
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
-                setReceivedCode('');
+                setDeleteChallengeId('');
                 setDeletingCheckInfo(null);
             } catch (error: any) {
                 console.error('Delete error:', error);
-                alert('Silme işlemi sırasında bir hata oluştu.');
+                alert(error.message || 'Silme işlemi sırasında bir hata oluştu.');
             }
-        } else {
-            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 
@@ -313,12 +308,12 @@ const Checks = () => {
     return (
         <Layout>
             <div className="animate-fadeIn">
-                <div className="flex justify-between items-center mb-xl">
+                <div className="flex justify-between items-center mb-xl checks-page-toolbar">
                     <h1 style={{ display: 'flex', alignItems: 'center', gap: '15px', color: '#1a365d' }}>
                         <span style={{ fontSize: '1.5em' }}>💳</span> Çek Yönetimi
                     </h1>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ position: 'relative' }}>
+                    <div className="checks-page-actions" style={{ display: 'flex', gap: '10px' }}>
+                        <div className="checks-page-search" style={{ position: 'relative' }}>
                             <input
                                 type="text"
                                 className="form-input"
@@ -328,7 +323,7 @@ const Checks = () => {
                                 style={{ paddingRight: '40px', margin: 0 }}
                             />
                         </div>
-                        <div style={{ display: 'flex', background: 'var(--color-bg-alt)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
+                        <div className="checks-page-tabs" style={{ display: 'flex', background: 'var(--color-bg-alt)', padding: '4px', borderRadius: 'var(--radius-md)' }}>
                             <button
                                 onClick={() => setActiveTab('pending')}
                                 style={{
@@ -363,7 +358,7 @@ const Checks = () => {
                             </button>
                         </div>
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-primary checks-page-add-button"
                             onClick={() => {
                                 setEditingCheck(null);
                                 resetForm();
@@ -393,7 +388,7 @@ const Checks = () => {
                 </div>
 
                 {/* Table */}
-                <div className="table-container card" style={{ padding: 0, overflow: 'hidden', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)', border: '1px solid #f59e0b' }}>
+                <div className="table-container card checks-table-scroll" style={{ padding: 0, overflow: 'hidden', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)', border: '1px solid #f59e0b' }}>
                     <table className="table" style={{ borderCollapse: 'collapse' }}>
                         <thead style={{ background: '#fef3c7' }}>
                             <tr>
@@ -568,7 +563,7 @@ const Checks = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Çeki Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingCheckInfo?.name}</strong> kaydını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingCheckInfo?.name}</strong> kaydını silmek için güvenlik e-postasına gönderilen 6 haneli kodu girin.
                             </p>
 
                             <div className="form-group">
@@ -577,8 +572,8 @@ const Checks = () => {
                                     type="tel"
                                     className="form-input"
                                     value={deleteConfirmCode}
-                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                    placeholder="4 haneli kodu girin"
+                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="6 haneli kodu girin"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     autoFocus
@@ -599,7 +594,7 @@ const Checks = () => {
                                     onClick={() => {
                                         setShowDeleteModal(false);
                                         setDeleteConfirmCode('');
-                                        setReceivedCode('');
+                                        setDeleteChallengeId('');
                                         setDeletingCheckInfo(null);
                                     }}
                                     style={{ flex: 1 }}

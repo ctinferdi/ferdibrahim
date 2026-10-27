@@ -130,6 +130,16 @@ export const expenseService = {
         if (error) throw error;
     },
 
+    updateProjectExpenseCategory: async (projectId: string, oldCategory: string, newCategory: string): Promise<void> => {
+        const { error } = await supabase
+            .from('expenses')
+            .update({ category: toTurkishUpperCase(newCategory) })
+            .eq('project_id', projectId)
+            .eq('category', toTurkishUpperCase(oldCategory));
+
+        if (error) throw error;
+    },
+
     deleteExpense: async (id: string): Promise<void> => {
         const { error } = await supabase
             .from('expenses')

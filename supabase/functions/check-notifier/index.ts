@@ -2,6 +2,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
+const SUPER_ADMIN_EMAIL = 'ctinferdi@gmail.com'
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+const escapeHtml = (value: unknown): string => String(value ?? '-').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[character] ?? character))
 
 const sendEmail = async (emails: string[], subject: string, html: string): Promise<boolean> => {
     if (!RESEND_API_KEY || emails.length === 0) return false
@@ -55,21 +64,23 @@ const getDaysDifference = (todayStr: string, dueDateStr: string): number => {
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            }
-        })
+        return new Response(null, { status: 204, headers: corsHeaders })
     }
+    if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'POST is required.' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
     try {
-        const supabase = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        )
+        const authorization = req.headers.get('Authorization') ?? ''
+        const accessToken = authorization.match(/^Bearer\s+(.+)$/i)?.[1]
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        if (!accessToken || !supabaseUrl || !serviceRoleKey) {
+            return new Response(JSON.stringify({ error: 'Oturum doğrulanamadı.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+        const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken)
+        if (authError || user?.email?.trim().toLowerCase() !== SUPER_ADMIN_EMAIL) {
+            return new Response(JSON.stringify({ error: 'Bu işlem için yönetici yetkisi gerekiyor.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
 
         const todayStr = getTodayTurkeyDate()
         console.log(`[check-notifier] Running on ${todayStr} (Turkey Time)`)
@@ -85,7 +96,7 @@ serve(async (req) => {
         if (!checks || checks.length === 0) {
             return new Response(
                 JSON.stringify({ message: 'Bekleyen çek bulunamadı.', today: todayStr }),
-                { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }, status: 200 }
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
             )
         }
 
@@ -175,11 +186,11 @@ serve(async (req) => {
                     <p style="margin: 6px 0; font-size: 15px;"><strong>Kalan Süre:</strong> <span style="color: #4f46e5; font-weight: 700;">${remainingDays === 0 ? 'Bugün' : remainingDays === 1 ? 'Yarın (1 Gün)' : `${remainingDays} Gün Kaldı`}</span></p>
                     <p style="margin: 6px 0; font-size: 15px;"><strong>Tutar:</strong> <span style="font-size: 20px; font-weight: 800; color: #0f172a;">${amountFormatted}</span></p>
                     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
-                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Şirket:</strong> ${check.company || '-'}</p>
-                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Çek No:</strong> ${check.check_number || '-'}</p>
-                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Kullanım Alanı:</strong> ${check.category || '-'}</p>
-                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Proje:</strong> ${projectName}</p>
-                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Çeki Veren:</strong> ${check.issuer || '-'}</p>
+                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Şirket:</strong> ${escapeHtml(check.company)}</p>
+                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Çek No:</strong> ${escapeHtml(check.check_number)}</p>
+                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Kullanım Alanı:</strong> ${escapeHtml(check.category)}</p>
+                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Proje:</strong> ${escapeHtml(projectName)}</p>
+                    <p style="margin: 6px 0; font-size: 14px; color: #475569;"><strong>Çeki Veren:</strong> ${escapeHtml(check.issuer)}</p>
                 </div>
                 <div style="text-align: center; margin-top: 25px;">
                     <a href="https://www.insaathesapp.com/cekler" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-weight: 700; font-size: 14px;">Çek Yönetimine Git</a>
@@ -228,8 +239,8 @@ serve(async (req) => {
             }),
             {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
                 },
                 status: 200
             }
@@ -240,8 +251,8 @@ serve(async (req) => {
             JSON.stringify({ success: false, error: error.message }),
             {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
                 },
                 status: 500
             }

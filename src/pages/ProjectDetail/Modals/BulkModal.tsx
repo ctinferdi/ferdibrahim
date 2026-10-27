@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { apartmentService } from '../../../services/apartmentService';
 
 interface BulkModalProps {
@@ -19,10 +19,13 @@ const BulkModal: React.FC<BulkModalProps> = ({
     bulkFormData, setBulkFormData,
     setLoading, loadAllData,
 }) => {
+    const hasInitializedDraft = useRef(false);
 
-    // Kat planı modalı her açıldığında mevcut daireleri analiz edip sayıları günceller
+    // İlk açılışta mevcut daireleri forma al; Escape sonrası tekrar açmak taslağı ezmesin.
     React.useEffect(() => {
-        if (isOpen && apartments.length > 0) {
+        if (isOpen && !hasInitializedDraft.current) {
+            hasInitializedDraft.current = true;
+            if (apartments.length === 0) return;
             const floors = apartments.map(a => a.floor);
             const minFloor = Math.min(...floors);
             const maxFloor = Math.max(...floors);
@@ -58,7 +61,7 @@ const BulkModal: React.FC<BulkModalProps> = ({
                 duplexCount: topFloorApts.length || 2
             });
         }
-    }, [isOpen]);
+    }, [isOpen, apartments, setBulkFormData]);
 
     if (!isOpen) return null;
 

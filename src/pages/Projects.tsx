@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { deleteConfirmationService } from '../services/deleteConfirmationService';
 import Layout from '../components/Layout';
 import { projectService } from '../services/projectService';
 import { checkService } from '../services/checkService';
@@ -152,26 +153,21 @@ const Projects: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingProject, setDeletingProject] = useState<{ id: string, name: string } | null>(null);
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
-    const [receivedCode, setReceivedCode] = useState(''); // Code received from Edge Function
+    const [deleteChallengeId, setDeleteChallengeId] = useState('');
     const [sendingCode, setSendingCode] = useState(false);
 
     const triggerDeleteCode = async (project: { id: string, name: string }) => {
         setSendingCode(true);
         setDeletingProject(project);
         try {
-            const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                body: {
-                    targetName: project.name,
-                    actionType: 'project',
-                    userEmail: user?.email
-                }
+            const challengeId = await deleteConfirmationService.request({
+                targetId: project.id,
+                targetName: project.name,
+                actionType: 'project',
             });
-
-            if (error) throw error;
-            if (data?.code) {
-                setReceivedCode(data.code);
-                setShowDeleteModal(true);
-            }
+            setDeleteChallengeId(challengeId);
+            setDeleteConfirmCode('');
+            setShowDeleteModal(true);
         } catch (error: any) {
             console.error('Full Error:', error);
             const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
@@ -182,22 +178,21 @@ const Projects: React.FC = () => {
     };
 
     const handleDeleteProject = async () => {
-        if (deleteConfirmCode === receivedCode) {
+        if (deleteChallengeId) {
             try {
                 if (deletingProject) {
+                    await deleteConfirmationService.verify(deleteChallengeId, deleteConfirmCode);
                     await projectService.deleteProject(deletingProject.id);
                     const updatedProjects = await projectService.getProjects();
                     setProjects(updatedProjects);
                 }
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
-                setReceivedCode('');
+                setDeleteChallengeId('');
                 setDeletingProject(null);
             } catch (error: any) {
                 alert('Hata: ' + error.message);
             }
-        } else {
-            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 
@@ -538,7 +533,7 @@ const Projects: React.FC = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Projeyi Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingProject?.name}</strong> projesini silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingProject?.name}</strong> projesini silmek için güvenlik e-postasına gönderilen 6 haneli kodu girin.
                             </p>
 
                             <div className="form-group">
@@ -547,8 +542,8 @@ const Projects: React.FC = () => {
                                     type="tel"
                                     className="form-input"
                                     value={deleteConfirmCode}
-                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                    placeholder="4 haneli kodu girin"
+                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="6 haneli kodu girin"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     autoFocus

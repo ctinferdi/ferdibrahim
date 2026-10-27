@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Expense, Project } from '../../types';
+import { groupExpenseTransactions, ExpenseTransaction } from '../../utils/expenseGrouping';
 
 interface ExpenseTableProps {
     expenses: Expense[];
@@ -9,25 +10,51 @@ interface ExpenseTableProps {
     formatCurrency: (value: number) => string;
     sendingCode?: boolean;
     loading?: boolean;
+    emptyMessage?: string;
+    aggregatePartnerSplits?: boolean;
+    searchTerm?: string;
 }
 
 const PAGE_SIZES = [20, 40, 80, 100];
 
-const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, onDelete, formatCurrency, sendingCode, loading }) => {
+const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, onDelete, formatCurrency, sendingCode, loading, emptyMessage, aggregatePartnerSplits = false, searchTerm = '' }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
+    const tableHeaders = ['TARİH', 'ÖDEYEN', 'ÖDEME ŞEKLİ', 'VERİLEN KİŞİ', 'İŞ ADI', 'AÇIKLAMA', 'TUTAR', ...(aggregatePartnerSplits ? [] : ['İŞLEMLER'])];
+
+    const transactions = useMemo<ExpenseTransaction[]>(() => {
+        if (!aggregatePartnerSplits) {
+            return expenses.map(expense => ({ expenses: [expense], total: Number(expense.amount) || 0, shared: false }));
+        }
+
+        const query = searchTerm.trim().toLocaleLowerCase('tr-TR');
+        return groupExpenseTransactions(expenses).filter(transaction => {
+            if (!query) return true;
+            return transaction.expenses.some(expense => {
+                const partnerName = project.partners?.find(partner => partner.id === expense.partner_id)?.name || '';
+                return [
+                    expense.description,
+                    expense.category,
+                    expense.recipient,
+                    expense.payment_method,
+                    partnerName,
+                    String(expense.amount)
+                ].some(value => (value || '').toLocaleLowerCase('tr-TR').includes(query));
+            });
+        });
+    }, [aggregatePartnerSplits, expenses, project.partners, searchTerm]);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [expenses.length, pageSize]);
+    }, [transactions.length, pageSize, searchTerm]);
 
     if (loading) {
         return (
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="responsive-table-scroll" style={{ overflowX: 'auto' }}>
+                <table className="responsive-data-table expense-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
-                            {['TARİH', 'KİM İÇİN', 'ÖDEME ŞEKLİ', 'VERİLEN KİŞİ', 'İŞ ADI', 'AÇIKLAMA', 'TUTAR', 'İŞLEMLER'].map(h => (
+                            {tableHeaders.map(h => (
                                 <th key={h} style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>{h}</th>
                             ))}
                         </tr>
@@ -35,7 +62,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
                     <tbody>
                         {[1, 2, 3, 4, 5].map(i => (
                             <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                {[1, 2, 3, 4, 5, 6, 7, 8].map(j => (
+                                {tableHeaders.map((_, j) => (
                                     <td key={j} style={{ padding: 'var(--spacing-md)' }}>
                                         <div style={{ height: '20px', background: '#f1f5f9', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
                                     </td>
@@ -48,18 +75,18 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
         );
     }
 
-    if (expenses.length === 0) {
+    if (transactions.length === 0) {
         return (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
-                Henüz gider eklenmemiş. "+ Gider Ekle" butonuna tıklayarak başlayın.
+                {emptyMessage || 'Henüz gider eklenmemiş. "+ Gider Ekle" butonuna tıklayarak başlayın.'}
             </p>
         );
     }
 
-    const totalPages = Math.ceil(expenses.length / pageSize);
+    const totalPages = Math.ceil(transactions.length / pageSize);
     const safeCurrentPage = Math.min(currentPage, totalPages);
     const startIdx = (safeCurrentPage - 1) * pageSize;
-    const pagedExpenses = expenses.slice(startIdx, startIdx + pageSize);
+    const pagedTransactions = transactions.slice(startIdx, startIdx + pageSize);
 
     const getPageNumbers = () => {
         const pages: (number | '...')[] = [];
@@ -79,71 +106,80 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
 
     return (
         <div>
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="responsive-table-scroll" style={{ overflowX: 'auto' }}>
+                <table className="responsive-data-table expense-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>TARİH</th>
-                            <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>KİM İÇİN</th>
+                            <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>ÖDEYEN</th>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>ÖDEME ŞEKLİ</th>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>VERİLEN KİŞİ</th>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>İŞ ADI</th>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>AÇIKLAMA</th>
                             <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>TUTAR</th>
-                            <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>İŞLEMLER</th>
+                            {!aggregatePartnerSplits && <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>İŞLEMLER</th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {pagedExpenses.map((expense) => {
+                        {pagedTransactions.map((transaction) => {
+                            const expense = transaction.expenses[0];
                             const partner = project.partners?.find(p => p.id === expense.partner_id);
+                            const transactionValue = (getValue: (item: Expense) => string | undefined, fallback = '-') => {
+                                const values = Array.from(new Set(transaction.expenses.map(item => (getValue(item) || '').trim())));
+                                if (!transaction.shared) return values[0] || fallback;
+                                if (values.length <= 1) return values[0] || fallback;
+                                return 'Birden fazla';
+                            };
                             return (
-                                <tr key={expense.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                <tr key={transaction.expenses.map(item => item.id).join(':')} style={{ borderBottom: '1px solid var(--color-border)' }}>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
                                         {new Date(expense.date).toLocaleDateString('tr-TR')}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
-                                        {partner ? partner.name : '-'}
+                                        {transaction.shared ? 'ORTAK ÖDEME' : partner ? partner.name : '-'}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
-                                        {expense.payment_method || '-'}
+                                        {transactionValue(item => item.payment_method)}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
-                                        {expense.recipient || '-'}
+                                        {transactionValue(item => item.recipient)}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
                                         {expense.category}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                                        {expense.description}
+                                        {transactionValue(item => item.description, '')}
                                     </td>
                                     <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-sm)' }}>
-                                        {formatCurrency(expense.amount)}
+                                        {formatCurrency(transaction.total)}
                                     </td>
-                                    <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center' }}>
-                                        <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center' }}>
-                                            <button
-                                                onClick={() => onEdit(expense)}
-                                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
-                                                title="Düzenle"
-                                            >
-                                                📝
-                                            </button>
-                                            <button
-                                                onClick={() => onDelete(expense.id, expense.category)}
-                                                disabled={sendingCode}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    cursor: sendingCode ? 'wait' : 'pointer',
-                                                    fontSize: '1.2rem',
-                                                    opacity: sendingCode ? 0.5 : 1
-                                                }}
-                                                title="Sil"
-                                            >
-                                                {sendingCode ? '...' : '🗑️'}
-                                            </button>
-                                        </div>
-                                    </td>
+                                    {!aggregatePartnerSplits && <td style={{ padding: 'var(--spacing-xs)', textAlign: 'center' }}>
+                                        {(
+                                            <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center' }}>
+                                                <button
+                                                    onClick={() => onEdit(expense)}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                                                    title="Düzenle"
+                                                >
+                                                    📝
+                                                </button>
+                                                <button
+                                                    onClick={() => onDelete(expense.id, expense.category)}
+                                                    disabled={sendingCode}
+                                                    style={{
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: sendingCode ? 'wait' : 'pointer',
+                                                        fontSize: '1.2rem',
+                                                        opacity: sendingCode ? 0.5 : 1
+                                                    }}
+                                                    title="Sil"
+                                                >
+                                                    {sendingCode ? '...' : '🗑️'}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </td>}
                                 </tr>
                             );
                         })}
@@ -165,7 +201,7 @@ const ExpenseTable: React.FC<ExpenseTableProps> = ({ expenses, project, onEdit, 
                 {/* Info + Page Size */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '12px', color: 'var(--color-text-light)' }}>
-                        {startIdx + 1}–{Math.min(startIdx + pageSize, expenses.length)} / <strong>{expenses.length}</strong> gider
+                        {startIdx + 1}–{Math.min(startIdx + pageSize, transactions.length)} / <strong>{transactions.length}</strong> gider
                     </span>
                     <div style={{ display: 'flex', gap: '4px' }}>
                         {PAGE_SIZES.map(size => (

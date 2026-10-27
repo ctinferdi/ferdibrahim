@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { readJsonBody, requestBodyErrorResponse } from "../_shared/request-body.ts"
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
     status,
@@ -43,8 +44,10 @@ serve(async (request) => {
 
     let payload: unknown
     try {
-        payload = await request.json()
-    } catch {
+        payload = await readJsonBody(request, 1024 * 1024)
+    } catch (error) {
+        const bodyError = requestBodyErrorResponse(error, {})
+        if (bodyError) return bodyError
         return json({ error: "A JSON request body is required." }, 400)
     }
 

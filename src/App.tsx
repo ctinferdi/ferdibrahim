@@ -1,21 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
-import Projects from './pages/Projects';
-import ProjectDetail from './pages/ProjectDetail';
-import PublicProject from './pages/PublicProject';
-import ResetPassword from './pages/ResetPassword';
-import Checks from './pages/Checks';
-import Apartments from './pages/Apartments';
-import Expenses from './pages/Expenses';
-import FloorPlanner from './pages/FloorPlanner/FloorPlanner';
 import './index.css';
 
 import { useBackgroundRefresh } from './hooks/useBackgroundRefresh';
+
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const PublicProject = lazy(() => import('./pages/PublicProject'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Checks = lazy(() => import('./pages/Checks'));
+const Apartments = lazy(() => import('./pages/Apartments'));
+const Expenses = lazy(() => import('./pages/Expenses'));
+const FloorPlanner = lazy(() => import('./pages/FloorPlanner/FloorPlanner'));
 
 const RefreshManager = () => {
     useBackgroundRefresh();
@@ -32,9 +33,10 @@ function App() {
         <AuthProvider>
             <RefreshManager />
             <BrowserRouter>
+                <Suspense fallback={<div className="loading-container"><div className="spinner"></div></div>}>
                 <Routes>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
+                    <Route path="/register" element={<Navigate to="/login" replace />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route
                         path="/"
@@ -107,6 +109,7 @@ function App() {
                     <Route path="/p/:publicCode" element={<PublicProject />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                </Suspense>
             </BrowserRouter>
         </AuthProvider>
     );

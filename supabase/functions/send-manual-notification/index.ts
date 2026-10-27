@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { readJsonBody, requestBodyErrorResponse } from "../_shared/request-body.ts"
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const corsHeaders = {
@@ -39,19 +40,36 @@ const sendEmail = async (emails: string[], subject: string, html: string): Promi
     }
 }
 
+const escapeHtml = (value: unknown): string => String(value ?? '-').replace(/[&<>"']/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[character] ?? character))
+
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: corsHeaders })
     }
+    if (req.method !== 'POST') {
+        return new Response(JSON.stringify({ success: false, error: 'POST is required.' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
     try {
-        const { checkId } = await req.json()
-        if (!checkId) throw new Error('checkId is required')
+        const accessToken = req.headers.get('Authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        if (!accessToken || !supabaseUrl || !serviceRoleKey) {
+            return new Response(JSON.stringify({ success: false, error: 'Oturum doğrulanamadı.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+        const { data: { user: caller }, error: authError } = await supabase.auth.getUser(accessToken)
+        if (authError || !caller) {
+            return new Response(JSON.stringify({ success: false, error: 'Oturum doğrulanamadı.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
 
-        const supabase = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        )
+        const body = await readJsonBody(req)
+        const checkId = typeof body?.checkId === 'string' ? body.checkId : ''
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(checkId)) {
+            return new Response(JSON.stringify({ success: false, error: 'Çek seçimi geçersiz.' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
 
         const { data: check, error: checkError } = await supabase
             .from('checks')
@@ -60,6 +78,20 @@ serve(async (req) => {
             .single()
 
         if (checkError || !check) throw new Error(`Çek bulunamadı: ${checkError?.message}`)
+
+        const isSuperAdmin = caller.email?.trim().toLowerCase() === 'ctinferdi@gmail.com'
+        if (!isSuperAdmin) {
+            const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('accessible_projects')
+                .eq('id', caller.id)
+                .maybeSingle()
+            if (profileError) throw profileError
+            const accessibleProjects = Array.isArray(profile?.accessible_projects) ? profile.accessible_projects : []
+            if (!check.project_id || !accessibleProjects.includes(check.project_id)) {
+                return new Response(JSON.stringify({ success: false, error: 'Bu çek için bildirim gönderme yetkiniz yok.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+            }
+        }
 
         const emails = [
             check.notification_email,
@@ -91,11 +123,11 @@ serve(async (req) => {
                 <p style="margin: 5px 0;"><strong>Vade Tarihi:</strong> <span style="font-weight: bold;">${dueDateFormatted}</span></p>
                 <p style="margin: 5px 0;"><strong>Tutar:</strong> <span style="font-size: 18px; font-weight: bold;">${amountFormatted}</span></p>
                 <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 15px 0;">
-                <p style="margin: 5px 0;"><strong>Şirket:</strong> ${check.company || '-'}</p>
-                <p style="margin: 5px 0;"><strong>Çek No:</strong> ${check.check_number || '-'}</p>
-                <p style="margin: 5px 0;"><strong>Kullanım Alanı:</strong> ${check.category || '-'}</p>
-                <p style="margin: 5px 0;"><strong>Proje:</strong> ${projectName}</p>
-                <p style="margin: 5px 0;"><strong>Çeki Veren:</strong> ${check.issuer || '-'}</p>
+                <p style="margin: 5px 0;"><strong>Şirket:</strong> ${escapeHtml(check.company)}</p>
+                <p style="margin: 5px 0;"><strong>Çek No:</strong> ${escapeHtml(check.check_number)}</p>
+                <p style="margin: 5px 0;"><strong>Kullanım Alanı:</strong> ${escapeHtml(check.category)}</p>
+                <p style="margin: 5px 0;"><strong>Proje:</strong> ${escapeHtml(projectName)}</p>
+                <p style="margin: 5px 0;"><strong>Çeki Veren:</strong> ${escapeHtml(check.issuer)}</p>
             </div>
             <p style="color: #6b7280; font-size: 11px;">* Bu bildirim manuel olarak tetiklenmiştir.</p>
         </div>
@@ -120,9 +152,11 @@ serve(async (req) => {
         )
 
     } catch (error: any) {
+        const bodyError = requestBodyErrorResponse(error, corsHeaders)
+        if (bodyError) return bodyError
         return new Response(
             JSON.stringify({ success: false, error: error.message }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
     }
 })

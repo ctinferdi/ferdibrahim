@@ -24,8 +24,14 @@ import ExpenseModal from './ProjectDetail/Modals/ExpenseModal';
 import CheckModal from './ProjectDetail/Modals/CheckModal';
 import ApartmentModal from './ProjectDetail/Modals/ApartmentModal';
 import BulkModal from './ProjectDetail/Modals/BulkModal';
-import Building3DConfigModal, { Building3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
+import type { Building3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 import FloorPlanEditor from '../components/FloorPlanEditor';
+import ExpenseCategoryManager from './ProjectDetail/ExpenseCategoryManager';
+import { expenseCategoryService, ExpenseCategoryStorage, normalizeExpenseCategory } from '../services/expenseCategoryService';
+import { deleteConfirmationService } from '../services/deleteConfirmationService';
+
+const Building3D = React.lazy(() => import('../components/Building3D'));
+const Building3DConfigModal = React.lazy(() => import('./ProjectDetail/Modals/Building3DConfigModal'));
 
 const ProjectDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -44,13 +50,38 @@ const ProjectDetail: React.FC = () => {
     const [activeTab, setActiveTabState] = useState<'expenses' | 'checks' | 'apartments'>(
         tabParam === 'apartments' ? 'apartments' : (tabParam === 'checks' ? 'checks' : 'expenses')
     );
+    const [expenseSubTab, setExpenseSubTab] = useState<'records' | 'categories'>('records');
+    const [expenseCategories, setExpenseCategories] = useState<string[]>([]);
+    const [selectedExpenseCategory, setSelectedExpenseCategory] = useState<string | null>(null);
+    const [expenseCategoryStorage, setExpenseCategoryStorage] = useState<ExpenseCategoryStorage>('shared');
 
-    const [orphanedCache] = useState(false);
 
     const setActiveTab = (tab: 'expenses' | 'checks' | 'apartments') => {
         setActiveTabState(tab);
+        setExpenseSubTab('records');
         navigate(`/projeler/${id}?tab=${tab}`, { replace: true });
     };
+
+    useEffect(() => {
+        if (!project?.id) return;
+
+        const remoteCategories = Array.isArray(project.expense_categories)
+            ? project.expense_categories
+            : null;
+        const localCategories = expenseCategoryService.getLocal(project.id);
+        const useLocalCategories = Boolean(localCategories.length && !remoteCategories?.length);
+        const categories = useLocalCategories
+            ? localCategories
+            : (remoteCategories || localCategories);
+
+        setExpenseCategories(categories);
+        setSelectedExpenseCategory(current => (
+            current && categories.some(category => normalizeExpenseCategory(category) === normalizeExpenseCategory(current))
+                ? current
+                : categories[0] || null
+        ));
+        setExpenseCategoryStorage(remoteCategories && !useLocalCategories ? 'shared' : 'local');
+    }, [project?.id, project?.expense_categories]);
 
     // Modal Visibility
     const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -61,8 +92,7 @@ const ProjectDetail: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showFloorEditor, setShowFloorEditor] = useState(false);
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-
-    const Building3D = React.lazy(() => import('../components/Building3D'));
+    const [apartmentDraftActive, setApartmentDraftActive] = useState(false);
 
     // Form States
     const [selectedPartner, setSelectedPartner] = useState('');
@@ -110,6 +140,22 @@ const ProjectDetail: React.FC = () => {
     });
     const [editingApartmentId, setEditingApartmentId] = useState<string | null>(null);
 
+    useEffect(() => {
+        const closeActiveModalOnEscape = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape') return;
+            if (showDeleteModal) setShowDeleteModal(false);
+            else if (showExpenseModal) setShowExpenseModal(false);
+            else if (showCheckModal) setShowCheckModal(false);
+            else if (showApartmentModal) setShowApartmentModal(false);
+            else if (showBulkModal) setShowBulkModal(false);
+            else if (show3DConfig) setShow3DConfig(false);
+            else if (showFloorEditor) setShowFloorEditor(false);
+        };
+
+        window.addEventListener('keydown', closeActiveModalOnEscape);
+        return () => window.removeEventListener('keydown', closeActiveModalOnEscape);
+    }, [showDeleteModal, showExpenseModal, showCheckModal, showApartmentModal, showBulkModal, show3DConfig, showFloorEditor]);
+
     // Search Logic
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -126,6 +172,10 @@ const ProjectDetail: React.FC = () => {
             e.amount.toString().includes(term)
         );
     });
+
+    const selectedCategoryExpenses = selectedExpenseCategory
+        ? expenses.filter(expense => normalizeExpenseCategory(expense.category) === normalizeExpenseCategory(selectedExpenseCategory))
+        : [];
 
     const filteredChecks = checks.filter(c => {
         if (!searchTerm) return true;
@@ -191,9 +241,9 @@ const ProjectDetail: React.FC = () => {
 
     const [deletingExpense, setDeletingExpense] = useState<{ id: string, name: string } | null>(null);
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
-    const [receivedCode, setReceivedCode] = useState('');
+    const [deleteChallengeId, setDeleteChallengeId] = useState('');
     const [sendingCode, setSendingCode] = useState(false);
-    const [actionType, setActionType] = useState<'expense' | 'check' | 'apartment_reset'>('expense');
+    const [actionType, setActionType] = useState<'expense' | 'check' | 'apartment_reset' | 'expense_category'>('expense');
     const [saving, setSaving] = useState(false);
 
     // Loading States for individual sections
@@ -209,36 +259,11 @@ const ProjectDetail: React.FC = () => {
         if (showSpinner) setLoading(true);
 
         try {
-            // Shortcut: If ID is a UUID, we can fetch everything in parallel immediately.
-            // Shortcut 2: If we have the UUID cached from a previous visit, use it.
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            let targetUUID = isUUID ? id : null;
-
-            if (!targetUUID) {
-                const cached = localStorage.getItem(`project_uuid_${id}`);
-                if (cached) targetUUID = cached;
-            }
-
-            // Phase 2: Parallel Fetching
-            const fetchPromises: Promise<any>[] = [
-                projectService.getProjectBySlug(id)
-            ];
-
-            // If we have a UUID (direct or cached), trigger child fetches immediately
-            if (targetUUID) {
-                fetchPromises.push(expenseService.getExpenses(targetUUID));
-                fetchPromises.push(checkService.getChecks(targetUUID));
-                fetchPromises.push(apartmentService.getApartments(targetUUID));
-            }
-
-            if (showSpinner) {
-                setLoadingExpenses(true);
-                setLoadingChecks(true);
-                setLoadingApartments(true);
-            }
-
-            const results = await Promise.all(fetchPromises);
-            const proj = results[0] as Project;
+            setLoadingExpenses(true);
+            setLoadingChecks(true);
+            setLoadingApartments(true);
+            const proj = await projectService.getProjectBySlug(id);
 
             if (!proj) throw new Error('Proje bulunamadı');
 
@@ -258,57 +283,16 @@ const ProjectDetail: React.FC = () => {
             }
             // ----------------------
 
-            // --- ORPHANED DATA RECOVERY ---
-            // If the PC had a stale targetUUID from a deleted or hidden old project,
-            // We need to link those orphaned items to the new project so they appear on all devices.
-            if (targetUUID && targetUUID !== proj.id) {
-                try {
-                    console.log('Recovering data from old project ID', targetUUID, 'to', proj.id);
-                    await Promise.all([
-                        supabase.from('expenses').update({ project_id: proj.id }).eq('project_id', targetUUID),
-                        supabase.from('checks').update({ project_id: proj.id }).eq('project_id', targetUUID),
-                        supabase.from('apartments').update({ project_id: proj.id }).eq('project_id', targetUUID)
-                    ]);
-                } catch (e) {
-                    console.warn('Orphan check failed', e);
-                }
-                
-                // Fix the stale cache
-                localStorage.setItem(`project_uuid_${id}`, proj.id);
-                if (proj.slug) {
-                    localStorage.setItem(`project_uuid_${proj.slug}`, proj.id);
-                }
-                
-                // Force results length to 1 so it fetches fresh data for proj.id
-                results.length = 1;
-            } else if (proj.slug) {
-                // Store ID-Slug mapping for future fast-paths
-                localStorage.setItem(`project_uuid_${proj.slug}`, proj.id);
-            }
-
             setProject(prev => JSON.stringify(prev) !== JSON.stringify(proj) ? proj : prev);
 
-            // Phase 3: Handle individual results
-            if (results.length === 1) {
-                const realProjectId = proj.id;
-
-                // Fetch others in parallel now
-                const [exps, chks, apts] = await Promise.all([
-                    expenseService.getExpenses(realProjectId),
-                    checkService.getChecks(realProjectId),
-                    apartmentService.getApartments(realProjectId)
-                ]);
-
-                setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(exps) ? exps : prev);
-                setChecks(prev => JSON.stringify(prev) !== JSON.stringify(chks) ? chks : prev);
-                setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
-            } else {
-                // We fetched everything in the first Promise.all
-                const [_, exps, chks, apts] = results;
-                setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(exps) ? exps : prev);
-                setChecks(prev => JSON.stringify(prev) !== JSON.stringify(chks) ? chks : prev);
-                setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
-            }
+            const [exps, chks, apts] = await Promise.all([
+                expenseService.getExpenses(proj.id),
+                checkService.getChecks(proj.id),
+                apartmentService.getApartments(proj.id)
+            ]);
+            setExpenses(prev => JSON.stringify(prev) !== JSON.stringify(exps) ? exps : prev);
+            setChecks(prev => JSON.stringify(prev) !== JSON.stringify(chks) ? chks : prev);
+            setApartments(prev => JSON.stringify(prev) !== JSON.stringify(apts) ? apts : prev);
 
             // Sync company info
             const newCompanyInfo = {
@@ -343,20 +327,6 @@ const ProjectDetail: React.FC = () => {
         } catch (err: any) { console.error('Proje hata:', err); setErrorMsg(err.message || 'Hata'); setLoading(false); setLoadingExpenses(false); setLoadingChecks(false); setLoadingApartments(false); }
     }, [id, navigate, selectedPartner, showCompanySection]);
 
-    // Cache Saving Logic
-    useEffect(() => {
-        if (project && id) {
-            const cacheData = {
-                project,
-                expenses,
-                checks,
-                apartments,
-                timestamp: Date.now()
-            };
-            localStorage.setItem(`project_cache_${id}`, JSON.stringify(cacheData));
-        }
-    }, [project, expenses, checks, apartments, id]);
-
     // Initial Load & Refresh Logic
     useEffect(() => {
         const handleRefresh = () => {
@@ -368,30 +338,7 @@ const ProjectDetail: React.FC = () => {
         window.addEventListener('system-refresh', handleRefresh);
 
         if (id) {
-            // Try loading from cache first
-            const cached = localStorage.getItem(`project_cache_${id}`);
-            let hasCache = false;
-
-            if (cached) {
-                try {
-                    const data = JSON.parse(cached);
-                    // 1 hour cache validity or similar? For now, always show cache first for speed.
-                    setProject(data.project);
-                    setExpenses(data.expenses || []);
-                    setChecks(data.checks || []);
-                    setApartments(data.apartments || []);
-
-                    if (data.project) {
-                        setLoading(false);
-                        hasCache = true;
-                    }
-                } catch (e) {
-                    console.error('Cache parse error', e);
-                }
-            }
-
-            // Fetch fresh data (show spinner only if no cache)
-            loadAllData(!hasCache);
+            loadAllData(true);
         }
 
         return () => {
@@ -426,6 +373,101 @@ const ProjectDetail: React.FC = () => {
         setErrorMsg(null);
         setPartnerShares({});
         setPaymentSplitMode('single');
+    };
+
+    const saveExpenseCategoryList = async (nextCategories: string[]): Promise<ExpenseCategoryStorage> => {
+        if (!project?.id) return 'memory';
+
+        setExpenseCategories(nextCategories);
+        const storage = await expenseCategoryService.saveProjectCategories(project.id, nextCategories);
+        setExpenseCategoryStorage(storage);
+        if (storage === 'shared') {
+            setProject(current => current ? { ...current, expense_categories: nextCategories } : current);
+        }
+        return storage;
+    };
+
+    const addExpenseCategory = async (value: string): Promise<ExpenseCategoryStorage> => {
+        const categoryName = normalizeExpenseCategory(value);
+        if (!categoryName || expenseCategories.some(item => normalizeExpenseCategory(item) === categoryName)) {
+            return expenseCategoryStorage;
+        }
+        const result = await saveExpenseCategoryList([...expenseCategories, categoryName]);
+        setSelectedExpenseCategory(categoryName);
+        return result;
+    };
+
+    const renameExpenseCategory = async (oldValue: string, newValue: string): Promise<ExpenseCategoryStorage> => {
+        const oldCategory = normalizeExpenseCategory(oldValue);
+        const newCategory = normalizeExpenseCategory(newValue);
+        if (!project?.id || !oldCategory || !newCategory) throw new Error('Kalem adı boş olamaz.');
+        if (oldCategory === newCategory) return expenseCategoryStorage;
+        if (expenseCategories.some(item => normalizeExpenseCategory(item) === newCategory)) {
+            throw new Error('Bu isimde başka bir gider kalemi zaten var.');
+        }
+
+        const nextCategories = expenseCategories.map(item => (
+            normalizeExpenseCategory(item) === oldCategory ? newCategory : item
+        ));
+        let expenseRowsRenamed = false;
+        try {
+            await expenseService.updateProjectExpenseCategory(project.id, oldCategory, newCategory);
+            expenseRowsRenamed = true;
+            const result = await saveExpenseCategoryList(nextCategories);
+            if (result === 'memory') {
+                setExpenseCategories(expenseCategories);
+                throw new Error('Kalem ortak veriye kaydedilemedi. Lütfen tekrar deneyin.');
+            }
+            if (normalizeExpenseCategory(selectedExpenseCategory || '') === oldCategory) {
+                setSelectedExpenseCategory(newCategory);
+            }
+            await loadAllData(false);
+            return result;
+        } catch (error) {
+            if (expenseRowsRenamed) {
+                try {
+                    await expenseService.updateProjectExpenseCategory(project.id, newCategory, oldCategory);
+                } catch (rollbackError) {
+                    console.error('Gider kalemi adı geri alınamadı:', rollbackError);
+                }
+            }
+            throw error;
+        }
+    };
+
+    const requestExpenseCategoryRemoval = async (category: string): Promise<void> => {
+        setSendingCode(true);
+        setActionType('expense_category');
+        setDeletingExpense({ id: category, name: `${project?.name || 'Proje'} — ${category} gider kalemi` });
+        setDeleteConfirmCode('');
+
+        try {
+            const challengeId = await deleteConfirmationService.request({
+                targetId: category,
+                targetName: `${project?.name || 'Proje'} — ${category} gider kalemi`,
+                actionType: 'expense_category',
+                projectId: project?.id,
+            });
+            setDeleteChallengeId(challengeId);
+            setShowDeleteModal(true);
+        } catch (error: any) {
+            setDeletingExpense(null);
+            const message = error?.context?.error?.message || error?.message || 'Bilinmeyen bir hata oluştu';
+            alert('Güvenlik kodu gönderilemedi: ' + message);
+            throw error;
+        } finally {
+            setSendingCode(false);
+        }
+    };
+
+    const removeExpenseCategory = async (value: string): Promise<ExpenseCategoryStorage> => {
+        const categoryName = normalizeExpenseCategory(value);
+        const nextCategories = expenseCategories.filter(item => normalizeExpenseCategory(item) !== categoryName);
+        const result = await saveExpenseCategoryList(nextCategories);
+        if (normalizeExpenseCategory(selectedExpenseCategory || '') === categoryName) {
+            setSelectedExpenseCategory(nextCategories[0] || null);
+        }
+        return result;
     };
 
     const handleSaveExpense = async (e: React.FormEvent) => {
@@ -558,19 +600,15 @@ const ProjectDetail: React.FC = () => {
         setDeletingExpense({ id, name });
 
         try {
-            const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                body: {
-                    targetName: name,
-                    actionType: type,
-                    userEmail: user?.email
-                }
+            const challengeId = await deleteConfirmationService.request({
+                targetId: id,
+                targetName: name,
+                actionType: type,
+                projectId: project?.id,
             });
-
-            if (error) throw error;
-            if (data?.code) {
-                setReceivedCode(data.code);
-                setShowDeleteModal(true);
-            }
+            setDeleteChallengeId(challengeId);
+            setDeleteConfirmCode('');
+            setShowDeleteModal(true);
         } catch (error: any) {
             console.error('Full Error:', error);
             const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
@@ -587,19 +625,15 @@ const ProjectDetail: React.FC = () => {
         setDeletingExpense({ id: apt.id, name });
 
         try {
-            const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                body: {
-                    targetName: name,
-                    actionType: 'apartment_reset',
-                    userEmail: user?.email
-                }
+            const challengeId = await deleteConfirmationService.request({
+                targetId: apt.id,
+                targetName: name,
+                actionType: 'apartment_reset',
+                projectId: project?.id,
             });
-
-            if (error) throw error;
-            if (data?.code) {
-                setReceivedCode(data.code);
-                setShowDeleteModal(true);
-            }
+            setDeleteChallengeId(challengeId);
+            setDeleteConfirmCode('');
+            setShowDeleteModal(true);
         } catch (error: any) {
             console.error('Full Error:', error);
             const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
@@ -610,8 +644,9 @@ const ProjectDetail: React.FC = () => {
     };
 
     const handleDeleteConfirm = async () => {
-        if (deleteConfirmCode === receivedCode && deletingExpense) {
+        if (deleteChallengeId && deletingExpense) {
             try {
+                await deleteConfirmationService.verify(deleteChallengeId, deleteConfirmCode);
                 if (actionType === 'expense') {
                     await expenseService.deleteExpense(deletingExpense.id);
                 } else if (actionType === 'check') {
@@ -624,84 +659,22 @@ const ProjectDetail: React.FC = () => {
                         sold_price: 0,
                         paid_amount: 0
                     });
+                } else if (actionType === 'expense_category') {
+                    await removeExpenseCategory(deletingExpense.id);
                 }
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
-                setReceivedCode('');
+                setDeleteChallengeId('');
                 setDeletingExpense(null);
-                loadAllData(false);
-            } catch (err) { console.error(err); }
-        } else {
-            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
+                if (actionType !== 'expense_category') loadAllData(false);
+            } catch (err: any) {
+                console.error(err);
+                alert(err?.message || 'İşlem tamamlanamadı. Lütfen tekrar deneyin.');
+            }
         }
     };
 
     if (loading || !project) {
-        if (orphanedCache && (expenses.length > 0 || checks.length > 0 || apartments.length > 0)) {
-            return (
-                <Layout>
-                    <div style={{ padding: 'var(--spacing-2xl)', textAlign: 'center' }}>
-                        <h2 style={{ color: 'var(--color-danger)', marginBottom: 'var(--spacing-md)' }}>⚠️ Kritik Uyarı: Kurtarılmayı Bekleyen Veriler Var!</h2>
-                        <p style={{ marginBottom: 'var(--spacing-lg)' }}>
-                            Eski/silinmiş projeden kalan ve henüz sunucuya ulaşmamış <b>{expenses.length} gider, {checks.length} çek ve {apartments.length} daire</b> bilginiz tarayıcı hafızanızda tespit edildi.
-                        </p>
-                        <p style={{ marginBottom: 'var(--spacing-xl)', color: 'var(--color-text-light)' }}>
-                            Eğer önbelleği temizlerseniz bu veriler kalıcı olarak silinir. Aşağıdaki butona tıklayarak bu verileri güncel <b>HÜSEYİN DİNÇ</b> projenize güvenle aktarabilirsiniz.
-                        </p>
-                        <button
-                            className="btn btn-primary"
-                            style={{ padding: '16px 32px', fontSize: '18px', background: '#22c55e', border: 'none' }}
-                            onClick={async () => {
-                                setLoading(true);
-                                try {
-                                    // Güncel HÜSEYİN DİNÇ projesini bul
-                                    const { data: newProj } = await supabase
-                                        .from('projects')
-                                        .select('id')
-                                        .eq('slug', 'huseyin-dinc')
-                                        .single();
-                                    
-                                    if (!newProj) {
-                                        alert('Güncel proje bulunamadı!');
-                                        return;
-                                    }
-
-                                    // Verileri tek tek yeni projeye kaydet
-                                    for (const exp of expenses) {
-                                        const { id: oldId, created_at, updated_at, ...cleanExp } = exp as any;
-                                        cleanExp.project_id = newProj.id;
-                                        cleanExp.user_id = user?.id;
-                                        await supabase.from('expenses').insert([cleanExp]);
-                                    }
-                                    for (const chk of checks) {
-                                        const { id: oldId, created_at, updated_at, ...cleanChk } = chk as any;
-                                        cleanChk.project_id = newProj.id;
-                                        cleanChk.user_id = user?.id;
-                                        await supabase.from('checks').insert([cleanChk]);
-                                    }
-
-                                    for (const apt of apartments) {
-                                        const { id: oldId, created_at, updated_at, ...cleanApt } = apt as any;
-                                        cleanApt.project_id = newProj.id;
-                                        await supabase.from('apartments').insert([cleanApt]);
-                                    }
-
-                                    alert('Tebrikler! Tüm veriler başarıyla kurtarıldı ve güncel projeye aktarıldı. Şimdi sayfaya yönlendiriliyorsunuz.');
-                                    localStorage.removeItem(`project_cache_${id}`);
-                                    window.location.href = '/projeler/huseyin-dinc';
-                                } catch (e: any) {
-                                    console.error(e);
-                                    alert('Kurtarma sırasında bir hata oluştu: ' + e.message);
-                                    setLoading(false);
-                                }
-                            }}
-                        >
-                            Verileri Kurtar ve Aktar
-                        </button>
-                    </div>
-                </Layout>
-            );
-        }
         return <Layout><div className="loading-container"><div className="spinner"></div></div></Layout>;
     }
     
@@ -750,7 +723,7 @@ const ProjectDetail: React.FC = () => {
         if (activeTab === 'expenses') {
             data = filteredExpenses.map(e => ({
                 'Tarih': new Date(e.date).toLocaleDateString('tr-TR'),
-                'Kim İçin': project?.partners?.find(p => p.id === e.partner_id)?.name || '',
+                'Ödeyen': project?.partners?.find(p => p.id === e.partner_id)?.name || '',
                 'Ödeme Şekli': e.payment_method || '-',
                 'Verilen Kişi': e.recipient || '-',
                 'İş Adı': e.category || '-',
@@ -869,20 +842,29 @@ const ProjectDetail: React.FC = () => {
                         alignItems: 'center',
                         gap: 'var(--spacing-md)'
                     }}>
-                        <button className="btn btn-primary" onClick={() => {
-                            if (activeTab === 'expenses') {
-                                resetExpenseForm();
-                                setShowExpenseModal(true);
-                            }
-                            else if (activeTab === 'checks') {
-                                resetCheckForm();
-                                setShowCheckModal(true);
-                            }
-                            else { setEditingApartmentId(null); setApartmentFormData({ ...apartmentFormData, status: 'sold', currency: 'TRY' }); setShowApartmentModal(true); }
-                        }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-                            + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
-                        </button>
-                        |
+                        {!(activeTab === 'expenses' && expenseSubTab === 'categories') && (
+                            <>
+                                <button className="btn btn-primary" onClick={() => {
+                                    if (activeTab === 'expenses') {
+                                        setShowExpenseModal(true);
+                                    }
+                                    else if (activeTab === 'checks') {
+                                        setShowCheckModal(true);
+                                    }
+                                    else {
+                                        if (!apartmentDraftActive) {
+                                            setEditingApartmentId(null);
+                                            setApartmentFormData({ ...apartmentFormData, status: 'sold', currency: 'TRY' });
+                                            setApartmentDraftActive(true);
+                                        }
+                                        setShowApartmentModal(true);
+                                    }
+                                }} style={{ height: '40px', padding: '0 1.2rem', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                                    + {activeTab === 'expenses' ? 'Gider Ekle' : activeTab === 'checks' ? 'Çek Ekle' : 'Daire Satışı'}
+                                </button>
+                                <span aria-hidden="true">|</span>
+                            </>
+                        )}
                         {/* Tabs */}
                         <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '8px', height: '40px', alignItems: 'center' }}>
                             <button className={`btn`} onClick={() => setActiveTab('expenses')} style={{ height: '100%', padding: '0 1rem', fontSize: '11px', background: activeTab === 'expenses' ? 'white' : 'transparent', color: activeTab === 'expenses' ? 'var(--color-primary)' : '#64748b', border: 'none', boxShadow: activeTab === 'expenses' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontWeight: 600 }}>Giderler</button>
@@ -920,6 +902,29 @@ const ProjectDetail: React.FC = () => {
 
                 </div>
 
+                {activeTab === 'expenses' && (
+                    <div className="expense-sub-tabs" role="tablist" aria-label="Gider görünümleri">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={expenseSubTab === 'records'}
+                            className={expenseSubTab === 'records' ? 'expense-sub-tab active' : 'expense-sub-tab'}
+                            onClick={() => setExpenseSubTab('records')}
+                        >
+                            Gider Kayıtları
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={expenseSubTab === 'categories'}
+                            className={expenseSubTab === 'categories' ? 'expense-sub-tab active' : 'expense-sub-tab'}
+                            onClick={() => setExpenseSubTab('categories')}
+                        >
+                            Gider Kalemleri
+                        </button>
+                    </div>
+                )}
+
 
                 {/* Main Content Area */}
                 <div className="project-detail-main" style={{
@@ -933,12 +938,16 @@ const ProjectDetail: React.FC = () => {
                     <div className="table-column" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'auto' }}>
                         <div className="project-detail-heading-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                             <h2 style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, margin: 0, color: 'var(--color-dark)' }}>
-                                {activeTab === 'expenses' ? 'Proje Giderleri' : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
+                                {activeTab === 'expenses'
+                                    ? expenseSubTab === 'categories'
+                                        ? selectedExpenseCategory ? `${selectedExpenseCategory} Gider Dökümü` : 'Gider Dökümü'
+                                        : 'Proje Giderleri'
+                                    : activeTab === 'checks' ? 'Proje Çekleri' : 'Proje Daireleri'}
                             </h2>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type="text"
-                                    placeholder="Ara..."
+                                    placeholder={activeTab === 'expenses' && expenseSubTab === 'categories' ? 'Bu kalemde ara...' : 'Ara...'}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     style={{
@@ -946,7 +955,9 @@ const ProjectDetail: React.FC = () => {
                                         borderRadius: '20px',
                                         border: '1px solid #e2e8f0',
                                         fontSize: '13px',
-                                        width: '200px',
+                                        width: '400px',
+                                        maxWidth: '100%',
+                                        boxSizing: 'border-box',
                                         outline: 'none',
                                         transition: 'all 0.2s',
                                         background: '#f8fafc'
@@ -958,7 +969,65 @@ const ProjectDetail: React.FC = () => {
                             </div>
                         </div>
 
-                        {activeTab === 'expenses' && <ExpenseTable expenses={filteredExpenses} project={project} formatCurrency={formatCurrency} loading={loadingExpenses} onEdit={(e) => { setEditingExpenseId(e.id); setExpenseDate(e.date); setCategory(e.category); setAmount(new Intl.NumberFormat('tr-TR').format(e.amount)); setSelectedPartner(e.partner_id || ''); setPaymentMethod(e.payment_method || ''); setRecipient(e.recipient || ''); setDescription(e.description); setPaymentSplitMode('single'); setPartnerShares({}); setShowExpenseModal(true); }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
+                        {activeTab === 'expenses' && expenseSubTab === 'categories' && (
+                            selectedExpenseCategory ? (
+                                <>
+                                    <ExpenseTable
+                                        expenses={selectedCategoryExpenses}
+                                        project={project}
+                                        formatCurrency={formatCurrency}
+                                        loading={loadingExpenses}
+                                        emptyMessage={`${selectedExpenseCategory} kaleminde henüz ödeme kaydı yok.`}
+                                        aggregatePartnerSplits
+                                        searchTerm={searchTerm}
+                                        onEdit={(e) => {
+                                            setEditingExpenseId(e.id);
+                                            setExpenseDate(e.date);
+                                            setCategory(e.category);
+                                            setAmount(new Intl.NumberFormat('tr-TR').format(e.amount));
+                                            setSelectedPartner(e.partner_id || '');
+                                            setPaymentMethod(e.payment_method || '');
+                                            setRecipient(e.recipient || '');
+                                            setDescription(e.description);
+                                            setPaymentSplitMode('single');
+                                            setPartnerShares({});
+                                            setShowExpenseModal(true);
+                                        }}
+                                        onDelete={handleDeleteClick}
+                                        sendingCode={sendingCode}
+                                    />
+                                </>
+                            ) : (
+                                <div className="expense-category-breakdown-empty">
+                                    {expenseCategories.length === 0
+                                        ? 'Ödeme dökümünü görmek için önce sağdan bir gider kalemi ekle.'
+                                        : 'Ödeme dökümünü görmek için sağdaki listeden bir gider kalemi seç.'}
+                                </div>
+                            )
+                        )}
+                        {activeTab === 'expenses' && expenseSubTab === 'records' && (
+                            <ExpenseTable
+                                expenses={filteredExpenses}
+                                project={project}
+                                formatCurrency={formatCurrency}
+                                loading={loadingExpenses}
+                                onEdit={(e) => {
+                                    setEditingExpenseId(e.id);
+                                    setExpenseDate(e.date);
+                                    setCategory(e.category);
+                                    setAmount(new Intl.NumberFormat('tr-TR').format(e.amount));
+                                    setSelectedPartner(e.partner_id || '');
+                                    setPaymentMethod(e.payment_method || '');
+                                    setRecipient(e.recipient || '');
+                                    setDescription(e.description);
+                                    setPaymentSplitMode('single');
+                                    setPartnerShares({});
+                                    setShowExpenseModal(true);
+                                }}
+                                onDelete={handleDeleteClick}
+                                sendingCode={sendingCode}
+                            />
+                        )}
                         {activeTab === 'checks' && <CheckTable checks={filteredChecks} formatCurrency={formatCurrency} loading={loadingChecks} onEdit={(c) => {
                             setEditingCheckId(c.id);
                             setCheckFormData({
@@ -979,8 +1048,24 @@ const ProjectDetail: React.FC = () => {
                             });
                             setShowCheckModal(true);
                         }} onDelete={handleDeleteClick} sendingCode={sendingCode} />}
-                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' }); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
+                        {activeTab === 'apartments' && <ApartmentTable apartments={filteredApartments} formatCurrency={formatCurrency} loading={loadingApartments} onEdit={(a) => { setEditingApartmentId(a.id); setApartmentFormData({ ...a, currency: a.currency || 'TRY', sold_price: a.sold_price || 0, paid_amount: a.paid_amount || 0, customer_name: a.customer_name || '', customer_phone: a.customer_phone || '', sort_order: a.sort_order || 0, plan_files: a.plan_files || [], installments: a.installments || [], project_id: a.project_id || id || '' }); setApartmentDraftActive(true); setShowApartmentModal(true); }} onReset={handleApartmentResetClick} sendingCode={sendingCode} />}
                     </div>
+
+                    {activeTab === 'expenses' && expenseSubTab === 'categories' && (
+                        <aside className="expense-category-sidebar" aria-label="Gider kalemleri listesi">
+                            <ExpenseCategoryManager
+                                categories={expenseCategories}
+                                expenses={expenses}
+                                storageMode={expenseCategoryStorage}
+                                selectedCategory={selectedExpenseCategory}
+                                onSelectCategory={setSelectedExpenseCategory}
+                                onAdd={addExpenseCategory}
+                                onRemove={requestExpenseCategoryRemoval}
+                                onRename={renameExpenseCategory}
+                                formatCurrency={formatCurrency}
+                            />
+                        </aside>
+                    )}
 
                     {/* Building plan belongs to the apartments tab only. */}
                     {activeTab === 'apartments' && (
@@ -1117,8 +1202,8 @@ const ProjectDetail: React.FC = () => {
                                                 {projectImages.map(img => (
                                                     <div key={img.id} style={{ position: 'relative', borderRadius: '6px', overflow: 'hidden', aspectRatio: '1', background: '#e2e8f0' }}>
                                                         {isVideoProjectMedia(img)
-                                                            ? <video src={img.url} aria-label={img.name || 'Proje videosu'} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                                            : <img src={img.url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                                                            ? <video src={img.display_url} aria-label={img.name || 'Proje videosu'} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                                            : <img src={img.display_url} alt={img.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                                                         <button
                                                             onClick={async () => {
                                                                 if (!window.confirm('Bu resmi sil?')) return;
@@ -1388,6 +1473,7 @@ const ProjectDetail: React.FC = () => {
                 onSave={handleSaveExpense}
                 project={project}
                 expenses={expenses}
+                expenseCategories={expenseCategories}
                 editingExpenseId={editingExpenseId}
                 expenseDate={expenseDate}
                 setExpenseDate={setExpenseDate}
@@ -1411,11 +1497,12 @@ const ProjectDetail: React.FC = () => {
                 errorMsg={errorMsg}
             />
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
-            <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
+            <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} onSaved={() => setApartmentDraftActive(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={project?.id || id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} projectImages={projectImages} />
             <FloorPlanEditor isOpen={showFloorEditor} onClose={() => setShowFloorEditor(false)} projectName={project?.name} />
             {show3DConfig && project && (
                 <Building3DConfigModal
+                    isOpen={show3DConfig}
                     projectId={project.id}
                     onClose={() => setShow3DConfig(false)}
                     onApply={(_cfg: Building3DConfig) => setShow3DConfig(false)}
@@ -1427,10 +1514,16 @@ const ProjectDetail: React.FC = () => {
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'var(--spacing-md)' }}>
                     <div className="card" style={{ maxWidth: '400px', width: '100%', padding: 'var(--spacing-lg)' }}>
                         <h2 className="mb-md">
-                            {actionType === 'expense' ? 'Gideri Sil' : actionType === 'check' ? 'Çeki Sil' : 'Satışı İptal Et'}
+                            {actionType === 'expense'
+                                ? 'Gideri Sil'
+                                : actionType === 'check'
+                                    ? 'Çeki Sil'
+                                    : actionType === 'expense_category'
+                                        ? 'Gider Kalemini Sil'
+                                        : 'Satışı İptal Et'}
                         </h2>
                         <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '13px' }}>
-                            <strong>{deletingExpense?.name}</strong> işlemini onaylamak için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
+                            <strong>{deletingExpense?.name}</strong> işlemini onaylamak için güvenlik e-postasına gönderilen 6 haneli kodu girin.
                         </p>
                         <div className="form-group">
                             <label className="form-label" style={{ color: 'var(--color-primary)', fontWeight: 800 }}>KOD E-POSTA ADRESİNİZE GÖNDERİLDİ</label>
@@ -1438,8 +1531,8 @@ const ProjectDetail: React.FC = () => {
                                 type="tel"
                                 className="form-input"
                                 value={deleteConfirmCode}
-                                onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                placeholder="4 haneli kodu girin"
+                                onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                placeholder="6 haneli kodu girin"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 autoFocus
@@ -1448,7 +1541,7 @@ const ProjectDetail: React.FC = () => {
                         </div>
                         <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
                             <button onClick={handleDeleteConfirm} className="btn btn-primary" style={{ flex: 1, backgroundColor: '#f5576c' }}>ONAYLA</button>
-                            <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); setDeletingExpense(null); }} style={{ flex: 1 }}>İPTAL</button>
+                            <button className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setDeleteConfirmCode(''); setDeleteChallengeId(''); setDeletingExpense(null); }} style={{ flex: 1 }}>İPTAL</button>
                         </div>
                     </div>
                 </div>

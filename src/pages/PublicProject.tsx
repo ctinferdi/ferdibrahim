@@ -118,7 +118,7 @@ const PublicProject: React.FC = () => {
             }
             if (proj?.id) {
                 try {
-                    const imgs = await projectService.getProjectImages(proj.id);
+                    const imgs = await projectService.getPublicProjectImages(proj.id);
                     setProjectImages(imgs);
                 } catch {}
                 setBuildingDims(readDims(proj.id));
@@ -279,8 +279,8 @@ const PublicProject: React.FC = () => {
                                 onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLDivElement).style.borderColor = '#334155'; }}
                             >
                                 {isVideoProjectMedia(img)
-                                    ? <video src={img.url} aria-label={img.name || `Proje videosu ${idx + 1}`} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                    : <img src={img.url} alt={img.name || `Resim ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                                    ? <video src={img.display_url} aria-label={img.name || `Proje videosu ${idx + 1}`} controls playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                    : <img src={img.display_url} alt={img.name || `Resim ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
                             </div>
                         ))}
                     </div>
@@ -561,8 +561,8 @@ const PublicProject: React.FC = () => {
                                     <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, letterSpacing: 1, marginBottom: '10px' }}>DAİRE PLANLARI</div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         {selectedApartment.plan_files.map((file: PlanFile) => (
-                                            <a key={file.id} href={file.url} target="_blank" rel="noopener noreferrer"
-                                                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', textDecoration: 'none', color: '#e2e8f0' }}>
+                                            <a key={file.id} href={file.display_url} aria-disabled={!file.display_url} onClick={event => { if (!file.display_url) event.preventDefault(); }} target="_blank" rel="noopener noreferrer"
+                                                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '10px', textDecoration: 'none', color: '#e2e8f0', opacity: file.display_url ? 1 : 0.55, cursor: file.display_url ? 'pointer' : 'not-allowed' }}>
                                                 <span style={{ fontSize: '20px' }}>{file.type === 'pdf' ? '📄' : file.type === 'dwg' ? '📐' : '🖼️'}</span>
                                                 <div style={{ flex: 1 }}>
                                                     <div style={{ fontSize: '13px', fontWeight: 600 }}>{file.name}</div>
@@ -720,7 +720,7 @@ const PublicProject: React.FC = () => {
                     )}
                     {isVideoProjectMedia(projectImages[lightboxIndex])
                         ? <video
-                            src={projectImages[lightboxIndex].url}
+                            src={projectImages[lightboxIndex].display_url}
                             aria-label={projectImages[lightboxIndex].name || 'Proje videosu'}
                             controls
                             autoPlay
@@ -729,7 +729,7 @@ const PublicProject: React.FC = () => {
                             style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}
                         />
                         : <img
-                            src={projectImages[lightboxIndex].url}
+                            src={projectImages[lightboxIndex].display_url}
                             alt={projectImages[lightboxIndex].name}
                             onClick={e => e.stopPropagation()}
                             style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: '12px', objectFit: 'contain' }}

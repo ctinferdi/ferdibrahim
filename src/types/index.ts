@@ -64,6 +64,8 @@ export interface PlanFile {
     id: string;
     name: string;
     url: string;
+    storage_path?: string;
+    display_url?: string;
     type: 'pdf' | 'image' | 'dwg';
     uploaded_at: string;
 }
@@ -112,6 +114,7 @@ export interface ProjectImage {
     project_id: string;
     url: string;
     storage_path?: string;
+    display_url?: string;
     name?: string;
     created_at?: string;
 }
@@ -137,6 +140,7 @@ export interface Project {
     company_location?: string;
     whatsapp_number?: string;
     notification_emails?: string[];
+    expense_categories?: string[];
     user_id?: string;
     created_at?: string;
     partners?: ProjectPartner[];

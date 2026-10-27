@@ -38,8 +38,11 @@ const Login: React.FC = () => {
         setResetLoading(true);
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password`,
+            const { error } = await supabase.functions.invoke('request-password-reset', {
+                body: {
+                    email: email.trim().toLowerCase(),
+                    redirectTo: `${window.location.origin}/reset-password`,
+                },
             });
             if (error) throw error;
             setResetSent(true);
@@ -69,7 +72,7 @@ const Login: React.FC = () => {
                 {resetSent ? (
                     <div style={{ textAlign: 'center', padding: '1rem' }}>
                         <p style={{ color: '#22c55e', fontWeight: 600, marginBottom: '1rem' }}>
-                            Şifre sıfırlama linki e-posta adresinize gönderildi.
+                            E-posta adresi sistemde kayıtlıysa şifre sıfırlama bağlantısı gönderilir.
                         </p>
                         <button
                             className="btn btn-secondary"
@@ -81,7 +84,7 @@ const Login: React.FC = () => {
                 ) : resetMode ? (
                     <form onSubmit={handleResetPassword} className="auth-form">
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-light)', marginBottom: '1rem' }}>
-                            E-posta adresinizi girin, şifre sıfırlama linki göndereceğiz.
+                            Ayarlar bölümünde kayıtlı e-posta adresinizi girin. Adres kayıtlıysa sıfırlama bağlantısı gönderilir.
                         </p>
                         <div className="form-group">
                             <label className="form-label" htmlFor="email">E-POSTA ADRESİ</label>

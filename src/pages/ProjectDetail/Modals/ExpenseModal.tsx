@@ -8,6 +8,7 @@ interface ExpenseModalProps {
     onSave: (e: React.FormEvent) => Promise<void>;
     project: Project;
     expenses?: Expense[];
+    expenseCategories?: string[];
     editingExpenseId: string | null;
     expenseDate: string;
     setExpenseDate: (val: string) => void;
@@ -51,6 +52,63 @@ const getAvatarColor = (index: number) => {
     return AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
 };
 
+interface ProjectExpenseCategoryPickerProps {
+    categories: string[];
+    selectedCategory: string;
+    onSelect: (category: string) => void;
+}
+
+const ProjectExpenseCategoryPicker: React.FC<ProjectExpenseCategoryPickerProps> = ({
+    categories,
+    selectedCategory,
+    onSelect
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="expense-project-category-picker">
+            <button
+                type="button"
+                className="expense-project-category-button"
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                onClick={() => setIsOpen(open => !open)}
+            >
+                <span aria-hidden="true">📁</span>
+                <span>Proje Kalemleri</span>
+                <span className="expense-project-category-count">{categories.length}</span>
+            </button>
+            {isOpen && (
+                <div className="expense-project-category-menu" role="listbox" aria-label="Kayıtlı proje gider kalemleri">
+                    {categories.length === 0 ? (
+                        <div className="expense-project-category-empty">
+                            Henüz proje kalemi eklenmedi. Giderler içindeki Gider Kalemleri sekmesinden ekleyebilirsin.
+                        </div>
+                    ) : categories.map(item => {
+                        const isSelected = item.toLocaleUpperCase('tr-TR') === selectedCategory.trim().toLocaleUpperCase('tr-TR');
+                        return (
+                            <button
+                                key={item}
+                                type="button"
+                                role="option"
+                                aria-selected={isSelected}
+                                className={isSelected ? 'expense-project-category-option selected' : 'expense-project-category-option'}
+                                onClick={() => {
+                                    onSelect(item);
+                                    setIsOpen(false);
+                                }}
+                            >
+                                <span>{item}</span>
+                                {isSelected && <span aria-hidden="true">✓</span>}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 // Clean floating suggestion input - appears right beneath input only when user types
 interface SuggestionInputProps {
     id: string;
@@ -61,10 +119,13 @@ interface SuggestionInputProps {
     suggestions: string[];
     required?: boolean;
     style?: React.CSSProperties;
+    showAllOnFocus?: boolean;
+    showRemoveButtons?: boolean;
 }
 
 const SuggestionInput: React.FC<SuggestionInputProps> = ({
-    id, label, value, onChange, placeholder, suggestions, required, style
+    id, label, value, onChange, placeholder, suggestions, required, style,
+    showAllOnFocus = false, showRemoveButtons = true
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const storageKey = `hidden_sugg_${id}`;
@@ -92,19 +153,19 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
         }
     };
 
-    // Filter suggestions based on typed query (only if at least 1 character typed)
+    // Optionally expose the saved list immediately when the field receives focus.
     const filtered = useMemo(() => {
         const query = value.trim().toLocaleUpperCase('tr-TR');
-        if (!query) return [];
+        if (!query && !showAllOnFocus) return [];
         const hiddenUpper = new Set(hiddenList.map(h => h.trim().toLocaleUpperCase('tr-TR')));
         return suggestions
             .filter(item => {
                 const upper = item.trim().toLocaleUpperCase('tr-TR');
                 if (hiddenUpper.has(upper)) return false;
-                return upper.includes(query);
+                return !query || upper.includes(query);
             })
-            .slice(0, 8);
-    }, [value, suggestions, hiddenList]);
+            .slice(0, showAllOnFocus && !query ? 24 : 8);
+    }, [value, suggestions, hiddenList, showAllOnFocus]);
 
     return (
         <div style={{ position: 'relative', ...style }}>
@@ -122,7 +183,7 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
                     setIsOpen(true);
                 }}
                 onFocus={() => {
-                    if (value.trim().length >= 1) setIsOpen(true);
+                    if (showAllOnFocus || value.trim().length >= 1) setIsOpen(true);
                 }}
                 onBlur={() => {
                     setTimeout(() => setIsOpen(false), 200);
@@ -179,7 +240,7 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
                             }}>
                                 {item}
                             </span>
-                            <button
+                            {showRemoveButtons && <button
                                 type="button"
                                 onMouseDown={(e) => {
                                     e.preventDefault();
@@ -214,7 +275,7 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
                                 }}
                             >
                                 ✕
-                            </button>
+                            </button>}
                         </div>
                     ))}
                 </div>
@@ -224,7 +285,7 @@ const SuggestionInput: React.FC<SuggestionInputProps> = ({
 };
 
 const ExpenseModal: React.FC<ExpenseModalProps> = ({
-    isOpen, onClose, onSave, project, expenses = [], editingExpenseId,
+    isOpen, onClose, onSave, project, expenses = [], expenseCategories = [], editingExpenseId,
     expenseDate, setExpenseDate,
     selectedPartner, setSelectedPartner,
     paymentMethod, setPaymentMethod,
@@ -236,8 +297,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
     paymentSplitMode, setPaymentSplitMode,
     saving, errorMsg
 }) => {
-    if (!isOpen) return null;
-
     const hasMultiplePartners = Boolean(project.partners && project.partners.length > 1);
 
     // Suggestions from past expenses and common presets
@@ -249,8 +308,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 set.add(e.category.trim().toLocaleUpperCase('tr-TR'));
             }
         });
-        return Array.from(set);
-    }, [expenses]);
+        const projectCategoryNames = new Set(expenseCategories.map(item => item.trim().toLocaleUpperCase('tr-TR')));
+        return Array.from(set).filter(item => !projectCategoryNames.has(item.toLocaleUpperCase('tr-TR')));
+    }, [expenses, expenseCategories]);
 
     const recipientSuggestions = useMemo(() => {
         const set = new Set<string>();
@@ -300,22 +360,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         }).length;
     }, [partnerShares, project.partners]);
 
-    // Contributing partners summary text
-    const contributingDetails = useMemo(() => {
-        if (!project.partners) return '';
-        const paying = project.partners
-            .map(p => ({
-                name: p.name,
-                amt: Number((partnerShares[p.id] || '0').replace(/\D/g, '')) || 0
-            }))
-            .filter(p => p.amt > 0);
-
-        if (paying.length === 1) {
-            return `${paying[0].name} (${formatNumberWithDots(paying[0].amt.toString())} TL)`;
-        }
-        return `${paying.length} Ortak`;
-    }, [partnerShares, project.partners]);
-
     // Handle individual partner amount change (user types manually)
     const handlePartnerShareChange = (partnerId: string, rawVal: string) => {
         // Strip non-digits and strip leading zeros (e.g. "05" -> "5", "00" -> "0")
@@ -337,6 +381,8 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         });
         setAmount(sum > 0 ? sum.toString() : '');
     };
+
+    if (!isOpen) return null;
 
     return (
         <div style={{
@@ -466,7 +512,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                     >
                                         {project.partners.map((partner) => (
                                             <option key={partner.id} value={partner.id}>
-                                                {partner.name} (%{partner.share_percentage})
+                                                {partner.name}
                                             </option>
                                         ))}
                                     </select>
@@ -495,15 +541,24 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                         </div>
 
                         {/* İş Adı / Kategori */}
-                        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                            <SuggestionInput
-                                id="expense_category"
-                                label="İŞ ADI / KATEGORİ"
-                                value={category}
-                                onChange={setCategory}
-                                placeholder="Beton, Demir, Hafriyat, İşçilik, vb."
-                                suggestions={categorySuggestions}
-                                required
+                        <div className="expense-category-entry" style={{ marginBottom: 'var(--spacing-md)' }}>
+                            <div className="expense-category-input-wrap">
+                                <SuggestionInput
+                                    id="expense_category"
+                                    label="İŞ ADI / KATEGORİ"
+                                    value={category}
+                                    onChange={setCategory}
+                                    placeholder="Beton, Demir, Hafriyat, İşçilik, vb."
+                                    suggestions={categorySuggestions}
+                                    required
+                                    showAllOnFocus
+                                    showRemoveButtons={false}
+                                />
+                            </div>
+                            <ProjectExpenseCategoryPicker
+                                categories={expenseCategories}
+                                selectedCategory={category}
+                                onSelect={setCategory}
                             />
                         </div>
 
@@ -738,7 +793,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                     background: partnerSum > 0 ? '#ecfdf5' : '#f8fafc',
                                     border: `1px solid ${partnerSum > 0 ? '#a7f3d0' : '#e2e8f0'}`,
                                     display: 'flex',
-                                    justifyContent: 'space-between',
+                                    justifyContent: 'flex-start',
                                     alignItems: 'center',
                                     fontSize: '12px',
                                     fontWeight: 700,
@@ -750,13 +805,6 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
                                             <strong>TOPLAM GİDER:</strong> {formatNumberWithDots(partnerSum.toString())} TL
                                         </span>
                                     </div>
-                                    <span>
-                                        {contributingCount > 1
-                                            ? `👥 ${contributingCount} Ortak Paylaştı`
-                                            : contributingCount === 1
-                                            ? `👤 ${contributingDetails}`
-                                            : `⚠️ Henüz tutar girilmedi`}
-                                    </span>
                                 </div>
                             </div>
                         )}

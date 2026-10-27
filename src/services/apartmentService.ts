@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { publicSupabase, supabase } from '../config/supabase';
 import { Apartment, ApartmentInput, PlanFile } from '../types';
 import { storageService } from './storageService';
 import { toTurkishUpperCase } from '../utils/stringUtils';
@@ -148,11 +148,13 @@ export const removePlanFile = async (apartmentId: string, fileId: string): Promi
     if (updateError) throw updateError;
 
     // Delete actual file from storage
-    if (fileToRemove?.url) {
+    if (fileToRemove?.storage_path || fileToRemove?.url) {
         const marker = '/apartment-plans/';
         const idx = fileToRemove.url.indexOf(marker);
-        if (idx !== -1) {
-            const storagePath = fileToRemove.url.substring(idx + marker.length);
+        const storagePath = fileToRemove.storage_path || (idx !== -1
+            ? fileToRemove.url.substring(idx + marker.length)
+            : '');
+        if (storagePath) {
             try {
                 await storageService.deleteFile(storagePath);
             } catch (e) {
@@ -165,7 +167,7 @@ export const removePlanFile = async (apartmentId: string, fileId: string): Promi
 // Get apartments by project public code (for public viewing)
 export const getApartmentsByPublicCode = async (publicCode: string): Promise<Apartment[]> => {
     // First get project by public code
-    const { data: project, error: projectError } = await supabase
+    const { data: project, error: projectError } = await publicSupabase
         .from('projects')
         .select('id')
         .eq('public_code', publicCode)
@@ -174,15 +176,25 @@ export const getApartmentsByPublicCode = async (publicCode: string): Promise<Apa
     if (projectError) throw projectError;
 
     // Then get ALL apartments for that project (available + sold)
-    const { data, error } = await supabase
+    const { data, error } = await publicSupabase
         .from('apartments')
-        .select('*')
+        .select('id, building_name, apartment_number, floor, square_meters, price, sold_price, currency, status, sort_order, plan_files, floor_plan_3d, project_id, created_at')
         .eq('project_id', project.id)
         .order('floor', { ascending: false })
         .order('apartment_number', { ascending: true });
 
     if (error) throw error;
-    return data as Apartment[];
+    return Promise.all(((data || []) as Apartment[]).map(async apartment => ({
+        ...apartment,
+        plan_files: await Promise.all((apartment.plan_files || []).map(async file => {
+            const reference = file.storage_path || file.url;
+            const signedUrl = await storageService.createSignedUrl(reference, true).catch(() => undefined);
+            return {
+                ...file,
+                display_url: signedUrl || (!storageService.isManagedObjectReference(reference) ? file.url : undefined),
+            };
+        })),
+    })));
 };
 
 export const apartmentService = {

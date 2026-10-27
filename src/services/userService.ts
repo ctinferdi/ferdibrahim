@@ -1,11 +1,11 @@
-import { supabase } from '../config/supabase';
+import { publicSupabase, supabase } from '../config/supabase';
 
 class UserService {
     // Get user profile with company info
     async getUserProfile(userId: string) {
-        const { data, error } = await supabase
+        const { data, error } = await publicSupabase
             .from('users')
-            .select('company_name, company_address, company_location, whatsapp_number, notification_emails')
+            .select('company_name, company_address, company_location, whatsapp_number')
             .eq('id', userId)
             .single();
 

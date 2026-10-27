@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { expenseService } from '../services/expenseService';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../config/supabase';
 import { Expense, ExpenseInput } from '../types';
 import { formatNumberWithDots, parseNumberFromDots } from '../utils/formatters';
+import { deleteConfirmationService } from '../services/deleteConfirmationService';
 
 
 const Expenses = () => {
@@ -17,7 +17,7 @@ const Expenses = () => {
 
     // Security Code State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [receivedCode, setReceivedCode] = useState('');
+    const [deleteChallengeId, setDeleteChallengeId] = useState('');
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
     const [deletingExpenseInfo, setDeletingExpenseInfo] = useState<{ id: string, name: string } | null>(null);
     const [sendingCode, setSendingCode] = useState(false);
@@ -108,19 +108,14 @@ const Expenses = () => {
             setSendingCode(true);
             setDeletingExpenseInfo({ id, name });
             try {
-                const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                    body: {
-                        targetName: name,
-                        actionType: 'expense',
-                        userEmail: user?.email
-                    }
+                const challengeId = await deleteConfirmationService.request({
+                    targetId: id,
+                    targetName: name,
+                    actionType: 'expense',
                 });
-
-                if (error) throw error;
-                if (data?.code) {
-                    setReceivedCode(data.code);
-                    setShowDeleteModal(true);
-                }
+                setDeleteChallengeId(challengeId);
+                setDeleteConfirmCode('');
+                setShowDeleteModal(true);
             } catch (error: any) {
                 console.error('Code trigger error:', error);
                 alert('Güvenlik kodu gönderilemedi: ' + error.message);
@@ -131,19 +126,18 @@ const Expenses = () => {
     };
 
     const handleDeleteConfirm = async () => {
-        if (deleteConfirmCode === receivedCode && deletingExpenseInfo) {
+        if (deleteChallengeId && deletingExpenseInfo) {
             try {
+                await deleteConfirmationService.verify(deleteChallengeId, deleteConfirmCode);
                 await expenseService.deleteExpense(deletingExpenseInfo.id);
                 setShowDeleteModal(false);
                 setDeleteConfirmCode('');
-                setReceivedCode('');
+                setDeleteChallengeId('');
                 setDeletingExpenseInfo(null);
             } catch (error: any) {
                 console.error('Delete error:', error);
-                alert('Silme işlemi sırasında bir hata oluştu.');
+                alert(error.message || 'Silme işlemi sırasında bir hata oluştu.');
             }
-        } else {
-            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
         }
     };
 
@@ -378,7 +372,7 @@ const Expenses = () => {
                         <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                             <h2 className="mb-md">Harcamayı Sil</h2>
                             <p className="mb-lg" style={{ color: 'var(--color-text-light)', fontSize: '14px' }}>
-                                <strong>{deletingExpenseInfo?.name}</strong> kaydını silmek için e-posta adresinize ({user?.email}) gönderilen 4 haneli kodu girin.
+                                <strong>{deletingExpenseInfo?.name}</strong> kaydını silmek için güvenlik e-postasına gönderilen 6 haneli kodu girin.
                             </p>
 
                             <div className="form-group">
@@ -387,8 +381,8 @@ const Expenses = () => {
                                     type="tel"
                                     className="form-input"
                                     value={deleteConfirmCode}
-                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                    placeholder="4 haneli kodu girin"
+                                    onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="6 haneli kodu girin"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     autoFocus
@@ -409,7 +403,7 @@ const Expenses = () => {
                                     onClick={() => {
                                         setShowDeleteModal(false);
                                         setDeleteConfirmCode('');
-                                        setReceivedCode('');
+                                        setDeleteChallengeId('');
                                         setDeletingExpenseInfo(null);
                                     }}
                                     style={{ flex: 1 }}

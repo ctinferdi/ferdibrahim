@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
+import { deleteConfirmationService } from '../services/deleteConfirmationService';
 
 
 const Settings: React.FC = () => {
@@ -78,26 +79,21 @@ const Settings: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletingUser, setDeletingUser] = useState<{ id: string, email: string } | null>(null);
     const [deleteConfirmCode, setDeleteConfirmCode] = useState('');
-    const [receivedCode, setReceivedCode] = useState('');
+    const [deleteChallengeId, setDeleteChallengeId] = useState('');
     const [sendingCode, setSendingCode] = useState(false);
 
     const handleDeleteUser = async (userId: string, targetEmail: string) => {
         setSendingCode(true);
         setDeletingUser({ id: userId, email: targetEmail });
         try {
-            const { data, error } = await supabase.functions.invoke('send-delete-code', {
-                body: {
-                    targetName: targetEmail,
-                    actionType: 'user',
-                    userEmail: user?.email
-                }
+            const challengeId = await deleteConfirmationService.request({
+                targetId: userId,
+                targetName: targetEmail,
+                actionType: 'user',
             });
-
-            if (error) throw error;
-            if (data?.code) {
-                setReceivedCode(data.code);
-                setShowDeleteModal(true);
-            }
+            setDeleteChallengeId(challengeId);
+            setDeleteConfirmCode('');
+            setShowDeleteModal(true);
         } catch (error: any) {
             console.error('Full Error:', error);
             const errorMsg = error.context?.error?.message || error.message || 'Bilinmeyen bir hata oluştu';
@@ -108,16 +104,11 @@ const Settings: React.FC = () => {
     };
 
     const confirmDeleteUser = async () => {
-        if (deleteConfirmCode !== receivedCode) {
-            alert('Girdiğiniz kod hatalı. Lütfen mailinizi kontrol edin.');
-            return;
-        }
-
         try {
             if (!deletingUser) return;
-
-            const { error } = await supabase.rpc('delete_user_by_id', {
-                target_user_id: deletingUser.id
+            if (!deleteChallengeId) throw new Error('Silme onayı bulunamadı. Yeni kod isteyin.');
+            const { error } = await supabase.functions.invoke('admin-delete-user', {
+                body: { targetUserId: deletingUser.id, challengeId: deleteChallengeId, code: deleteConfirmCode },
             });
 
             if (error) throw error;
@@ -125,12 +116,12 @@ const Settings: React.FC = () => {
             alert('✅ Kullanıcı başarıyla silindi.');
             setShowDeleteModal(false);
             setDeleteConfirmCode('');
-            setReceivedCode('');
+            setDeleteChallengeId('');
             setDeletingUser(null);
             fetchUsers();
         } catch (error: any) {
             console.error('Silme hatası:', error);
-            alert('❌ Kullanıcı silinemedi: ' + error.message);
+            alert('❌ Kullanıcı silinemedi: ' + (error.message || 'İşlem tamamlanamadı.'));
         }
     };
 
@@ -138,8 +129,8 @@ const Settings: React.FC = () => {
         if (!confirm(`${userEmail} için şifre sıfırlama linki gönderilecek. Devam edilsin mi?`)) return;
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(userEmail, {
-                redirectTo: `${window.location.origin}/reset-password`
+            const { error } = await supabase.functions.invoke('request-password-reset', {
+                body: { email: userEmail.trim().toLowerCase() },
             });
 
             if (error) throw error;
@@ -164,20 +155,16 @@ const Settings: React.FC = () => {
         setError('');
 
         try {
-            // Normal signUp kullan (admin.createUser izin vermiyor)
-            const { error } = await supabase.auth.signUp({
-                email: newUserEmail,
-                password: newUserPassword,
-                options: {
-                    data: {
-                        role: 'admin'
-                    }
-                }
+            const { error } = await supabase.functions.invoke('admin-create-user', {
+                body: {
+                    email: newUserEmail.trim().toLowerCase(),
+                    password: newUserPassword,
+                },
             });
 
             if (error) throw error;
 
-            setMessage(`✅ Kullanıcı başarıyla oluşturuldu: ${newUserEmail}\n\nNOT: Email doğrulama linki gönderildi.`);
+            setMessage(`✅ Kullanıcı başarıyla oluşturuldu: ${newUserEmail.trim().toLowerCase()}`);
             setNewUserEmail('');
             setNewUserPassword('');
             fetchUsers();
@@ -473,7 +460,7 @@ const Settings: React.FC = () => {
                             <div className="card" style={{ maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
                                 <h2 className="mb-md">Kullanıcıyı Sil</h2>
                                 <p className="mb-lg lowercase" style={{ color: 'var(--color-text-light)', fontSize: '14px', textTransform: 'lowercase' }}>
-                                    <strong>{deletingUser?.email?.toLowerCase()}</strong> kullanıcısını silmek için e-posta adresinize ({user?.email?.toLowerCase()}) gönderilen 4 haneli kodu girin.
+                                    <strong>{deletingUser?.email?.toLowerCase()}</strong> kullanıcısını silmek için güvenlik e-postasına gönderilen 6 haneli kodu girin.
                                 </p>
 
                                 <div className="form-group">
@@ -482,8 +469,8 @@ const Settings: React.FC = () => {
                                         type="tel"
                                         className="form-input"
                                         value={deleteConfirmCode}
-                                        onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                                        placeholder="4 haneli kodu girin"
+                                        onChange={(e) => setDeleteConfirmCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        placeholder="6 haneli kodu girin"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
                                         autoFocus
@@ -504,6 +491,7 @@ const Settings: React.FC = () => {
                                         onClick={() => {
                                             setShowDeleteModal(false);
                                             setDeleteConfirmCode('');
+                                            setDeleteChallengeId('');
                                             setDeletingUser(null);
                                         }}
                                         style={{ flex: 1 }}

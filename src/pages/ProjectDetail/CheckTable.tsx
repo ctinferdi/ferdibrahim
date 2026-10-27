@@ -13,8 +13,8 @@ interface CheckTableProps {
 const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, formatCurrency, sendingCode, loading }) => {
     if (loading) {
         return (
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="responsive-table-scroll" style={{ overflowX: 'auto' }}>
+                <table className="responsive-data-table check-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                             {['VADE TARİHİ', 'ÇEKLER', 'ŞİRKET', 'KULLANILACAK YER', 'KDV DURUMU', 'ÇEKİ VEREN KİŞİ', 'DURUM', 'İŞLEMLER'].map(h => (
@@ -47,8 +47,8 @@ const CheckTable: React.FC<CheckTableProps> = ({ checks, onEdit, onDelete, forma
     }
 
     return (
-        <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="responsive-table-scroll" style={{ overflowX: 'auto' }}>
+            <table className="responsive-data-table check-data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ background: '#ebf1ff', borderBottom: '2px solid #c7d2fe' }}>
                         <th style={{ padding: 'var(--spacing-xs)', textAlign: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-light)' }}>VADE TARİHİ</th>

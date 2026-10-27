@@ -1,6 +1,7 @@
-import { supabase } from '../config/supabase';
+import { publicSupabase, supabase } from '../config/supabase';
 import { Project, ProjectInput, ProjectPartner, ProjectPartnerInput, ProjectImage } from '../types';
 import { toTurkishUpperCase } from '../utils/stringUtils';
+import { storageService } from './storageService';
 
 // Helper: Slugify
 const slugify = (text: string): string => {
@@ -85,11 +86,12 @@ class ProjectService {
 
     // Get project by public code (for public viewing)
     async getProjectByPublicCode(publicCode: string): Promise<Project | null> {
-        const { data, error } = await supabase
+        const { data, error } = await publicSupabase
             .from('projects')
             .select(`
-                *,
-                partners:project_partners(*)
+                id, name, description, status, slug, public_code, company_name,
+                company_address, company_location, whatsapp_number, user_id, created_at,
+                partners:project_partners(id, project_id, name, share_percentage, created_at)
             `)
             .eq('public_code', publicCode)
             .single();
@@ -234,7 +236,30 @@ class ProjectService {
             .eq('project_id', projectId)
             .order('created_at', { ascending: true });
         if (error) throw error;
-        return data || [];
+        return Promise.all((data || []).map(async image => {
+            const reference = image.storage_path || image.url;
+            const signedUrl = await storageService.createSignedUrl(reference).catch(() => undefined);
+            return {
+                ...image,
+                display_url: signedUrl || (!storageService.isManagedObjectReference(reference) ? image.url : undefined),
+            };
+        }));
+    }
+
+    async getPublicProjectImages(projectId: string): Promise<ProjectImage[]> {
+        const { data, error } = await publicSupabase
+            .from('project_images')
+            .select('id, project_id, url, name, created_at')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: true });
+        if (error) throw error;
+        return Promise.all((data || []).map(async image => {
+            const signedUrl = await storageService.createSignedUrl(image.url, true).catch(() => undefined);
+            return {
+                ...image,
+                display_url: signedUrl || (!storageService.isManagedObjectReference(image.url) ? image.url : undefined),
+            };
+        }));
     }
 
     // Add facade image
@@ -245,7 +270,12 @@ class ProjectService {
             .select()
             .single();
         if (error) throw error;
-        return data;
+        return {
+            ...data,
+            display_url: image.storage_path
+                ? await storageService.createSignedUrl(image.storage_path).catch(() => undefined)
+                : image.url,
+        };
     }
 
     // Delete facade image

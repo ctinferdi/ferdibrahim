@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { publicSupabase, supabase } from '../config/supabase';
 import { PlanFile } from '../types';
 
 const ALLOWED_PLAN_EXTENSIONS = ['pdf', 'dwg', 'jpg', 'jpeg', 'png', 'tiff', 'tif'];
@@ -7,6 +7,41 @@ export const MAX_PROJECT_MEDIA_SIZE = 10 * 1024 * 1024;
 
 class StorageService {
     private bucketName = 'apartment-plans';
+
+    private resolveObjectPath(reference?: string | null): string | null {
+        if (!reference) return null;
+        if (!reference.includes('://')) return reference;
+
+        try {
+            const pathname = new URL(reference).pathname;
+            const marker = `/storage/v1/object/public/${this.bucketName}/`;
+            const markerIndex = pathname.indexOf(marker);
+            if (markerIndex === -1) return null;
+            return pathname.slice(markerIndex + marker.length)
+                .split('/')
+                .map(segment => decodeURIComponent(segment))
+                .join('/');
+        } catch {
+            return null;
+        }
+    }
+
+    isManagedObjectReference(reference?: string | null): boolean {
+        return this.resolveObjectPath(reference) !== null;
+    }
+
+    async createSignedUrl(reference: string, publicProject = false): Promise<string | null> {
+        const objectPath = this.resolveObjectPath(reference);
+        if (!objectPath) return null;
+
+        const client = publicProject ? publicSupabase : supabase;
+        const { data, error } = await client.storage
+            .from(this.bucketName)
+            .createSignedUrl(objectPath, 60 * 60);
+
+        if (error) throw error;
+        return data.signedUrl;
+    }
 
     async uploadFile(file: File, apartmentId: string): Promise<PlanFile> {
         const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
@@ -35,6 +70,7 @@ class StorageService {
             id: crypto.randomUUID(),
             name: file.name,
             url: publicUrl,
+            storage_path: fileName,
             type: fileType,
             uploaded_at: new Date().toISOString()
         };
