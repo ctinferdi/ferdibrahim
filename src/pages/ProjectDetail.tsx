@@ -250,9 +250,11 @@ const ProjectDetail: React.FC = () => {
     const [loadingExpenses, setLoadingExpenses] = useState(false);
     const [loadingChecks, setLoadingChecks] = useState(false);
     const [loadingApartments, setLoadingApartments] = useState(false);
+    const refreshInFlightRef = React.useRef(false);
 
     const loadAllData = React.useCallback(async (showSpinner = true) => {
-        if (!id) return;
+        if (!id || refreshInFlightRef.current) return;
+        refreshInFlightRef.current = true;
 
         // Phase 1: Preparation & Fast-path
         // Only show main spinner if we don't have project data yet
@@ -260,9 +262,13 @@ const ProjectDetail: React.FC = () => {
 
         try {
             const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            setLoadingExpenses(true);
-            setLoadingChecks(true);
-            setLoadingApartments(true);
+            // Keep the current view stable during the 3-second background sync.
+            // Section loaders are only for the initial page load.
+            if (showSpinner) {
+                setLoadingExpenses(true);
+                setLoadingChecks(true);
+                setLoadingApartments(true);
+            }
             const proj = await projectService.getProjectBySlug(id);
 
             if (!proj) throw new Error('Proje bulunamadı');
@@ -311,11 +317,13 @@ const ProjectDetail: React.FC = () => {
                 setSelectedPartner(proj.partners[0].id);
             }
 
-            // Final: Unblock all UI states
-            setLoading(false);
-            setLoadingExpenses(false);
-            setLoadingChecks(false);
-            setLoadingApartments(false);
+            // The background refresh updates data without flashing loading states.
+            if (showSpinner) {
+                setLoading(false);
+                setLoadingExpenses(false);
+                setLoadingChecks(false);
+                setLoadingApartments(false);
+            }
 
             // Auto-redirect to slug if accessing via ID
             if (proj.slug && id !== proj.slug && isUUID) {
@@ -324,7 +332,21 @@ const ProjectDetail: React.FC = () => {
                 navigate(`/projeler/${proj.slug}${currentSearch}`, { replace: true });
             }
 
-        } catch (err: any) { console.error('Proje hata:', err); setErrorMsg(err.message || 'Hata'); setLoading(false); setLoadingExpenses(false); setLoadingChecks(false); setLoadingApartments(false); }
+        } catch (err: any) {
+            if (showSpinner) {
+                console.error('Proje yükleme hatası:', err);
+                setErrorMsg(err.message || 'Hata');
+                setLoading(false);
+                setLoadingExpenses(false);
+                setLoadingChecks(false);
+                setLoadingApartments(false);
+            } else {
+                // A transient polling error should not interrupt the user's work.
+                console.warn('Arka plan proje yenilemesi başarısız:', err);
+            }
+        } finally {
+            refreshInFlightRef.current = false;
+        }
     }, [id, navigate, selectedPartner, showCompanySection]);
 
     // Initial Load & Refresh Logic
