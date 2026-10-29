@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 const ResetPassword: React.FC = () => {
     const [newPassword, setNewPassword] = useState('');
@@ -140,6 +141,7 @@ const ResetPassword: React.FC = () => {
                                 {showPassword ? '🙈' : '👁️'}
                             </button>
                         </div>
+                        <PasswordStrengthIndicator password={newPassword} />
                     </div>
 
                     <div>

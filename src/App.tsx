@@ -16,7 +16,6 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checks = lazy(() => import('./pages/Checks'));
 const Apartments = lazy(() => import('./pages/Apartments'));
 const Expenses = lazy(() => import('./pages/Expenses'));
-const FloorPlanner = lazy(() => import('./pages/FloorPlanner/FloorPlanner'));
 
 const RefreshManager = () => {
     useBackgroundRefresh();
@@ -59,14 +58,6 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Projects />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/kat-plani"
-                        element={
-                            <ProtectedRoute>
-                                <FloorPlanner />
                             </ProtectedRoute>
                         }
                     />

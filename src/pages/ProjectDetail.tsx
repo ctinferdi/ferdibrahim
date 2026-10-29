@@ -25,7 +25,6 @@ import CheckModal from './ProjectDetail/Modals/CheckModal';
 import ApartmentModal from './ProjectDetail/Modals/ApartmentModal';
 import BulkModal from './ProjectDetail/Modals/BulkModal';
 import type { Building3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
-import FloorPlanEditor from '../components/FloorPlanEditor';
 import ExpenseCategoryManager from './ProjectDetail/ExpenseCategoryManager';
 import { expenseCategoryService, ExpenseCategoryStorage, normalizeExpenseCategory } from '../services/expenseCategoryService';
 import { deleteConfirmationService } from '../services/deleteConfirmationService';
@@ -90,7 +89,6 @@ const ProjectDetail: React.FC = () => {
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [show3DConfig,  setShow3DConfig]  = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showFloorEditor, setShowFloorEditor] = useState(false);
     const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
     const [apartmentDraftActive, setApartmentDraftActive] = useState(false);
 
@@ -149,12 +147,11 @@ const ProjectDetail: React.FC = () => {
             else if (showApartmentModal) setShowApartmentModal(false);
             else if (showBulkModal) setShowBulkModal(false);
             else if (show3DConfig) setShow3DConfig(false);
-            else if (showFloorEditor) setShowFloorEditor(false);
         };
 
         window.addEventListener('keydown', closeActiveModalOnEscape);
         return () => window.removeEventListener('keydown', closeActiveModalOnEscape);
-    }, [showDeleteModal, showExpenseModal, showCheckModal, showApartmentModal, showBulkModal, show3DConfig, showFloorEditor]);
+    }, [showDeleteModal, showExpenseModal, showCheckModal, showApartmentModal, showBulkModal, show3DConfig]);
 
     // Search Logic
     const [searchTerm, setSearchTerm] = useState('');
@@ -901,9 +898,6 @@ const ProjectDetail: React.FC = () => {
                                 <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     🗺️ {apartments.length === 0 ? 'Kat Planı Oluştur' : 'Kat Planı Güncelle'}
                                 </button>
-                                <button className="btn btn-secondary" onClick={() => setShowFloorEditor(true)} style={{ height: '40px', padding: '0 1rem', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', background: '#0f172a', borderColor: '#334155', color: '#94a3b8' }}>
-                                    📐 Kat Planı Çiz
-                                </button>
 
 
                             </>
@@ -1521,7 +1515,6 @@ const ProjectDetail: React.FC = () => {
             <CheckModal isOpen={showCheckModal} onClose={() => setShowCheckModal(false)} onSave={handleSaveCheck} editingCheckId={editingCheckId} checkFormData={checkFormData} setCheckFormData={setCheckFormData} saving={saving} errorMsg={errorMsg} projects={project ? [project] : []} />
             <ApartmentModal isOpen={showApartmentModal} onClose={() => setShowApartmentModal(false)} onSaved={() => setApartmentDraftActive(false)} id={project?.id || id || ''} project={project} editingApartmentId={editingApartmentId} apartmentFormData={apartmentFormData} setApartmentFormData={setApartmentFormData} setEditingApartmentId={setEditingApartmentId} setApartments={setApartments} formatCurrency={formatCurrency} />
             <BulkModal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} id={project?.id || id || ''} project={project} apartments={apartments} bulkFormData={bulkFormData} setBulkFormData={setBulkFormData} setLoading={setLoading} loadAllData={() => loadAllData(false)} projectImages={projectImages} />
-            <FloorPlanEditor isOpen={showFloorEditor} onClose={() => setShowFloorEditor(false)} projectName={project?.name} />
             {show3DConfig && project && (
                 <Building3DConfigModal
                     isOpen={show3DConfig}

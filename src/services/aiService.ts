@@ -6,23 +6,7 @@ export interface AIUploadedFile {
     data: string;
 }
 
-export interface FloorPlanAIRequest {
-    task: 'floor-plan';
-    source:
-        | {
-            kind: 'media';
-            name: string;
-            mimeType: string;
-            data: string;
-        }
-        | {
-            kind: 'dxf';
-            name: string;
-            geometry: Record<string, unknown>;
-        };
-}
-
-export async function requestAI<T>(payload: FloorPlanAIRequest | {
+export async function requestAI<T>(payload: {
     task: 'building-analysis';
     prompt: string;
     files: AIUploadedFile[];

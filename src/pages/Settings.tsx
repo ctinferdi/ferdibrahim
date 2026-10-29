@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../config/supabase';
 import { deleteConfirmationService } from '../services/deleteConfirmationService';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 
 const Settings: React.FC = () => {
@@ -265,6 +266,7 @@ const Settings: React.FC = () => {
                                         {showPassword ? '🙈' : '👁️'}
                                     </button>
                                 </div>
+                                <PasswordStrengthIndicator password={newUserPassword} />
                                 <small style={{ display: 'block', marginTop: '5px', color: 'var(--color-text-light)', fontSize: '11px' }}>
                                     Büyük/küçük harf, rakam ve semboller serbesttir. En az 6 karakter.
                                 </small>
