@@ -28,7 +28,8 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
 
     const menuItems = [
         { path: '/', label: '🏠 Ana Sayfa', icon: '🏠' },
-        { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' }
+        { path: '/projeler', label: '🏗️ Projeler', icon: '🏗️' },
+        { path: '/kat-plani', label: '📐 Kat Planı', icon: '📐' }
     ];
 
 
@@ -78,7 +79,7 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                             >
                                 <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
                                 <span style={{ fontSize: '9px', marginTop: '2px', fontWeight: isActive ? 700 : 500, textAlign: 'center' }}>
-                                    {item.path === '/' ? 'Ana Sayfa' : item.label.split(' ')[1]}
+                                    {item.label.substring(item.label.indexOf(' ') + 1)}
                                 </span>
                             </Link>
                         );
@@ -119,7 +120,7 @@ const Layout = ({ children, headerTitle }: LayoutProps) => {
                         >
                             <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
                             <span style={{ fontSize: '10px', marginTop: '2px', fontWeight: isActive ? 700 : 500 }}>
-                                {item.path === '/' ? 'Ana Sayfa' : item.label.split(' ')[1]}
+                                {item.label.substring(item.label.indexOf(' ') + 1)}
                             </span>
                         </Link>
                     );

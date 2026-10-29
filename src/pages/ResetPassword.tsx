@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, isPasswordLengthValid } from '../../supabase/functions/_shared/passwordPolicy';
 
 const ResetPassword: React.FC = () => {
     const [newPassword, setNewPassword] = useState('');
@@ -45,8 +46,8 @@ const ResetPassword: React.FC = () => {
             return;
         }
 
-        if (newPassword.length < 6) {
-            setError('Şifre en az 6 karakter olmalı!');
+        if (!isPasswordLengthValid(newPassword)) {
+            setError('Şifre 12 ile 128 karakter arasında olmalı!');
             return;
         }
 
@@ -120,8 +121,12 @@ const ResetPassword: React.FC = () => {
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 required
-                                minLength={6}
-                                placeholder="En az 6 karakter"
+                                minLength={MIN_PASSWORD_LENGTH}
+                                maxLength={MAX_PASSWORD_LENGTH}
+                                autoComplete="new-password"
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                placeholder="En az 12 karakter"
                                 style={{ width: '100%', margin: 0, paddingRight: '40px' }}
                             />
                             <button
@@ -154,7 +159,11 @@ const ResetPassword: React.FC = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            minLength={6}
+                            minLength={MIN_PASSWORD_LENGTH}
+                            maxLength={MAX_PASSWORD_LENGTH}
+                            autoComplete="new-password"
+                            autoCapitalize="none"
+                            spellCheck={false}
                             placeholder="Şifreyi tekrar girin"
                             style={{ width: '100%', margin: 0 }}
                         />

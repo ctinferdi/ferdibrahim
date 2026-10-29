@@ -241,7 +241,8 @@ const Settings: React.FC = () => {
                                         value={newUserPassword}
                                         onChange={(e) => setNewUserPassword(e.target.value)}
                                         required
-                                        minLength={6}
+                                        minLength={12}
+                                        maxLength={128}
                                         autoComplete="new-password"
                                         autoCapitalize="none"
                                         autoCorrect="off"
@@ -268,7 +269,7 @@ const Settings: React.FC = () => {
                                 </div>
                                 <PasswordStrengthIndicator password={newUserPassword} />
                                 <small style={{ display: 'block', marginTop: '5px', color: 'var(--color-text-light)', fontSize: '11px' }}>
-                                    Büyük/küçük harf, rakam ve semboller serbesttir. En az 6 karakter.
+                                    Büyük/küçük harf, rakam ve semboller serbesttir. En az 12 karakter.
                                 </small>
                             </div>
 

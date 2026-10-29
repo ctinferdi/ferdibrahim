@@ -1,0 +1,323 @@
+import { FloorPlanData } from './types';
+
+export const SAMPLE_APARTMENT: FloorPlanData = {
+    id: 'sample-2plus1-luxury',
+    name: 'Örnek 2+1 Lüks Daire Planı (125 m²)',
+    scale: 45,
+    currentFloorIndex: 0,
+    floors: [
+        { id: 'fl_0', name: 'Zemin Kat', level: 0, height: 2.8 },
+        { id: 'fl_1', name: '1. Normal Kat', level: 1, height: 2.8 },
+        { id: 'fl_2', name: '2. Normal Kat', level: 2, height: 2.8 }
+    ],
+    roof: {
+        enabled: false,
+        type: 'pitched',
+        height: 2.2,
+        overhang: 0.5,
+        color: '#b91c1c' // Kiremit Kırmızısı
+    },
+    walls: [
+        // Dış Duvarlar
+        { id: 'w_ext_top', start: { x: 0, y: 0 }, end: { x: 11, y: 0 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_right', start: { x: 11, y: 0 }, end: { x: 11, y: 8 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_bottom', start: { x: 11, y: 8 }, end: { x: 0, y: 8 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+        { id: 'w_ext_left', start: { x: 0, y: 8 }, end: { x: 0, y: 0 }, thickness: 0.25, height: 2.8, wallType: 'standard' },
+
+        // Balkon Duvarları (Cam Korkuluklu & Kısa Parapet)
+        { id: 'w_balc_1', start: { x: 11, y: 1.5 }, end: { x: 13, y: 1.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+        { id: 'w_balc_2', start: { x: 13, y: 1.5 }, end: { x: 13, y: 4.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+        { id: 'w_balc_3', start: { x: 13, y: 4.5 }, end: { x: 11, y: 4.5 }, thickness: 0.15, height: 1.1, wallType: 'balcony_glass' },
+
+        // İç Bölme Duvarları
+        { id: 'w_int_1', start: { x: 6.2, y: 0 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_2', start: { x: 0, y: 5.2 }, end: { x: 6.2, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_3', start: { x: 3.2, y: 5.2 }, end: { x: 3.2, y: 8 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_4', start: { x: 8.5, y: 5.2 }, end: { x: 8.5, y: 8 }, thickness: 0.15, height: 2.8, wallType: 'standard' },
+        { id: 'w_int_5', start: { x: 6.2, y: 5.2 }, end: { x: 11, y: 5.2 }, thickness: 0.15, height: 2.8, wallType: 'standard' }
+    ],
+    openings: [
+        // Balkon Fransız Kapısı
+        { id: 'op_door_balcony', wallId: 'w_ext_right', type: 'door', doorType: 'sliding', position: 0.38, width: 2.0, height: 2.3, sillHeight: 0 },
+        // Pencereler
+        { id: 'op_win_salon', wallId: 'w_ext_top', type: 'window', windowType: 'french', position: 0.82, width: 1.8, height: 2.1, sillHeight: 0.2 },
+        { id: 'op_win_bed1', wallId: 'w_ext_bottom', type: 'window', windowType: 'standard', position: 0.15, width: 1.5, height: 1.4, sillHeight: 0.9 },
+        { id: 'op_win_bed2', wallId: 'w_ext_bottom', type: 'window', windowType: 'standard', position: 0.45, width: 1.4, height: 1.4, sillHeight: 0.9 },
+
+        // Kapılar
+        { id: 'op_door_main', wallId: 'w_ext_top', type: 'door', doorType: 'steel', position: 0.35, width: 1.0, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_salon', wallId: 'w_int_1', type: 'door', doorType: 'double_glass', position: 0.7, width: 1.3, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bed1', wallId: 'w_int_2', type: 'door', doorType: 'standard', position: 0.25, width: 0.85, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bed2', wallId: 'w_int_2', type: 'door', doorType: 'standard', position: 0.75, width: 0.85, height: 2.1, sillHeight: 0 },
+        { id: 'op_door_bath', wallId: 'w_int_5', type: 'door', doorType: 'standard', position: 0.5, width: 0.8, height: 2.1, sillHeight: 0 }
+    ],
+    columns: [
+        { id: 'col_1', x: 0.15, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_2', x: 6.2, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_3', x: 10.85, y: 0.15, width: 0.30, depth: 0.50 },
+        { id: 'col_4', x: 6.2, y: 5.2, width: 0.40, depth: 0.40 },
+        { id: 'col_5', x: 10.85, y: 7.85, width: 0.30, depth: 0.50 },
+        { id: 'col_6', x: 0.15, y: 7.85, width: 0.30, depth: 0.50 }
+    ],
+    rooms: [
+        {
+            id: 'room_salon',
+            name: 'Salon & Açık Mutfak (38 m²)',
+            points: [
+                { x: 6.2, y: 0 }, { x: 11, y: 0 },
+                { x: 11, y: 5.2 }, { x: 6.2, y: 5.2 }
+            ],
+            floorType: 'parquet_light'
+        },
+        {
+            id: 'room_balcony',
+            name: 'Geniş Balkon (7.5 m²)',
+            points: [
+                { x: 11, y: 1.5 }, { x: 13, y: 1.5 },
+                { x: 13, y: 4.5 }, { x: 11, y: 4.5 }
+            ],
+            floorType: 'balcony_tile'
+        },
+        {
+            id: 'room_master_bed',
+            name: 'Ebeveyn Yatak Odası (22 m²)',
+            points: [
+                { x: 0, y: 5.2 }, { x: 3.2, y: 5.2 },
+                { x: 3.2, y: 8 }, { x: 0, y: 8 }
+            ],
+            floorType: 'parquet_light'
+        },
+        {
+            id: 'room_child_bed',
+            name: 'Çocuk / Misafir Odası (18 m²)',
+            points: [
+                { x: 3.2, y: 5.2 }, { x: 6.2, y: 5.2 },
+                { x: 6.2, y: 8 }, { x: 3.2, y: 8 }
+            ],
+            floorType: 'parquet_light'
+        },
+        {
+            id: 'room_bathroom',
+            name: 'Genel Banyo & WC (12 m²)',
+            points: [
+                { x: 8.5, y: 5.2 }, { x: 11, y: 5.2 },
+                { x: 11, y: 8 }, { x: 8.5, y: 8 }
+            ],
+            floorType: 'marble'
+        },
+        {
+            id: 'room_hall',
+            name: 'Antre & Hol (16 m²)',
+            points: [
+                { x: 0, y: 0 }, { x: 6.2, y: 0 },
+                { x: 6.2, y: 5.2 }, { x: 0, y: 5.2 }
+            ],
+            floorType: 'tile'
+        }
+    ],
+    furniture: [
+        // Salondaki Mobilyalar
+        {
+            id: 'f_l_sofa',
+            type: 'l_sofa',
+            category: 'living',
+            name: 'L-Koltuk Köşe Takımı',
+            x: 9.5,
+            y: 3.6,
+            rotation: 180,
+            width: 2.6,
+            depth: 1.8,
+            height: 0.85,
+            color: '#475569'
+        },
+        {
+            id: 'f_coffee_table',
+            type: 'coffee_table',
+            category: 'living',
+            name: 'Orta Sehpa',
+            x: 8.5,
+            y: 3.2,
+            rotation: 0,
+            width: 1.1,
+            depth: 0.6,
+            height: 0.45,
+            color: '#78350f'
+        },
+        {
+            id: 'f_tv_unit',
+            type: 'tv_unit',
+            category: 'living',
+            name: 'TV Ünitesi & TV',
+            x: 7.2,
+            y: 3.2,
+            rotation: 90,
+            width: 2.0,
+            depth: 0.45,
+            height: 1.4,
+            color: '#1e293b'
+        },
+        {
+            id: 'f_carpet_salon',
+            type: 'carpet',
+            category: 'living',
+            name: 'Salon Halısı',
+            x: 8.8,
+            y: 3.2,
+            rotation: 0,
+            width: 2.5,
+            depth: 1.8,
+            height: 0.02,
+            color: '#cbd5e1'
+        },
+        // Mutfak & Ada
+        {
+            id: 'f_kitchen_l',
+            type: 'kitchen_l',
+            category: 'kitchen',
+            name: 'L-Mutfak Tezgahı',
+            x: 9.5,
+            y: 1.2,
+            rotation: 0,
+            width: 2.8,
+            depth: 2.2,
+            height: 0.9,
+            color: '#f8fafc'
+        },
+        {
+            id: 'f_kitchen_upper',
+            type: 'kitchen_upper',
+            category: 'kitchen',
+            name: 'Mutfak Üst Dolapları',
+            x: 9.5,
+            y: 0.18,
+            rotation: 0,
+            width: 2.4,
+            depth: 0.35,
+            height: 0.75,
+            color: '#f1f5f9'
+        },
+        {
+            id: 'f_fridge',
+            type: 'fridge',
+            category: 'kitchen',
+            name: 'Buzdolabı',
+            x: 6.8,
+            y: 0.6,
+            rotation: 0,
+            width: 0.8,
+            depth: 0.75,
+            height: 1.85,
+            color: '#94a3b8'
+        },
+        {
+            id: 'f_dining_table',
+            type: 'dining_table',
+            category: 'dining',
+            name: 'Yemek Masası',
+            x: 7.5,
+            y: 1.8,
+            rotation: 0,
+            width: 1.5,
+            depth: 0.9,
+            height: 0.76,
+            color: '#b45309'
+        },
+
+        // Ebeveyn Yatak Odası
+        {
+            id: 'f_master_bed',
+            type: 'double_bed',
+            category: 'bedroom',
+            name: 'Çift Kişilik Lüks Yatak',
+            x: 1.6,
+            y: 6.8,
+            rotation: 180,
+            width: 1.8,
+            depth: 2.1,
+            height: 1.1,
+            color: '#e2e8f0'
+        },
+        {
+            id: 'f_wardrobe_master',
+            type: 'wardrobe',
+            category: 'bedroom',
+            name: 'Gardırop',
+            x: 1.6,
+            y: 5.6,
+            rotation: 0,
+            width: 2.2,
+            depth: 0.65,
+            height: 2.2,
+            color: '#334155'
+        },
+
+        // Çocuk Odası
+        {
+            id: 'f_single_bed',
+            type: 'single_bed',
+            category: 'bedroom',
+            name: 'Tek Kişilik Yatak',
+            x: 4.8,
+            y: 7.0,
+            rotation: 180,
+            width: 1.0,
+            depth: 2.0,
+            height: 0.9,
+            color: '#e2e8f0'
+        },
+        {
+            id: 'f_desk_child',
+            type: 'desk',
+            category: 'bedroom',
+            name: 'Çalışma Masası',
+            x: 4.8,
+            y: 5.6,
+            rotation: 0,
+            width: 1.2,
+            depth: 0.6,
+            height: 0.75,
+            color: '#94a3b8'
+        },
+
+        // Banyo
+        {
+            id: 'f_shower',
+            type: 'shower_cabin',
+            category: 'bathroom',
+            name: 'Duşakabin',
+            x: 10.3,
+            y: 7.3,
+            rotation: 0,
+            width: 1.0,
+            depth: 1.0,
+            height: 2.0,
+            color: '#38bdf8'
+        },
+        {
+            id: 'f_toilet',
+            type: 'toilet',
+            category: 'bathroom',
+            name: 'Asma Klozet',
+            x: 9.2,
+            y: 7.5,
+            rotation: 180,
+            width: 0.4,
+            depth: 0.6,
+            height: 0.8,
+            color: '#ffffff'
+        },
+        {
+            id: 'f_vanity',
+            type: 'bathroom_vanity',
+            category: 'bathroom',
+            name: 'Banyo Dolabı',
+            x: 9.8,
+            y: 5.7,
+            rotation: 0,
+            width: 1.0,
+            depth: 0.5,
+            height: 1.8,
+            color: '#f8fafc'
+        }
+    ]
+};

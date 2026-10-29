@@ -13,7 +13,7 @@ Modern, çoklu kullanıcılı inşaat finansal yönetim web uygulaması.
 - 🧱 Elle 2D kat planı çizimi; duvar, kapı, pencere ve mobilya yerleşimi
 - 📏 Seçili duvarlarda uzunluk, kalınlık ve yükseklik düzenleme
 - 🏢 3D orbit görünümü ve daire içi gezinti
-- ✨ İsteğe bağlı AI kat planı taslağı
+- 📐 Pascal tabanlı bağımsız 2D/3D editör; proje bazlı yerel kayıt ve JSON yedeği
 - 📱 Mobil uyumlu, modern tasarım
 - ☁️ Supabase ile gerçek zamanlı veri senkronizasyonu
 
@@ -22,6 +22,7 @@ Modern, çoklu kullanıcılı inşaat finansal yönetim web uygulaması.
 ### 1. Bağımlılıkları Yükle
 ```bash
 npm install
+npm run install:editor
 ```
 
 ### 2. Supabase ve Gemini Yapılandırması
@@ -35,19 +36,15 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-`GEMINI_API_KEY` yalnızca sunucu tarafında kullanılır; adını `VITE_` ile başlatmayın. Yerelde AI istekleri Vite API ara katmanından, Vercel dağıtımında `/api/analyze-floorplan` fonksiyonundan geçer. Vercel ortam değişkenlerine `GEMINI_API_KEY` ekleyin.
+`GEMINI_API_KEY` yalnızca sunucu tarafında kullanılır; adını `VITE_` ile başlatmayın. Yerelde AI istekleri Vite API ara katmanından, Vercel dağıtımında `/api/analyze-building` fonksiyonundan geçer. Vercel ortam değişkenlerine `GEMINI_API_KEY` ekleyin.
 
-Kat planı stüdyosunun ana akışı elle çizim ve düzenlemedir. 2D görünümde duvar çizin, duvar ölçülerini özellik çubuğundan düzenleyin, kapı/pencere yerleştirin ve mobilya kataloğunu kullanın; 3D görünümde modeli orbit veya iç mekân gezintisiyle inceleyin.
-
-AI yalnızca isteğe bağlı yardımcıdır. Bu özelliği kullanmak için PDF, DXF, JPG, PNG veya WEBP plan yükleyip **AI Taslağı** düğmesine basın. AI düzenlenebilir bir öneri oluşturur; mevcut çizim ancak taslağı siz uyguladığınızda değişir. Manuel çizim için Gemini API anahtarı gerekmez.
-
-### Kat Planı Stüdyosu Geliştirme Yönü
-
-Stüdyo, mevcut proje yapısını koruyarak Revit esintili bir BIM iş akışına aşamalı büyütülecektir. Öncelik manuel çizim, hassas ölçülendirme, nesne özellikleri ve güvenli düzenleme geçmişidir. Sonraki yapı taşları kat seviyeleri, odalar, kolon/kiriş/döşeme araçları; ardından daha ayrıntılı 3D düzenleme ve proje alışveriş formatlarıdır. AI, ana çizim akışının yerine geçmez.
+Yeni kat planı editörü apps/plan-editor/ altında, ana React uygulamasından bağımsız derlenir. Kaynak ve lisans bilgileri için bu klasördeki README dosyasına bakın. Çizimler yalnızca seçilen kullanıcı/proje anahtarıyla cihazda saklanır; Supabase finansal tablolarını değiştirmez. Bina analizi aracı ise /api/analyze-building üzerinden çalışmaya devam eder.
 
 ### 3. Geliştirme Sunucusunu Başlat
 ```bash
 npm run dev
+# Ayrı terminalde:
+npm run dev:editor
 ```
 
 Uygulama http://localhost:3000 adresinde açılacaktır.
@@ -65,7 +62,7 @@ Custom domain için Vercel dashboard'da Settings > Domains bölümüne ferdibrah
 
 ## Kullanım
 
-1. Kayıt Ol sayfasından ilk kullanıcı hesabınızı oluşturun
+1. Yönetici tarafından Ayarlar bölümünde oluşturulan hesabınızla giriş yapın
 2. Giriş yapın
 3. Dashboard'dan genel durumu görüntüleyin
 4. Harcamalar, Çekler ve Daireler sayfalarından veri eklemeye başlayın

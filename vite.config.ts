@@ -7,7 +7,7 @@ function localAIEndpoint(env: Record<string, string>): Plugin {
     name: 'local-ai-endpoint',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.split('?')[0] !== '/api/analyze-floorplan') return next()
+        if (req.url?.split('?')[0] !== '/api/analyze-building') return next()
         if (req.method !== 'POST') {
           res.statusCode = 405
           res.end(JSON.stringify({ error: 'POST isteği gerekli.' }))
@@ -58,9 +58,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [react(), localAIEndpoint(env)],
+    preview: { proxy: {} },
     server: {
       port: 3000,
       host: '127.0.0.1',
+      proxy: { '/plan-editor': { target: 'http://127.0.0.1:3002', changeOrigin: true } },
     },
     build: {
       emptyOutDir: true,

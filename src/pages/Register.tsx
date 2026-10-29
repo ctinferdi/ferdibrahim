@@ -20,8 +20,8 @@ const Register: React.FC = () => {
             return setError('Şifreler eşleşmiyor');
         }
 
-        if (password.length < 6) {
-            return setError('Şifre en az 6 karakter olmalıdır');
+        if (password.length < 12) {
+            return setError('Şifre en az 12 karakter olmalıdır');
         }
 
         setLoading(true);

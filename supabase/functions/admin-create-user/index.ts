@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { readJsonBody, requestBodyErrorResponse } from "../_shared/request-body.ts"
+import { isPasswordLengthValid } from "../_shared/passwordPolicy.ts"
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -49,8 +50,8 @@ serve(async (request) => {
         if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             return response({ error: "Geçerli bir e-posta adresi girin." }, 400)
         }
-        if (password.length < 6 || password.length > 128) {
-            return response({ error: "Şifre en az 6, en fazla 128 karakter olmalı." }, 400)
+        if (!isPasswordLengthValid(password)) {
+            return response({ error: "Şifre en az 12, en fazla 128 karakter olmalı." }, 400)
         }
 
         const { data, error } = await adminClient.auth.admin.createUser({

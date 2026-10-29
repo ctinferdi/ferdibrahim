@@ -15,7 +15,7 @@ export async function requestAI<T>(payload: {
     if (sessionError) throw sessionError;
     if (!session?.access_token) throw new Error('AI analizi için önce giriş yapın.');
 
-    const response = await fetch('/api/analyze-floorplan', {
+    const response = await fetch('/api/analyze-building', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

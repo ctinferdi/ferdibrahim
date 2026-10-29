@@ -7,8 +7,8 @@ import { Apartment, Project, ProjectImage, PlanFile, User } from '../types';
 import { isVideoProjectMedia } from '../utils/projectMedia';
 
 const Building3D = lazy(() => import('../components/Building3D'));
-const Viewer3D = lazy(() => import('./FloorPlanner/components/Viewer3D'));
-import { SAMPLE_APARTMENT } from './FloorPlanner/sampleData';
+const Viewer3D = lazy(() => import('../components/Apartment3D/components/Viewer3D'));
+import { SAMPLE_APARTMENT } from '../components/Apartment3D/sampleData';
 import { loadBuilding3DConfig } from './ProjectDetail/Modals/Building3DConfigModal';
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; glow: string; text: string; dim?: boolean }> = {

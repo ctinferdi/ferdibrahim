@@ -16,6 +16,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checks = lazy(() => import('./pages/Checks'));
 const Apartments = lazy(() => import('./pages/Apartments'));
 const Expenses = lazy(() => import('./pages/Expenses'));
+const PlanEditor = lazy(() => import('./pages/PlanEditor'));
 
 const RefreshManager = () => {
     useBackgroundRefresh();
@@ -37,6 +38,7 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Navigate to="/login" replace />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/kat-plani" element={<ProtectedRoute><PlanEditor /></ProtectedRoute>} />
                     <Route
                         path="/"
                         element={

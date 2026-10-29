@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run build --prefix apps/plan-editor",
+    "dev:editor": "npm run dev --prefix apps/plan-editor",
+    "install:editor": "npm ci --prefix apps/plan-editor --ignore-scripts --no-audit --no-fund",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { MIN_PASSWORD_LENGTH } from '../../supabase/functions/_shared/passwordPolicy';
 
 interface PasswordStrengthIndicatorProps {
     password: string;
@@ -6,11 +7,11 @@ interface PasswordStrengthIndicatorProps {
 
 const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ password }) => {
     const checks = [
-        { label: 'En az 8 karakter', passed: password.length >= 8 },
-        { label: 'Büyük harf', passed: /[A-Z]/.test(password) },
-        { label: 'Küçük harf', passed: /[a-z]/.test(password) },
+        { label: `En az ${MIN_PASSWORD_LENGTH} karakter`, passed: password.length >= MIN_PASSWORD_LENGTH },
+        { label: 'Büyük harf', passed: /\p{Lu}/u.test(password) },
+        { label: 'Küçük harf', passed: /\p{Ll}/u.test(password) },
         { label: 'Rakam', passed: /\d/.test(password) },
-        { label: 'Sembol', passed: /[^A-Za-z0-9]/.test(password) },
+        { label: 'Sembol', passed: /[^\p{L}\p{N}\s]/u.test(password) },
     ];
     const score = checks.filter(check => check.passed).length;
     const strength = score <= 1
@@ -50,7 +51,7 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ p
                 ))}
             </div>
             <small style={{ display: 'block', marginTop: '5px', color: 'var(--color-text-light)' }}>
-                Güç göstergesi öneri amaçlıdır; mevcut en az 6 karakter sınırı değişmez.
+                En az 12 karakter kullanın. Büyük/küçük harf, rakam ve sembollerle güçlendirin.
             </small>
         </div>
     );

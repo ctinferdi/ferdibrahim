@@ -1,4 +1,5 @@
 {
+    "installCommand": "npm ci && npm run install:editor",
     "rewrites": [
         {
             "source": "/(.*)",
