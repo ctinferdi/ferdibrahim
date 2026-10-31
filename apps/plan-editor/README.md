@@ -36,4 +36,12 @@ The existing customer-facing apartment viewer remains in `src/components/Apartme
 
 ## Verification
 
+The host adds labeled structural axes and dimensional beams (`src/structural-*`), a separate material painter and appearance panel, and Turkish/English labels. Beams keep the native `block` representation with `metadata.insaatKind = 'beam'`; axes keep `structural-grid`. No existing document is converted. Construction dimensions are metres, except beam width/height entered in centimetres.
+
+`asset-paths.mjs` adapts the published material catalog to actual archive files (WebP or bundled KTX2) and the furniture catalog to bundled GLBs. The viewer's asset origin is kept local. Missing external catalog models are not exposed. The language adapter changes known static text/labels only; input values, project names and SVG scene labels are preserved. Its dictionary is `src/translations.ts`. New imported advanced dialogs may require additional dictionary entries; model/brand names remain their own identifiers.
+
+`docs/kat-plani-gelistirme.md` records the Coohom reference, agreed furniture/material/3D priority and remaining render/export/cloud work. The current appearance controls are real-time browser previews, not a cloud photorealistic render service.
+
 `node --test tests/editor-integration.test.mjs` at repository root checks password bounds, obsolete API rejection and backup validation without production writes. Browser checks use an ignored, local-only preview fixture and a separate QA workspace; never insert test expenses or apartments.
+
+Also run `node --test tests/structural-tools.test.mjs tests/editor-assets.test.mjs tests/editor-language.test.mjs` for structure geometry, archive file paths and bilingual catalog search.

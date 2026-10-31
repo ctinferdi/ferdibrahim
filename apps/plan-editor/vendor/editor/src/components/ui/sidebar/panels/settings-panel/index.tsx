@@ -936,7 +936,7 @@ export function SettingsPanel({
         )}
 
         {/* Sharing (only for cloud projects) */}
-        {projectId && !isLocalProject && (
+        {projectId && !isLocalProject && onVisibilityChange && (
           <SettingsSection description="Control who can open this project." title="Sharing">
             <SettingsSwitchRow
               checked={!(projectVisibility?.isPrivate ?? false)}

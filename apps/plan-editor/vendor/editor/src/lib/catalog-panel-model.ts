@@ -1,6 +1,7 @@
 import { useViewer } from '@pascal-app/viewer'
 import { CATALOG_ITEMS, type CatalogItem } from '../components/ui/item-catalog/catalog-items'
 import useEditor, { type CatalogCategory } from '../store/use-editor'
+import { matchesCatalogSearch } from './catalog-search'
 
 export function filterCatalogItems({
   category,
@@ -23,7 +24,7 @@ export function filterCatalogItems({
       if (!search && category && item.category !== category) return false
       if (activePlacementTag && !item.tags?.includes(activePlacementTag)) return false
       if (activeFunctionalTag && !item.tags?.includes(activeFunctionalTag)) return false
-      return !search || item.name.toLowerCase().includes(search.toLowerCase())
+      return matchesCatalogSearch(item, search)
     })
   )
 }

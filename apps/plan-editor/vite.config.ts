@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwind from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
+import { adaptBundledAssets } from './asset-paths.mjs';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 export default defineConfig({
@@ -9,7 +10,11 @@ export default defineConfig({
   plugins: [
     { name: 'pascal-local-assets', enforce: 'pre', transform(code, id) {
       if (!/\.[cm]?[jt]sx?$/.test(id)) return;
-      return code.replace(/(["'`])\/(icons|audios|hdri|items|material|fonts)\//g, '$1/plan-editor/$2/');
+      if (/[\\/]viewer[\\/]dist[\\/]lib[\\/]asset-url\.js$/.test(id)) {
+        code = code.replace(/export const ASSETS_CDN_URL = [^;]+;/, "export const ASSETS_CDN_URL = ''; ");
+      }
+      const catalog = /[\\/](material-library\.js|catalog-items\.tsx)$/.test(id);
+      return (catalog ? adaptBundledAssets(code, local('./public')) : code).replace(/(["'`])\/(icons|audios|hdri|items|material|fonts)\//g, '$1/plan-editor/$2/');
     } },
     react(), tailwind(),
   ],
