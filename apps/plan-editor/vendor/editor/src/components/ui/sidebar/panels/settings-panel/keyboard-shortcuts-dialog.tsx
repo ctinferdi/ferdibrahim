@@ -195,14 +195,14 @@ const SHORTCUT_CATEGORIES: ShortcutCategory[] = [
         note: 'Moves in screen space, similar to dragging the camera view.',
       },
       {
-        keys: ['Middle click'],
+        keys: ['Space', 'Left click'],
         action: 'Pan camera',
-        note: 'Drag with the middle mouse button, or hold Space while dragging with the left mouse button.',
+        note: 'Hold Space while dragging with the left mouse button. In 2D, middle drag also pans the plan.',
       },
       {
-        keys: ['Right click'],
+        keys: ['Middle click'],
         action: 'Orbit camera',
-        note: 'Drag with the right mouse button.',
+        note: 'In 3D, drag with the middle or right mouse button. The 2D axes stay fixed.',
       },
     ],
   },

@@ -844,7 +844,7 @@ export const CustomCameraControls = ({ paused = false }: { paused?: boolean }) =
     // Left click selects, in Preview as in the published viewer.
     return {
       left: CameraControlsImpl.ACTION.NONE,
-      middle: CameraControlsImpl.ACTION.SCREEN_PAN,
+      middle: CameraControlsImpl.ACTION.ROTATE,
       right: CameraControlsImpl.ACTION.ROTATE,
       wheel: wheelAction,
     }
@@ -962,7 +962,7 @@ export const CustomCameraControls = ({ paused = false }: { paused?: boolean }) =
           ? CameraControlsImpl.ACTION.ZOOM
           : CameraControlsImpl.ACTION.DOLLY
       controls.current.mouseButtons.wheel = wheelAction
-      controls.current.mouseButtons.middle = CameraControlsImpl.ACTION.SCREEN_PAN
+      controls.current.mouseButtons.middle = CameraControlsImpl.ACTION.ROTATE
       controls.current.mouseButtons.right = CameraControlsImpl.ACTION.ROTATE
       if (space) {
         controls.current.mouseButtons.left = CameraControlsImpl.ACTION.SCREEN_PAN
@@ -1047,7 +1047,7 @@ export const CustomCameraControls = ({ paused = false }: { paused?: boolean }) =
 
     const onPointerDown = (event: PointerEvent) => {
       if (!(event.target instanceof Node) || !gl.domElement.contains(event.target)) return
-      if (event.button !== 1 && !(event.button === 0 && keyState.space)) return
+      if (!(event.button === 0 && keyState.space)) return
 
       panPointerId = event.pointerId
       panPointerButton = event.button
