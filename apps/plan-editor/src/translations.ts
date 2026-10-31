@@ -1,5 +1,23 @@
 export type Language = 'tr' | 'en';
 const entries = `
+Camera and image export|Kamera ve görsel çıktı
+Open 3D view|3D görünümü aç
+Camera view name|Kamera açısı adı
+Save angle|Açıyı kaydet
+Remove camera view|Kamera açısını kaldır
+Remove this camera view?|Bu kamera açısı kaldırılsın mı?
+Camera views could not be read.|Kamera açıları okunamadı.
+Could not save the camera view. Up to 50 views can be stored.|Kamera açısı kaydedilemedi. En fazla 50 açı saklanabilir.
+Could not remove the camera view.|Kamera açısı kaldırılamadı.
+Camera views are stored on this device for this project. Drawing objects remain unchanged.|Kamera açıları bu cihazda, bu projeye özel saklanır. Çizim nesnelerini değiştirmez.
+Image ratio|Görsel oranı
+Resolution|Çözünürlük
+Create image|Görsel oluştur
+Preparing image…|Görsel hazırlanıyor…
+Download image|Görseli indir
+Generated image|Oluşturulan görsel
+Creates an image from the current 3D view. Processing time at high resolution depends on your device.|Güncel 3D görünümden görsel üretir. Yüksek çözünürlükte işlem süresi cihazına bağlıdır.
+Could not create the image. Try a lower resolution.|Görsel oluşturulamadı. Daha düşük çözünürlükle tekrar dene.
 Drawing|Çizim
 Furniture|Mobilya
 Materials|Malzemeler

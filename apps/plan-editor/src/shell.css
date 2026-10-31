@@ -27,6 +27,18 @@ body { font-family: Arial, sans-serif; }
 .appearance-panel label { display:grid; gap:6px; font-size:12px; }
 .appearance-panel select { width:100%; min-height:38px; border:1px solid #425067; border-radius:6px; padding:6px 8px; background:#242424; color:white; }
 .appearance-panel .appearance-check { display:flex; align-items:center; gap:8px; }
+.presentation-panel { max-height:100%; overflow:auto; }
+.presentation-panel form { display:grid; gap:8px; }
+.presentation-panel input { min-width:0; width:100%; border:1px solid #425067; border-radius:6px; padding:8px; background:#242424; color:white; }
+.presentation-panel button:disabled { opacity:.45; cursor:not-allowed; }
+.saved-camera-list { display:grid; gap:6px; }
+.saved-camera-list > div { display:flex; gap:6px; border:1px solid #425067; border-radius:6px; padding:6px; }
+.saved-camera-list button:first-child { flex:1; min-width:0; text-align:left; overflow-wrap:anywhere; }
+.saved-camera-list button:last-child { padding:0 8px; }
+.presentation-panel figure { display:grid; gap:8px; }
+.presentation-panel figure img { width:100%; border-radius:6px; }
+.presentation-panel figcaption { font-size:12px; }
+.presentation-panel a { text-align:center; }
 .appearance-presets { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .appearance-presets button { padding:10px 8px; border:1px solid #425067; border-radius:6px; font-size:12px; }
 @media(max-width:600px) { .plan-navbar { flex-wrap: wrap; gap: 6px; font-size: 10px; } .plan-navbar strong { max-width: 130px; } }

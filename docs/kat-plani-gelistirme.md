@@ -25,7 +25,7 @@ Kullanıcı Coohom'u referans gösterdi ve ilk önceliği **mobilya, malzeme ve 
 
 1. Mobilya kataloğunun Türkçe oda/ürün adları, arama ve model boyutu deneyimini iyileştirmek.
 2. Malzeme seçimi, doku ölçeği/yönü ve seçili yüzey özelliklerini daha görünür yapmak.
-3. Kamera sahneleri, yüksek çözünürlüklü görüntü çıktısı ve sunum akışını geliştirmek.
+3. Sunum akışını kamera önizlemeleri ve gelişmiş render seçenekleriyle geliştirmek.
 4. Gereksinim netleştirilince sunucuda render, bulut çizim kaydı ve paylaşım için ayrı tasarım yapmak.
 5. Coohom canlı render panelinde görülen en-boy oranları, 1K/2K/4K çıktılar, kayıtlı kamera açıları, çevre ve ışık düzenleme akışlarını geliştirmek. İnceleme sırasında render üretimi veya kredi kullanımı başlatılmadı.
 
@@ -36,3 +36,12 @@ Kullanıcı Coohom'u referans gösterdi ve ilk önceliği **mobilya, malzeme ve 
 `node --test tests/editor-integration.test.mjs tests/structural-tools.test.mjs`
 
 Testler santimetre/metre dönüşümü, kiriş yönü ve merkezi, sabit/serbest uzunluk, geçersiz boyutlar, native node JSON korunumu, önceki kayıt korumaları ve yedek doğrulamasını kapsar.
+
+## Kamera ve görsel çıktı — 31 Ekim 2026
+
+- Yeni Kamera ve görsel çıktı paneli: adlandırılmış kamera açılarını kaydetme, açma ve onayla kaldırma. Her proje için en fazla 50 açı; kamera verileri ayrı IndexedDB deposunda atomik olarak tutulur. Çizim ve finansal veri tablolarına yazılmaz.
+- Açı kayıtları bu tarayıcı/cihaza özeldir; mevcut JSON çizim yedeğine dahil değildir. Cihazlar arası senkronizasyon henüz yoktur.
+- Güncel 3D kameradan yatay/dikey/kare çıktı: 16:9, 9:16, 4:3, 1:1; uzun kenar 1280, 1920 veya 3840 piksel. Oluşan görsel panelde önizlenir, indirme ayrı düğmedir. Kullanıcının canlı kamera veya ekran boyutu değiştirilmez.
+- Native ephemeral görüntü yakalama yolunda gereksiz host thumbnail-storage callback zorunluluğu kaldırıldı. Kalıcı thumbnail akışı callback olmadan yine hata verir; görüntü hataları/tamamlanma requestId ile ayrılır.
+- Bu bir yerel 3D render çıktısıdır; Coohom bulut render hizmeti değildir.
+- 14 test, ana uygulama TypeScript kontrolü ve üretim derlemesi geçti. Ayrı local QA sahnesinde kamera kaydı yenileme sonrasında korundu; 1920×1080 ve 2160×3840 çıktılar, Türkçe/English paneli tarayıcıdan doğrulandı. Üretim verisiyle test kaydı oluşturulmadı.

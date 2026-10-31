@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { loadPlugin } from '@pascal-app/core';
 import { builtinPlugin } from '@pascal-app/nodes';
 import { Editor, useEditor, selectWallDrawVariant, ViewerToolbarLeft, ViewerToolbarRight, type SceneGraph } from '@pascal-app/editor';
-import { Hammer, Package, Layers, Settings, PaintBucket, Sun } from 'lucide-react';
+import { Hammer, Package, Layers, Settings, PaintBucket, Sun, Camera } from 'lucide-react';
 import { readDrawing, saveDrawing, replaceFromBackup, getImportBackup } from './storage';
 import { parseBackup } from './backup';
 import './upstream.css';
@@ -12,6 +12,7 @@ import { defaultStructuralOptions, withStructuralTools } from './structural-tool
 import { validateStructuralOptions, type StructuralOptions } from './structural-model';
 import { FurniturePanel, MaterialsPanel, AppearancePanel } from './design-panels';
 import { LanguageBridge, LanguageSelector, uiText } from './language';
+import { PresentationPanel } from './presentation-panel';
 
 const params = new URLSearchParams(location.search);
 const workspace = params.get('workspace');
@@ -73,6 +74,7 @@ const tabs = [
   { id: 'items', label: 'Mobilya', icon: <Package size={20} />, component: FurniturePanel },
   { id: 'paint', label: 'Malzemeler', icon: <PaintBucket size={20} />, component: MaterialsPanel },
   { id: 'appearance', label: '3D Görünüm', icon: <Sun size={20} />, component: AppearancePanel },
+  { id: 'presentation', label: 'Kamera ve görsel çıktı', icon: <Camera size={20} />, component: PresentationPanel },
   { id: 'site', label: 'Katlar', icon: <Layers size={20} />, component: () => null },
   { id: 'settings', label: 'Ayarlar', icon: <Settings size={20} />, component: () => null },
 ];

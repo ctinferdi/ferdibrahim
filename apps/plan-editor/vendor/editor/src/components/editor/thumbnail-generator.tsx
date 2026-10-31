@@ -739,7 +739,9 @@ export const ThumbnailGenerator = ({ onThumbnailCapture }: ThumbnailGeneratorPro
         isGenerating,
         async () => {
           const version = captureVersion.current
-          const onCapture = onThumbnailCaptureRef.current
+          // A caller-owned image is returned on snapshot:captured and needs no
+          // host thumbnail storage callback (local embedded editors have none).
+          const onCapture = onThumbnailCaptureRef.current ?? (event.ephemeral ? () => {} : undefined)
           if (!onCapture) throw new Error('Snapshot storage is unavailable')
           if (cameraPose && event.projectId !== useViewer.getState().projectId)
             throw new Error('The active project changed before capture')

@@ -45,3 +45,5 @@ The host adds labeled structural axes and dimensional beams (`src/structural-*`)
 `node --test tests/editor-integration.test.mjs` at repository root checks password bounds, obsolete API rejection and backup validation without production writes. Browser checks use an ignored, local-only preview fixture and a separate QA workspace; never insert test expenses or apartments.
 
 Also run `node --test tests/structural-tools.test.mjs tests/editor-assets.test.mjs tests/editor-language.test.mjs` for structure geometry, archive file paths and bilingual catalog search.
+
+The Camera and image export panel stores up to 50 named camera angles per workspace in a separate IndexedDB database. These angles are device-local and are not included in scene JSON backups. It captures the current 3D pose at selectable aspect ratios with 1280/1920/3840-pixel long edges, previews the returned image and offers a download link. This uses native ephemeral rendering without a cloud thumbnail callback. No scene objects or financial records are modified. Run `node --test tests/editor-presentation.test.mjs` for camera persistence, workspace isolation and dimension validation.
