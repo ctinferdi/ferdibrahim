@@ -8,8 +8,7 @@ import { ActionButton } from './action-button'
 import { FollowPascalToggle } from './follow-pascal-toggle'
 
 export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
-  // Orbit stays useful in 2D-only (it spins the synced floorplan view), but
-  // top view only tilts the hidden 3D camera — pointless without the canvas.
+  // Rotation controls belong to 3D; the 2D drawing axes stay fixed.
   const is2dOnly = useEditor((s) => visibleScene(s) === '2d')
 
   const goToTopView = () => {
@@ -26,7 +25,7 @@ export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
 
   return (
     <div className="flex items-center gap-1">
-      {!hideOrbit && (
+      {!hideOrbit && !is2dOnly && (
         <>
           {/* Orbit CCW */}
           <ActionButton

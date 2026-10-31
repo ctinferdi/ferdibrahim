@@ -1842,10 +1842,6 @@ function rotateSvgPoint(point: SvgPoint, rotationDegrees: number): SvgPoint {
   }
 }
 
-function radiansToDegrees(angle: number) {
-  return (angle * 180) / Math.PI
-}
-
 function degreesToRadians(angle: number) {
   return (angle * Math.PI) / 180
 }
@@ -1864,11 +1860,9 @@ function nearestEquivalentDegrees(angle: number, reference: number) {
   return nextAngle
 }
 
-function floorplanRotationFromCameraAzimuth(azimuth: number, reference: number) {
-  return nearestEquivalentDegrees(
-    radiansToDegrees(azimuth) - FLOORPLAN_VIEW_ROTATION_DEG,
-    reference,
-  )
+function floorplanRotationFromCameraAzimuth(_azimuth: number, _reference: number) {
+  // Keep the drawing axes fixed, including after orbiting the 3D view.
+  return 0
 }
 
 function cameraAzimuthFromFloorplanRotation(rotationDeg: number) {
@@ -7757,36 +7751,13 @@ export function FloorplanPanel({
       }
     }
     const onBlur = () => clearKeyboardPanKeys(keys)
-    // Same rule as the 3D buttons: snap to the nearest quarter turn, then turn one more.
-    const orbit = (clockwise: boolean) => {
-      const viewport = latestViewportRef.current ?? latestFittedViewportRef.current
-      if (!viewport) return
-      const userRotationDeg = latestFloorplanUserRotationDegRef.current
-      const quarter = Math.PI / 2
-      const azimuth =
-        Math.round(cameraAzimuthFromFloorplanRotation(userRotationDeg) / quarter) * quarter +
-        (clockwise ? -quarter : quarter)
-      const nextRotationDeg = floorplanRotationFromCameraAzimuth(azimuth, userRotationDeg)
-      const localCenter = rotateSvgPoint(
-        { x: viewport.centerX, y: viewport.centerY },
-        -sceneRotationDeg(userRotationDeg),
-      )
-      smoothFloorplanNavigationView(localCenter, nextRotationDeg, viewport.width)
-      publishFloorplanNavigationPose(localCenter, nextRotationDeg, viewport.width)
-    }
-    const orbitClockwise = () => orbit(true)
-    const orbitCounterClockwise = () => orbit(false)
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('keyup', onKeyUp)
     window.addEventListener('blur', onBlur)
-    emitter.on('camera-controls:orbit-cw', orbitClockwise)
-    emitter.on('camera-controls:orbit-ccw', orbitCounterClockwise)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('blur', onBlur)
-      emitter.off('camera-controls:orbit-cw', orbitClockwise)
-      emitter.off('camera-controls:orbit-ccw', orbitCounterClockwise)
       // A key released while 3D owns the keys would otherwise still read as
       // held when the plan takes them back; the camera clears its own the same way.
       clearKeyboardPanKeys(keys)
@@ -8827,42 +8798,8 @@ export function FloorplanPanel({
       event.preventDefault()
       event.stopPropagation()
 
-      floorplanNavigationSyncScheduler.flush()
-      if (floorplanZoomCommitTimerRef.current !== null) commitFloorplanZoom()
-      stopFloorplanViewAnimation()
-      const currentViewport = latestViewportRef.current ?? latestFittedViewportRef.current
-      const svg = svgRef.current
-      if (!(currentViewport && svg)) return
-      const currentUserRotationDeg = latestFloorplanUserRotationDegRef.current
-      const currentSceneRotationDeg =
-        FLOORPLAN_VIEW_ROTATION_DEG + currentUserRotationDeg - buildingRotationDeg
-      const viewportCenterLocal = rotateSvgPoint(
-        { x: currentViewport.centerX, y: currentViewport.centerY },
-        -currentSceneRotationDeg,
-      )
-      const svgStyle = {
-        transform: svg.style.transform,
-        transformOrigin: svg.style.transformOrigin,
-        willChange: svg.style.willChange,
-      }
-      floorplanViewportInteractionInProgressRef.current = true
-      svg.style.transformOrigin = 'center'
-      svg.style.willChange = 'transform'
-      floorplanRotationStateRef.current = {
-        pointerId: event.pointerId,
-        startClientX: event.clientX,
-        initialUserRotationDeg: currentUserRotationDeg,
-        viewportCenterLocal,
-        svg,
-        svgStyle,
-        latestUserRotationDeg: currentUserRotationDeg,
-        latestViewport: currentViewport,
-      }
-      setIsRotatingFloorplan(true)
-      setCursorPoint(null)
-      setFloorplanCursorPosition(null)
+      // Right drag cannot rotate the 2D plan. Pan and zoom stay available.
 
-      event.currentTarget.setPointerCapture(event.pointerId)
     },
     [
       commitFloorplanZoom,
