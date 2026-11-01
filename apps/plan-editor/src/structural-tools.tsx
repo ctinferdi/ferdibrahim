@@ -18,6 +18,7 @@ export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gr
     start.current = null; setPreview(null);
     const element = group.current, svg = element?.ownerSVGElement;
     if (!element || !svg || !activeLevelId) return;
+    let spacePan = false;
     const consume = (event: Event) => { event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); };
     const point = (event: MouseEvent): PlanPoint | null => {
       const matrix = element.getScreenCTM(); if (!matrix) return null;
@@ -27,15 +28,15 @@ export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gr
       return resolveSurfacePlanPointSnap({ rawPoint: [local.x, local.y], fallbackPoint: fallback, levelId: activeLevelId, magnetic: !event.altKey, align: !event.altKey }).point as PlanPoint;
     };
     const move = (event: PointerEvent) => {
-      if (event.buttons & 0b110) return;
+      if (spacePan || event.buttons & 0b110) return;
       consume(event);
       const p = point(event); if (!p || !start.current) return;
       const end = resolveStructuralEnd(start.current, p, optionsRef.current);
       setPreview(end ? { start: start.current, end } : null);
     };
-    const down = (event: PointerEvent) => { if (event.button === 0) consume(event); };
+    const down = (event: PointerEvent) => { if (event.button === 0 && !spacePan) consume(event); };
     const click = (event: MouseEvent) => {
-      if (event.button !== 0) return; consume(event);
+      if (event.button !== 0 || spacePan) return; consume(event);
       const p = point(event), o = optionsRef.current;
       if (!p || !validateStructuralOptions(o)) return;
       if (!start.current) { start.current = p; return; }
@@ -48,15 +49,21 @@ export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gr
       start.current = null; setPreview(null);
     };
     const key = (event: KeyboardEvent) => {
+      if ((event.target as Element)?.closest?.('input,textarea,select,[contenteditable]')) return;
+      if (event.code === 'Space') { spacePan = true; return; }
       if (event.key !== 'Escape') return; consume(event);
       if (start.current) { start.current = null; setPreview(null); } else finishTool();
     };
+    const release = (event: KeyboardEvent) => { if (event.code === 'Space') spacePan = false; };
+    const blur = () => { spacePan = false; };
     svg.addEventListener('pointerdown', down, true); svg.addEventListener('pointermove', move, true);
     svg.addEventListener('click', click, true); window.addEventListener('keydown', key, true);
+    window.addEventListener('keyup', release, true); window.addEventListener('blur', blur);
     return () => {
       start.current = null;
       svg.removeEventListener('pointerdown', down, true); svg.removeEventListener('pointermove', move, true);
       svg.removeEventListener('click', click, true); window.removeEventListener('keydown', key, true);
+      window.removeEventListener('keyup', release, true); window.removeEventListener('blur', blur);
     };
   }, [activeLevelId, sceneApi, selectNode, gridSnapStep, isAxis, finishTool, toolDefaults]);
   return <g ref={group} pointerEvents="none">

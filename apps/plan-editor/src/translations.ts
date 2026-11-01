@@ -1,5 +1,38 @@
 export type Language = 'tr' | 'en';
 const entries = `
+Could not prepare the backup. Please try again.|Yedek hazırlanamadı. Lütfen tekrar dene.
+Wall type|Duvar türü
+Standard|Standart
+Curtain wall|Giydirme cephe
+Top|Üst
+Bottom|Alt
+Follows level|Kat yüksekliğine bağlı
+Custom height|Özel yükseklik
+Auto|Otomatik
+Fill to terrain|Araziye kadar doldur
+Thickness|Kalınlık
+Reference|Referans
+Outside face|Dış yüz
+Inside face|İç yüz
+Center|Merkez
+Curve|Eğri
+Assembly|Katman yapısı
+Preset|Hazır ayar
+None (single layer)|Yok (tek katman)
+Skirting|Süpürgelik
+Show skirting|Süpürgeliği göster
+Crown molding|Tavan kartonpiyeri
+Show crown molding|Tavan kartonpiyerini göster
+Chair rail|Duvar çıtası
+Show chair rail|Duvar çıtasını göster
+Edit properties|Özellikleri düzenle
+Roughness|Pürüzlülük
+Metalness|Metaliklik
+Opacity|Opaklık
+Rotation|Döndürme
+Scale|Ölçek
+Position|Konum
+Surface|Yüzey
 Camera and image export|Kamera ve görsel çıktı
 Open 3D view|3D görünümü aç
 Camera view name|Kamera açısı adı

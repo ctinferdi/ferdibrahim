@@ -1,11 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { loadPlugin } from '@pascal-app/core';
 import { builtinPlugin } from '@pascal-app/nodes';
 import { Editor, useEditor, selectWallDrawVariant, ViewerToolbarLeft, ViewerToolbarRight, type SceneGraph } from '@pascal-app/editor';
 import { Hammer, Package, Layers, Settings, PaintBucket, Sun, Camera } from 'lucide-react';
-import { readDrawing, saveDrawing, replaceFromBackup, getImportBackup } from './storage';
-import { parseBackup } from './backup';
+import { readDrawing, saveDrawing, replaceFromBackup, getImportBackup, getImportBackupViews } from './storage';
+import { parseProjectBackup } from './backup';
+import { readViews } from './saved-views';
 import './upstream.css';
 import './shell.css';
 import { defaultStructuralOptions, withStructuralTools } from './structural-tools';
@@ -84,12 +85,17 @@ function PlanApp() {
   const [status, setStatus] = useState('Yükleniyor…');
   const [version, setVersion] = useState(0);
   const [hasBackup, setHasBackup] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const replacing = useRef(false);
   const load = useCallback(async () => {
+    setReady(false);
     const scene = await readDrawing(workspace!);
+    await readViews(workspace!);
     setHasBackup(Boolean(await getImportBackup(workspace!)));
     replacing.current = false;
+    setReady(true);
     return scene;
   }, []);
   const save = useCallback(async (scene: SceneGraph) => {
@@ -97,36 +103,62 @@ function PlanApp() {
     try { await saveDrawing(workspace!, scene); setError(''); }
     catch (e) { setError('Çizim kaydedilemedi. Alanı kontrol edip JSON yedeğini indir.'); throw e; }
   }, []);
+  useEffect(() => {
+    const flush = async (event: MessageEvent) => {
+      if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== 'plan:flush' || typeof event.data.id !== 'string') return;
+      const id = event.data.id;
+      try {
+        if (!ready || replacing.current || busy) throw new Error('Editor busy');
+        const { getSavedSceneDocument } = await import('../vendor/editor/src/lib/scene');
+        await save(getSavedSceneDocument());
+        window.parent.postMessage({ type: 'plan:flushed', id, ok: true }, location.origin);
+      } catch { window.parent.postMessage({ type: 'plan:flushed', id, ok: false }, location.origin); }
+    };
+    window.addEventListener('message', flush);
+    return () => window.removeEventListener('message', flush);
+  }, [ready, busy, save]);
   async function importFile(file?: File) {
-    if (!file) return;
+    if (!file || !ready || busy) return;
+    setBusy(true);
     try {
       if (file.size > 20 * 1024 * 1024) throw new Error('Yedek en fazla 20 MB olabilir.');
-      const scene = parseBackup(await file.text());
+      const { scene, views } = parseProjectBackup(await file.text());
       if (!window.confirm(uiText('Bu projenin çizimi yedekteki çizimle değiştirilsin mi? Mevcut çizim geri almak için korunur.'))) return;
       replacing.current = true;
       const { getSavedSceneDocument } = await import('../vendor/editor/src/lib/scene');
       await saveDrawing(workspace!, getSavedSceneDocument());
-      await replaceFromBackup(workspace!, scene);
+      await replaceFromBackup(workspace!, scene, views);
       setError(''); setVersion(v => v + 1);
     } catch (e) { replacing.current = false; setError(e instanceof Error ? e.message : 'Yedek açılamadı.'); }
-    finally { if (fileInput.current) fileInput.current.value = ''; }
+    finally { setBusy(false); if (fileInput.current) fileInput.current.value = ''; }
   }
   async function undoImport() {
+    if (!ready || busy) return;
+    setBusy(true);
     try {
       const scene = await getImportBackup(workspace!);
       if (!scene || !window.confirm(uiText('İçe aktarmadan önceki çizime dönülsün mü?'))) return;
       replacing.current = true;
-      await replaceFromBackup(workspace!, scene); setError(''); setVersion(v => v + 1);
+      const { getSavedSceneDocument } = await import('../vendor/editor/src/lib/scene');
+      await saveDrawing(workspace!, getSavedSceneDocument());
+      await replaceFromBackup(workspace!, scene, await getImportBackupViews(workspace!)); setError(''); setVersion(v => v + 1);
     } catch { replacing.current = false; setError('Yedek geri alınamadı.'); }
+    finally { setBusy(false); }
   }
   async function exportFile() {
+    if (!ready || busy) return;
+    setBusy(true);
+    try {
     // Export the current document, including any changes still waiting for autosave.
     const { getSavedSceneDocument } = await import('../vendor/editor/src/lib/scene');
     const scene = getSavedSceneDocument();
-    const blob = new Blob([JSON.stringify({ format: 'insaat-pascal', version: 1, name: projectName, scene }, null, 2)], { type: 'application/json' });
+    const views = await readViews(workspace!);
+    const blob = new Blob([JSON.stringify({ format: 'insaat-pascal', version: 1, name: projectName, scene, views }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a');
     a.href = url; a.download = `${projectName.replace(/[^\p{L}\p{N} -]/gu, '')}-plan.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch { setError('Yedek hazırlanamadı. Lütfen tekrar dene.'); }
+    finally { setBusy(false); }
   }
   return <div className="editor-host">
     <LanguageBridge />
@@ -135,7 +167,7 @@ function PlanApp() {
     <Editor key={version} layoutVersion="v2" projectId={workspace!} projectName={projectName} sidebarTabs={tabs}
       onLoad={load} onSave={save} guardAgainstSceneWipe
       onSaveStatusChange={s => setStatus(({ idle: 'Hazır', pending: 'Değişiklik var', saving: 'Kaydediliyor…', saved: 'Bu cihazda kaydedildi', error: 'Kaydedilemedi', paused: 'Kayıt duraklatıldı' })[s])}
-      navbarSlot={<div className="plan-navbar"><strong data-i18n-skip>{projectName}</strong><span role="status">{status}</span><LanguageSelector /><button onClick={exportFile}>JSON yedeği indir</button><button onClick={() => fileInput.current?.click()}>Yedeği aç</button>{hasBackup && <button onClick={undoImport}>İçe aktarmayı geri al</button>}</div>}
+      navbarSlot={<div className="plan-navbar"><strong data-i18n-skip>{projectName}</strong><span role="status">{status}</span><LanguageSelector /><button disabled={!ready || busy} onClick={exportFile}>JSON yedeği indir</button><button disabled={!ready || busy} onClick={() => fileInput.current?.click()}>Yedeği aç</button>{hasBackup && <button disabled={!ready || busy} onClick={undoImport}>İçe aktarmayı geri al</button>}</div>}
       viewerToolbarLeft={<ViewerToolbarLeft />} viewerToolbarRight={<ViewerToolbarRight />} />
   </div>;
 }

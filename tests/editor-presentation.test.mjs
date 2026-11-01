@@ -24,3 +24,36 @@ test('camera data and output dimensions reject invalid values',()=>{
   assert.throws(()=>imageSize(Infinity,'16:9'));
   assert.throws(()=>imageSize(3840,'0:0'));
 });
+
+test('camera migration and scene backup import preserve both stores and undo state', async () => {
+  const { createStore, set, get } = await import('../apps/plan-editor/node_modules/idb-keyval/dist/index.js');
+  const { parseProjectBackup } = await import('../apps/plan-editor/src/backup.ts');
+  const db = await import('../apps/plan-editor/src/storage.ts?audit');
+  const legacyStore = createStore('insaat-pascal-views','views');
+  const key = 'audit:scene-camera';
+  const oldViews = [{id:'old',name:'Ön görünüm',pose}];
+  await set(key, oldViews, legacyStore);
+  assert.deepEqual(await readViews(key), oldViews);
+  assert.deepEqual(await get(key,legacyStore), oldViews);
+  const scene = {nodes:{site:{id:'site',type:'site'}},rootNodeIds:['site']};
+  await db.readDrawing(key);
+  await Promise.all([db.saveDrawing(key,scene),db.saveDrawing(key,{...scene,materials:{test:1}})]);
+  assert.deepEqual((await db.readDrawing(key)).materials,{test:1});
+  assert.deepEqual(await readViews(key),oldViews);
+  const views = [{id:'new',name:'Yeni açı',pose}];
+  const backup = parseProjectBackup(JSON.stringify({format:'insaat-pascal',version:1,scene,views}));
+  await db.replaceFromBackup(key,backup.scene,backup.views);
+  assert.deepEqual(await readViews(key),views);
+  assert.deepEqual(await db.getImportBackupViews(key),oldViews);
+  await db.replaceFromBackup(key,await db.getImportBackup(key),await db.getImportBackupViews(key));
+  assert.deepEqual(await readViews(key),oldViews);
+  assert.deepEqual((await db.readDrawing(key)).materials,{test:1});
+  const previous = await db.readDrawing(key);
+  await assert.rejects(db.replaceFromBackup(key,scene,[{id:'broken',name:'broken',pose:null}]));
+  assert.deepEqual(await db.readDrawing(key),previous);
+  assert.deepEqual(await readViews(key),oldViews);
+  const oldBackup = parseProjectBackup(JSON.stringify({format:'insaat-pascal',version:1,scene}));
+  await db.replaceFromBackup(key,oldBackup.scene,oldBackup.views);
+  assert.deepEqual(await readViews(key),oldViews);
+  await assert.rejects(db.saveDrawing('different-project',scene),/not loaded/);
+});

@@ -1,5 +1,6 @@
+import { validateViews } from './saved-views.ts';
 // Reject malformed backups before handing them to the scene engine.
-export function parseBackup(text: string) {
+export function parseProjectBackup(text: string) {
   const payload = JSON.parse(text);
   if (payload?.format !== 'insaat-pascal' || payload?.version !== 1) throw new Error('Bu dosya bir Kat Planı JSON yedeği değil.');
   const scene = payload.scene;
@@ -13,5 +14,6 @@ export function parseBackup(text: string) {
     if (id === '__proto__' || id === 'constructor' || !node || typeof node !== 'object' ||
         (node as any).id !== id || typeof (node as any).type !== 'string') throw new Error('Yedekte geçersiz nesne var.');
   }
-  return scene;
+  return { scene, views: payload.views === undefined ? undefined : validateViews(payload.views) };
 }
+export function parseBackup(text: string) { return parseProjectBackup(text).scene; }

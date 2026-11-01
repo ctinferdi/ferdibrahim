@@ -13,7 +13,7 @@ export function PresentationPanel() {
   const [edge, setEdge] = useState(1920), [ratio, setRatio] = useState('16:9'), [busy, setBusy] = useState(false);
   const [picture, setPicture] = useState<{ url: string; width: number; height: number; extension: string } | null>(null);
   const request = useRef<string | null>(null), timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const is3d = useEditor(s => visibleScene(s) === '3d');
+  const is3d = useEditor(s => ['3d', 'split'].includes(visibleScene(s) ?? ''));
   useEffect(() => {
     let mounted = true;
     readViews(workspace).then(value => { if (mounted) setViews(value); }).catch(() => { if (mounted) setError('Kamera açıları okunamadı.'); }).finally(() => { if (mounted) setLoading(false); });
@@ -24,7 +24,7 @@ export function PresentationPanel() {
     const success = (event: any) => {
       if (event.requestId !== request.current) return;
       finish(); setError('');
-      setPicture({ url: URL.createObjectURL(event.blob), width: event.width, height: event.height, extension: event.blob.type === 'image/png' ? 'png' : 'jpg' });
+      setPicture({ url: URL.createObjectURL(event.blob), width: event.width, height: event.height, extension: event.blob.type === 'image/png' ? 'png' : event.blob.type === 'image/webp' ? 'webp' : 'jpg' });
     };
     const failure = (event: any) => { if (event.requestId === request.current) { finish(); setError('Görsel oluşturulamadı. Daha düşük çözünürlükle tekrar dene.'); } };
     emitter.on('snapshot:captured', success); emitter.on('snapshot:capture-failed', failure);

@@ -45,3 +45,15 @@ Testler santimetre/metre dönüşümü, kiriş yönü ve merkezi, sabit/serbest 
 - Native ephemeral görüntü yakalama yolunda gereksiz host thumbnail-storage callback zorunluluğu kaldırıldı. Kalıcı thumbnail akışı callback olmadan yine hata verir; görüntü hataları/tamamlanma requestId ile ayrılır.
 - Bu bir yerel 3D render çıktısıdır; Coohom bulut render hizmeti değildir.
 - 14 test, ana uygulama TypeScript kontrolü ve üretim derlemesi geçti. Ayrı local QA sahnesinde kamera kaydı yenileme sonrasında korundu; 1920×1080 ve 2160×3840 çıktılar, Türkçe/English paneli tarayıcıdan doğrulandı. Üretim verisiyle test kaydı oluşturulmadı.
+
+## Sağlamlaştırma denetimi — 1 Kasım 2026
+
+- Kamera açıları artık çizim JSON yedeğine dahil. Eski açı deposu silinmeden çizim kaydına taşınır; eski yalnız-sahne yedekleri mevcut açıları korur.
+- Sahne ve kamera içe aktarması tek IndexedDB işlemiyle yapılır. İçe aktarmayı geri alma, her ikisinin önceki halini korur. Geri alma öncesinde bekleyen sahne değişiklikleri kaydedilir.
+- Aynı sekmenin otomatik/elle kayıt istekleri sıraya alındı; farklı sekmelerin sürüm çakışması koruması devam ediyor. Başka çalışma alanına yanlışlıkla kayıt reddedilir.
+- Proje seçimine dön düğmesi iframe kayıt yanıtını bekler; hata veya zaman aşımında çizimi açık tutar.
+- Bölünmüş 2D/3D görünümde görsel çıktı etkin. WebP çıktı doğru uzantıyla indirilir.
+- Aks/kiriş çiziminde Boşluk ile kaydırma ve giriş alanlarında Esc davranışı düzeltildi.
+- Telefon araç menüsü yatay kaydırılabilir; 390 px ekranda düğmeler 80 px, sayfa taşması yok. Duvar özelliklerinin Türkçe metinleri genişletildi.
+- 15 otomatik test; ana uygulama TypeScript kontrolü ve üretim derlemesi geçti. Mevcut local QA kamera kaydı ve dil geçişleri tarayıcıdan kontrol edildi.
+- Finansal kayıtlara ve Supabase şemasına yazılmadı. Çizimler hâlâ cihazda saklanır. Bulut senkronizasyonu, bulut render ve gelişmiş panellerin kalan çevirileri sonraki geliştirmelerdir. Editörün büyük JavaScript paketi uyarısı devam eder; ana uygulamadan ayrı yüklenir.
