@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwind from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { adaptBundledAssets } from './asset-paths.mjs';
+import { adaptColumnDefaults } from './column-defaults.mjs';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
   plugins: [
     { name: 'pascal-local-assets', enforce: 'pre', transform(code, id) {
       if (!/\.[cm]?[jt]sx?$/.test(id)) return;
+      if (/[\\/]nodes[\\/]dist[\\/]column[\\/]tool\.js$/.test(id)) code = adaptColumnDefaults(code);
       if (/[\\/]viewer[\\/]dist[\\/]lib[\\/]asset-url\.js$/.test(id)) {
         code = code.replace(/export const ASSETS_CDN_URL = [^;]+;/, "export const ASSETS_CDN_URL = ''; ");
         code = code.replaceAll("if (!url)", "if (url?.startsWith('data:image/') || url?.startsWith('data:model/gltf-binary;base64,')) return url;\n    if (!url)");

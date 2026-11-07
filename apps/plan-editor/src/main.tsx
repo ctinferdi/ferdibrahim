@@ -36,14 +36,21 @@ function BuildPanel() {
     ceiling: 'Tavanın sınırını çiz. Seçince kot ve yüzey özelliklerini düzenleyebilirsin.',
     roof: 'Çatı sınırını çiz. Seçince çatı biçimi, eğim ve yüzey özelliklerini düzenleyebilirsin.',
     stair: 'Merdiveni yerleştir. Seçince basamak ve boyutlarını düzenleyebilirsin.',
+    axis: 'Aksı seçip adını ve uzunluğunu ayarla; Çizime başla ile yerleştir.',
+    beam: 'Kirişi seçip en, yükseklik, uzunluk ve alt kotunu ayarla; Çizime başla ile yerleştir.',
   };
   const tool = useEditor(s => s.tool);
+  useEffect(() => { if (tool && toolInfo[tool]) setPreviewTool(tool); }, [tool]);
+  const [columnSize, setColumnSize] = useState({ width: '40', depth: '40', height: '300' });
+  const validColumn = Object.values(columnSize).every(v => v.trim() !== '' && Number.isFinite(Number(v)) && Number(v) >= 5 && Number(v) <= 2000);
+  const columnDefaults = (size = columnSize) => ({ name: 'Kolon', crossSection: 'rectangular', width: Number(size.width) / 100, depth: Number(size.depth) / 100, height: Number(size.height) / 100, baseStyle: 'none', capitalStyle: 'none', baseHeight: 0, capitalHeight: 0 });
   const wallDefaults = useEditor(s => s.toolDefaults.wall);
   const [wallThickness, setWallThickness] = useState(String(Number(wallDefaults?.thickness ?? 0.2) * 100));
   const validWallThickness = Number.isFinite(Number(wallThickness)) && Number(wallThickness) >= 1 && Number(wallThickness) <= 100;
   const [structural, setStructural] = useState<'axis' | 'beam' | null>(null);
   const [options, setOptions] = useState<StructuralOptions>(defaultStructuralOptions);
   function chooseStructural(kind: 'axis' | 'beam') {
+    setPreviewTool(kind);
     useEditor.getState().setTool(null);
     useEditor.getState().setMode('select');
     setStructural(kind);
@@ -51,27 +58,39 @@ function BuildPanel() {
   }
   function activate(id: string, variant?: 'walls' | 'rectangle' | 'polygon') {
     if (id === 'wall' && !validWallThickness) return;
+    if (id === 'column' && !validColumn) return;
+    setPreviewTool(id);
     setStructural(null);
     const editor = useEditor.getState();
     if (variant) selectWallDrawVariant(variant);
-    editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, id === 'wall' ? { thickness: Number(wallThickness) / 100 } : null); editor.setMode('build'); editor.setTool(id);
+    editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, id === 'wall' ? { thickness: Number(wallThickness) / 100 } : id === 'column' ? columnDefaults() : null); editor.setMode('build'); editor.setTool(id);
   }
   return <div className="p-3"><SelectionProperties /><h2 className="mb-3 font-semibold">Yapı araçları</h2><div className="grid grid-cols-2 gap-2">
     {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => setPreviewTool(id)} onFocus={() => setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
       setPreviewTool(id);
       activate(id, id === 'wall' ? 'walls' : undefined);
     }}>{label}</button>)}
-    <button className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'rectangle')}>Dikdörtgen oda</button>
-    <button className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'polygon')}>Çokgen oda</button>
-    <button className={`rounded-lg border p-3 text-sm ${structural === 'axis' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
-    <button className={`rounded-lg border p-3 text-sm ${structural === 'beam' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
+    <button onMouseEnter={() => setPreviewTool('wall')} onFocus={() => setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'rectangle')}>Dikdörtgen oda</button>
+    <button onMouseEnter={() => setPreviewTool('wall')} onFocus={() => setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'polygon')}>Çokgen oda</button>
+    <button onMouseEnter={() => setPreviewTool('axis')} onFocus={() => setPreviewTool('axis')} className={`rounded-lg border p-3 text-sm ${structural === 'axis' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
+    <button onMouseEnter={() => setPreviewTool('beam')} onFocus={() => setPreviewTool('beam')} className={`rounded-lg border p-3 text-sm ${structural === 'beam' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
   </div>
-  <aside className="structural-options" aria-live="polite">
-    <h3>{buildTools.find(([id]) => id === previewTool)?.[1]} · Düzenleme bilgileri</h3>
+  {toolInfo[previewTool] && <aside key={previewTool} className="structural-options" aria-live="polite">
+    <h3>{buildTools.find(([id]) => id === previewTool)?.[1] ?? (previewTool === 'axis' ? 'Aks' : 'Kiriş')} · Düzenleme bilgileri</h3>
     <p>{toolInfo[previewTool]}</p>
     <p>Ölçü birimleri: cm / m</p>
-  </aside>
-  <div className="structural-options">
+  </aside>}
+  {previewTool === 'column' && <div className="structural-options">
+    {(['width', 'depth', 'height'] as const).map((axis, index) => <label key={axis}>{['Kolon eni (cm)', 'Kolon derinliği (cm)', 'Kolon yüksekliği (cm)'][index]}
+      <input type="number" min="5" max="2000" step="1" value={columnSize[axis]} onChange={e => {
+        const next = { ...columnSize, [axis]: e.target.value }; setColumnSize(next);
+        if (Object.values(next).every(v => v.trim() !== '' && Number.isFinite(Number(v)) && Number(v) >= 5 && Number(v) <= 2000)) useEditor.getState().setToolDefaults('column', columnDefaults(next));
+      }} />
+    </label>)}
+    {!validColumn && <p role="alert">Ölçüler 5 ile 2000 cm arasında olmalı.</p>}
+    <button type="button" className="structural-start" disabled={!validColumn} onClick={() => activate('column')}>Kolonu yerleştir</button>
+  </div>}
+  {previewTool === 'wall' && <div className="structural-options">
     <label>Yeni duvar kalınlığı (cm)<input type="number" min="1" max="100" step="1" value={wallThickness} onChange={e => {
       setWallThickness(e.target.value);
       const cm = Number(e.target.value);
@@ -79,8 +98,8 @@ function BuildPanel() {
     }} /></label>
     {!validWallThickness && <p role="alert">1 ile 100 cm arasında bir kalınlık gir.</p>}
     <p>Yeni duvarlar ve oda çizimleri için geçerlidir. Mevcut duvarı seçip Kalınlık alanından değiştirebilirsin.</p>
-  </div>
-  {structural && <form className="structural-options" onSubmit={event => {
+  </div>}
+  {structural && previewTool === structural && <form className="structural-options" onSubmit={event => {
     event.preventDefault(); if (!validateStructuralOptions(options)) return;
     const editor = useEditor.getState(), kind = structural === 'axis' ? 'structural-grid' : 'block';
     editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(kind, { ...options });

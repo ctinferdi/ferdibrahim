@@ -474,6 +474,15 @@ Added to library.|Kütüphaneye eklendi.
 Remove this item from the library? Copies in the drawing are preserved.|Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.
 `;
 const selectionEntries = `
+Axis · Editing information|Aks · Düzenleme bilgileri
+Beam · Editing information|Kiriş · Düzenleme bilgileri
+Select the axis, set its name and length, then start drawing.|Aksı seçip adını ve uzunluğunu ayarla; Çizime başla ile yerleştir.
+Select the beam, set width, height, length and elevation, then start drawing.|Kirişi seçip en, yükseklik, uzunluk ve alt kotunu ayarla; Çizime başla ile yerleştir.
+Column width (cm)|Kolon eni (cm)
+Column depth (cm)|Kolon derinliği (cm)
+Column height (cm)|Kolon yüksekliği (cm)
+Place column|Kolonu yerleştir
+Dimensions must be between 5 and 2000 cm.|Ölçüler 5 ile 2000 cm arasında olmalı.
 Units: cm / m|Ölçü birimleri: cm / m
 Wall · Editing information|Duvar · Düzenleme bilgileri
 Door · Editing information|Kapı · Düzenleme bilgileri
