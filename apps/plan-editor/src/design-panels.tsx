@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PersonalLibrary } from './personal-library';
+import { SelectionProperties } from './selection-properties';
 import { ItemsPanel, MaterialPaintPanel, armMaterialPaint, useEditor, useViewer } from '@pascal-app/editor';
 import { CATALOG_ITEMS } from '../vendor/editor/src/components/ui/item-catalog/catalog-items';
 import { translateLabel } from './translations';
@@ -14,7 +15,7 @@ export function FurniturePanel() {
   const [personal, setPersonal] = useState<AssetInput[]>([]);
   const items = library === 'personal' ? personal : library === 'kenney' ? kenneyCatalog : library === 'original' ? bundledFurniture : [...personal, ...bundledFurniture, ...kenneyCatalog];
   return <div className="design-catalog-panel">
-    <header><h2>Mobilya kütüphanesi</h2><p>Kategoriden bir ürün seç, planda yerleştir. Seçtiğin ürünün konumunu ve boyutlarını özellikler panelinden düzenleyebilirsin.</p>
+    <header className="furniture-header"><SelectionProperties /><h2>Mobilya kütüphanesi</h2><p>Kategoriden bir ürün seç, planda yerleştir. Seçtiğin ürünün konumunu ve boyutlarını özellikler panelinden düzenleyebilirsin.</p>
       <button className="design-primary" onClick={() => {
         useEditor.getState().showView('3d');
         useViewer.getState().setShading('rendered'); useViewer.getState().setTextures(true);

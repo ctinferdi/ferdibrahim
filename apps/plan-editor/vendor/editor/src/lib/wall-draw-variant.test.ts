@@ -19,7 +19,7 @@ describe('Rooms variants', () => {
     expect(WALL_DRAW_VARIANTS.map((variant) => [variant.id, variant.label, variant.mode])).toEqual([
       ['rectangle', 'Rectangle', 'rectangle'],
       ['polygon', 'Polygon', 'room'],
-      ['walls', 'Walls', 'single'],
+      ['walls', 'Walls', 'continuous'],
     ])
   })
 

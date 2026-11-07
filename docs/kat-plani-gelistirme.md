@@ -1,5 +1,28 @@
 # Kat Planı geliştirme kaydı
 
+## Yüzeyin yanında düzenleme — 7 Kasım 2026
+
+Duvarın yanındaki panel ortak seçim paneline dönüştürüldü. Oda/döşeme seçildiğinde parke, fayans ve mermer küçük resimleri çizim alanındaki panelde gösterilir; oda kaplaması zone.floor.finish üzerinden değiştirilir. Mobilya, kapı, pencere ve diğer seçili elemanların mevcut özellikleri aynı panelde “Özellikleri göster” ile açılır. Fareyle başka aracın üstünden geçmek seçimi değiştirmez. 2D panel geometriyi yakınlaştırma/kaydırma sırasında takip eder; 3D panel tıklanan konuma yakın açılır. Panel yüksekliği görünümle sınırlıdır ve içeriği kaydırılabilir.
+
+Ayrı localhost test çiziminde 2D kare fayans seçimi, 3D parke seçimi, yenileme sonrası kaplamanın korunması ve mobilyanın en/yükseklik/derinlik paneli kontrol edildi. Yayın öncesi 24 testin tamamı ve ana uygulama ile editörün tam üretim derlemesi geçti. Gerçek proje ve finansal kayıtlara test verisi yazılmadı. Büyük JavaScript paketi uyarısı devam ediyor. Seçim panelinin gizli görünümü referans alması engellendi; seçim yokken konum takip döngüsü çalıştırılmaz.
+
+## Birlikte takip edilen işler — 7 Kasım 2026
+
+Yeni istekler önceki işleri değiştirmez; aşağıdaki kapsam birlikte tamamlanacak. Bu bölüm tamamlanma veya yayın kaydı değildir.
+
+- Renkli kuş bakışı tefriş: mobilya üst görünüşü, parke, duvar, kapı ve pencere ayrıntıları.
+- Mobilyada en, derinlik ve yüksekliği bağımsız değiştirme; doğrudan çizim üzerindeki boyutlandırma tutamaçları ayrıca bekliyor.
+- Duvarın son noktasından kesintisiz devam etmesi; Esc veya iptal ile durması.
+- Kirişin serbest uzunluğu, duvarla hizalanması ve mevcut kirişin ölçülerinin düzenlenmesi.
+- Kolon ve diğer yapı araçlarında doğru ölçü alanları, cm/m birimleri, Türkçe/İngilizce metinler; özelliklerin yalnızca kullanıcı istediğinde açılması.
+- Kütüphaneye kullanıcı dosyası ekleme/kaldırma ve mevcut kayıtları koruma.
+
+Mevcut yerel kontrolde renkli mobilya üst görünüşü, varsayılan parke, bağımsız en değişikliği ve 2D kesintisiz duvar çizimi gözlendi. 2D yerleştirme sorunu, gizlenen 3D Canvas içindeki araç yöneticisinin bağlanmamasından kaynaklanıyordu; gizli Canvas ölçülebilir tutulup render duraklatılarak düzeltildi. Ayrı test sahnesinde 3D'ye geçmeden kapı, pencere ve yatak yerleştirildi. Yatağın eni 108'den 180 cm'ye değiştirilirken yükseklik 60 cm ve derinlik 214 cm kaldı; yenileme sonrası kayıt korundu.
+
+Duvarın 2D serbest kalınlık tutamaçları kaldırıldı. Coohom'daki seçili duvar paneli ve kalınlık listesi incelendi. Duvar seçildiğinde küçük “Seçili duvar” panelinde cm cinsinden kalınlık, hazır kalınlık seçenekleri ve yükseklik gösterilir; geçerli değerler anında seçili duvara uygulanır. Diğer ayrıntılar ve yüzey için “Özellikleri göster” kullanılır. Seçim varken yeni çizim ayarları gizlenir; böylece “Yeni duvar kalınlığı” ile mevcut duvarı düzenleme karışmaz. Katmanlı duvarlarda kalınlık değişimi mevcut katman oranlarını korur. Ayrı duvar testinde 10 ve 40 cm hazır seçeneklerinin geometrinin kalınlığını değiştirdiği, elle girilen 35 cm'nin yenileme sonrasında korunduğu görüldü. Önceki 300 cm yükseklik korundu. Dokuz hedefli test ve editör derlemesi geçti.
+
+Bazı malzemeler henüz doku yerine renk gösteriyor. Mobilyanın çizim üzerinde sürükleyerek boyutlandırma tutamaçları ayrıca bekliyor. Finansal verilere test kaydı eklenmedi. Testler yalnızca ayrı localhost çalışma alanında yapılmalı.
+
 ## Referans ve öncelik
 
 Kullanıcı Coohom'u referans gösterdi ve ilk önceliği **mobilya, malzeme ve gerçekçi 3D görünüm** olarak belirledi. Kullanıcının açtığı canlı Coohom editörü incelendi: solda oda/ürün kategorileri ve arama, ortada 2D/3D model, sağda seçilen öğe/kat özellikleri, ayrı render ve ışık ayarları. Coohom projesine nesne eklenmedi, kaynak veya katalog dosyaları kopyalanmadı.
@@ -57,3 +80,10 @@ Testler santimetre/metre dönüşümü, kiriş yönü ve merkezi, sabit/serbest 
 - Telefon araç menüsü yatay kaydırılabilir; 390 px ekranda düğmeler 80 px, sayfa taşması yok. Duvar özelliklerinin Türkçe metinleri genişletildi.
 - 15 otomatik test; ana uygulama TypeScript kontrolü ve üretim derlemesi geçti. Mevcut local QA kamera kaydı ve dil geçişleri tarayıcıdan kontrol edildi.
 - Finansal kayıtlara ve Supabase şemasına yazılmadı. Çizimler hâlâ cihazda saklanır. Bulut senkronizasyonu, bulut render ve gelişmiş panellerin kalan çevirileri sonraki geliştirmelerdir. Editörün büyük JavaScript paketi uyarısı devam eder; ana uygulamadan ayrı yüklenir.
+# 7 Kasım 2026 — Zemin kaplaması ve duvar yanında ölçüler
+
+- Seçili duvarın kalınlık/yükseklik paneli 2D'de duvarın yanında açılır; pan ve zoom ile konumunu takip eder. 3D'de aynı alanlar sol panelde kalır.
+- Oda/zemin seçimi için görselli parke, fayans ve mermer seçenekleri eklendi. Odanın kaplaması `zone.floor.finish` üzerinde saklanır; paylaşılan döşemenin tamamına yazılmaz. Bağımsız döşemeler kendi yüzey slotunu kullanır.
+- 2D kaplamalar döşemenin dış sınırına ve boşluklarına kırpılır; 3D ile aynı malzeme referanslarını kullanır.
+- Yerel ayrı test çizimlerinde fayansın 2D görünümü, mermerin 2D/3D görünümü ve yenileme sonrası saklanması doğrulandı. Duvarın hazır 40 cm kalınlığı ve zoom sırasında panel takibi kontrol edildi. Üretim proje/gider verileri değiştirilmedi.
+- Editör build başarılı; 9 ilgili otomatik test geçti. Büyük JavaScript paket uyarısı sürüyor. Yerel sunucu 3014 portunda açık; bu değişiklikler henüz push edilmedi.

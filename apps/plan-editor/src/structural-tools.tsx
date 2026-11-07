@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useEditor, isGridSnapActive, resolveSurfacePlanPointSnap } from '@pascal-app/editor';
+import { useEditor, isGridSnapActive, resolveSurfacePlanPointSnap, readFloorplanContext } from '@pascal-app/editor';
 import type { FloorplanToolContext } from '../vendor/editor/src/lib/floorplan/floorplan-extension';
 import { resolveStructuralEnd, validateStructuralOptions, type PlanPoint, type StructuralOptions } from './structural-model';
 import { createStructuralNode } from './structural-nodes';
+import { decoratePlanGeometry } from './plan-appearance';
 
 export const defaultStructuralOptions: StructuralOptions = { label: 'K1', length: 5, fixedLength: false, width: 30, height: 50, elevation: 2.5 };
 
@@ -78,6 +79,17 @@ export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gr
 // established undo, geometry, selection, autosave and JSON backup support.
 export function withStructuralTools(plugin: any) {
   return { ...plugin, nodes: plugin.nodes.map((definition: any) => {
+    if (['slab', 'door', 'window', 'wall'].includes(definition.kind)) return { ...definition, floorplan: (node: any, context: any) => {
+      const geometry = definition.floorplan?.(node, context);
+      if (readFloorplanContext(context).drafting) return geometry;
+      return decoratePlanGeometry(definition.kind, node, geometry, context.viewState?.selected || context.viewState?.highlighted);
+    } };
+    if (definition.kind === 'item') return { ...definition, floorplan: (node: any, context: any) => {
+      // Preserve custom plan images and all native positioning/selection behavior.
+      if (!node.asset?.src || (node.asset.floorPlanUrl && !node.asset.src.startsWith('/plan-editor/items/'))) return definition.floorplan?.(node, context);
+      const floorPlanUrl = 'plan-top-view:' + encodeURIComponent(JSON.stringify({ src: node.asset.src, rotation: node.asset.rotation, scale: node.asset.scale }));
+      return definition.floorplan?.({ ...node, asset: { ...node.asset, floorPlanUrl } }, context);
+    } };
     if (!['block', 'structural-grid'].includes(definition.kind)) return definition;
     const originalFloorplan = definition.floorplan;
     return { ...definition,

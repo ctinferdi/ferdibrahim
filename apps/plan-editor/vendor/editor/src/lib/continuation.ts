@@ -19,9 +19,9 @@ export const CONTINUATION_PROFILES: Record<
   // Build panel's Polygon), one wall per two clicks ('single', Walls), or a
   // two-corner box of four walls ('rectangle', Rectangle).
   wall: {
-    options: ['room', 'single', 'rectangle'],
+    options: ['room', 'single', 'continuous', 'rectangle'],
     default: 'room',
-    labels: { room: 'Polygon room', single: 'Walls', rectangle: 'Rectangle room' },
+    labels: { room: 'Polygon room', single: 'Walls', continuous: 'Continuous walls', rectangle: 'Rectangle room' },
     icons: { room: 'lucide:pentagon', single: 'lucide:minus', rectangle: 'lucide:square' },
     chosenInPanel: true,
   },

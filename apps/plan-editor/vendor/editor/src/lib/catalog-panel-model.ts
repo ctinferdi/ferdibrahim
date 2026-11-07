@@ -33,6 +33,7 @@ export function activateCatalogItem(item: CatalogItem) {
   useViewer.getState().setTextures(true)
   useViewer.getState().setSelection({ selectedIds: [], zoneId: null })
   const editor = useEditor.getState()
+  editor.setPhase('furnishing')
   editor.setSelectedItem(item)
   editor.setTool(item.tool ?? 'item')
   editor.setMode('build')

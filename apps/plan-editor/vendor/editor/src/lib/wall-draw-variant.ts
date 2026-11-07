@@ -47,12 +47,12 @@ export const WALL_DRAW_VARIANTS: readonly WallDrawVariantInfo[] = [
   },
   {
     id: 'walls',
-    mode: 'single',
+    mode: 'continuous',
     label: 'Walls',
     title: 'Walls',
     iconSrc: '/icons/wall.webp',
     caption: {
-      lead: 'Draw one wall at a time.',
+      lead: 'Draw connected walls until Escape.',
       rest: 'Close a loop and it becomes a room; leave it open for partitions.',
     },
   },
@@ -66,6 +66,7 @@ export function getWallDrawVariantInfo(variant: WallDrawVariant): WallDrawVarian
 }
 
 export function wallDrawVariantOf(mode: ContinuationMode): WallDrawVariant {
+  if (mode === 'single') return 'walls';
   return WALL_DRAW_VARIANTS.find((info) => info.mode === mode)?.id ?? 'polygon'
 }
 

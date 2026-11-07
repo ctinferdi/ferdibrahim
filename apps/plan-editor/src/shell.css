@@ -12,6 +12,18 @@ body { font-family: Arial, sans-serif; }
 .boot-message { display: grid; place-content: center; height: 100%; padding: 24px; background: #171717; color: white; }
 .structural-options { margin-top:16px; display:grid; gap:10px; border-top:1px solid #425067; padding-top:12px; }
 .structural-options h3 { font-weight:600; }
+.selected-wall-measures { margin-bottom:16px; padding:12px; border:1px solid #3b82f6; border-radius:8px; background:#172338; }
+.wall-measure-popover { position:fixed; z-index:80; max-height:calc(100vh - 100px); overflow:auto; overscroll-behavior:contain; color:#fff; background:#171b22; border:1px solid #425067; padding:10px; box-sizing:border-box; box-shadow:0 8px 24px #0006; border-radius:8px; }
+.wall-measure-popover .structural-options { margin-top:0; padding-top:8px; }
+.wall-measure-popover .floor-finish-picker { border-top:0; }
+.wall-measure-popover .building-inspector-dock { margin-bottom:0; }
+.selection-properties-toggle { width:100%; padding:8px; margin-top:8px; border:1px solid #425067; border-radius:6px; font-size:12px; background:#222a36; }
+.wall-measure-popover .selected-wall-measures { margin:0; gap:8px; }
+.wall-measure-popover .structural-options p { margin:0; }
+.floor-finish-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.floor-finish-grid button { border:1px solid #425067; border-radius:6px; overflow:hidden; text-align:left; font-size:11px; padding:5px; }
+.floor-finish-grid button[aria-pressed=true] { border-color:#60a5fa; background:#172338; }
+.floor-finish-grid img { width:100%; height:44px; object-fit:cover; border-radius:3px; margin-bottom:4px; }
 .structural-options label { display:grid; gap:4px; font-size:12px; min-width:0; }
 .structural-options input:not([type=checkbox]), .structural-options select { width:100%; min-width:0; padding:8px; border:1px solid #425067; border-radius:6px; background:#242424; color:white; }
 .structural-options .structural-check { display:flex; align-items:center; gap:8px; }
@@ -21,6 +33,8 @@ body { font-family: Arial, sans-serif; }
 .structural-options p { font-size:11px; color:#a3b3c8; }
 .design-catalog-panel { height:100%; min-height:0; display:flex; flex-direction:column; }
 .design-catalog-panel header { padding:12px; flex-shrink:0; }
+.design-catalog-panel .furniture-header { max-height:60%; overflow-y:auto; }
+.structural-options input[type=range] { padding:0; accent-color:#2563eb; }
 .design-catalog-panel h2,.appearance-panel h2 { font-weight:600; font-size:15px; }
 .design-catalog-panel header p,.appearance-panel p { margin:8px 0; color:#a3b3c8; font-size:12px; line-height:1.5; }
 .design-catalog-body { min-height:0; flex:1; overflow:hidden; }

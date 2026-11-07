@@ -9794,14 +9794,14 @@ export function FloorplanPanel({
 
       if (
         useEditor.getState().getContinuation('wall') === 'single' ||
-        (wallChainFirstVertex && isWithinWallJoinSnapRadius(nextStart, wallChainFirstVertex))
+        (useEditor.getState().getContinuation('wall') !== 'continuous' && wallChainFirstVertex && isWithinWallJoinSnapRadius(nextStart, wallChainFirstVertex))
       ) {
         clearWallPlacementDraft()
         setCursorPoint(null)
         return
       }
 
-      if (createdWall) {
+      if (createdWall && useEditor.getState().getContinuation('wall') !== 'continuous') {
         // 2D-only committer: mirror the 3D tool's auto-close. Stop when the
         // segment seals a room against the wall network, or when its resolved
         // end tees into wall geometry outside the chain — continuing from a

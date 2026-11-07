@@ -1269,7 +1269,13 @@ const ViewerCanvas = memo(function ViewerCanvas({
             data-view-pane={pane3d ?? undefined}
             onPointerDownCapture={pane3d === null ? undefined : focusPane(pane3d)}
             ref={viewer3dRef}
-            style={paneStyle(pane3d)}
+            // R3F does not mount its scene at zero size. Keep the hidden canvas
+            // measurable so registry placement tools can receive the 2D events
+            // even when the editor initially opens in plan view.
+            aria-hidden={!show3d}
+            style={show3d ? paneStyle(pane3d) : {
+              position: 'absolute', inset: 0, visibility: 'hidden', pointerEvents: 'none',
+            }}
           >
             <div className="relative isolate h-full">
               <DeleteCursorLayer

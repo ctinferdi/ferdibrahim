@@ -40,6 +40,8 @@ function BuildPanel() {
     beam: 'Kiriş aracı hazır. Planda başlangıç ve bitiş yönüne tıkla. Ölçüleri aşağıdan değiştirebilirsin.',
   };
   const tool = useEditor(s => s.tool);
+  const hasSelection = useViewer(s => s.selection.selectedIds.length > 0);
+  const showCreationOptions = Boolean(tool) || !hasSelection;
   useEffect(() => { if (tool && toolInfo[tool]) setPreviewTool(tool); }, [tool]);
   const [columnSize, setColumnSize] = useState({ width: '40', depth: '40', height: '300' });
   const validColumn = Object.values(columnSize).every(v => v.trim() !== '' && Number.isFinite(Number(v)) && Number(v) >= 5 && Number(v) <= 2000);
@@ -86,6 +88,7 @@ function BuildPanel() {
     <button onMouseEnter={() => !tool && setPreviewTool('axis')} onFocus={() => !tool && setPreviewTool('axis')} className={`rounded-lg border p-3 text-sm ${tool === 'structural-grid' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
     <button onMouseEnter={() => !tool && setPreviewTool('beam')} onFocus={() => !tool && setPreviewTool('beam')} className={`rounded-lg border p-3 text-sm ${tool === 'block' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
   </div>
+  {showCreationOptions && <>
   {toolInfo[previewTool] && <aside key={previewTool} className="structural-options" aria-live="polite">
     <h3>{buildTools.find(([id]) => id === previewTool)?.[1] ?? (previewTool === 'axis' ? 'Aks' : 'Kiriş')} · Düzenleme bilgileri</h3>
     <p>{toolInfo[previewTool]}</p>
@@ -130,7 +133,8 @@ function BuildPanel() {
     <button className="structural-start" type="submit" disabled={!validateStructuralOptions(options)}>Çizime başla</button>
     <p>2D'de başlangıç ve bitiş yönüne tıkla. {options.fixedLength ? 'Girilen uzunluk uygulanır.' : 'Uzunluk iki nokta arasından alınır.'} Ölçü değişiklikleri sonraki çizime uygulanır.</p>
   </form>}
-  <p className="mt-4 text-xs text-muted-foreground">Aracı seçip çizim alanında çalış. Esc ile seçim moduna dön.</p></div>;
+  <p className="mt-4 text-xs text-muted-foreground">Aracı seçip çizim alanında çalış. Esc ile seçim moduna dön.</p></>}
+  </div>;
 }
 const tabs = [
   { id: 'build', label: 'Çizim', icon: <Hammer size={20} />, component: BuildPanel },

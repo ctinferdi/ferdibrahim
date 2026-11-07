@@ -1,6 +1,14 @@
 import kenneyCatalog from './kenney-catalog.json' with { type: 'json' };
 export type Language = 'tr' | 'en';
 const entries = `
+Edit selected element|Seçili elemanı düzenle
+Floor finish|Zemin kaplaması
+Wood planks|Düz parke
+Patterned parquet|Desenli parke
+Floor tiles|Fayans
+Square tiles|Kare fayans
+White marble|Beyaz mermer
+Selected wall measurements|Seçili duvar ölçüleri
 Colored 3D view|Renkli 3D görünüm
 All models|Tüm modeller
 Original library|Mevcut arşiv
@@ -562,9 +570,21 @@ Wall finish|Duvar yüzeyi
 Current / custom finish|Mevcut / özel yüzey
 Plaster|Sıva
 Return to selection mode|Seçim moduna dön
+Furniture width (cm)|Mobilya eni (cm)
+Furniture height (cm)|Mobilya yüksekliği (cm)
+Furniture depth (cm)|Mobilya derinliği (cm)
+Drag to change width|Eni sürükleyerek değiştir
+Drag to change height|Yüksekliği sürükleyerek değiştir
+Drag to change depth|Derinliği sürükleyerek değiştir
 Beam length (m)|Kiriş uzunluğu (m)
 Beam height (m)|Kiriş yüksekliği (m)
 Beam width (m)|Kiriş eni (m)
+Wall thickness (cm)|Duvar kalınlığı (cm)
+Wall height (cm)|Duvar yüksekliği (cm)
+Preset thickness|Hazır kalınlık
+Selected wall|Seçili duvar
+Custom thickness|Özel kalınlık
+Choose thickness|Kalınlık seç
 `;
 const pairs = (entries + personalEntries + selectionEntries).trim().split('\n').map(line => line.split('|'));
 pairs.push(...kenneyCatalog.map(item => [item.name, item.nameTr]));

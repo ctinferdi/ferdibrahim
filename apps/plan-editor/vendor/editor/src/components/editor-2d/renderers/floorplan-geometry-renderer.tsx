@@ -1,7 +1,8 @@
 'use client'
 
-import { type FloorplanGeometry, loadAssetUrl } from '@pascal-app/core'
-import { memo, useEffect, useState } from 'react'
+import { type FloorplanGeometry, loadAssetUrl, getCatalogMaterialById, getMaterialPresetByRef, useScene } from '@pascal-app/core'
+import { memo, useEffect, useState, useId } from 'react'
+import { itemTopView, TOP_VIEW_PREFIX } from '../../../lib/floorplan/item-top-view'
 import { readFloorplanGeometryMetadata } from '../../../lib/floorplan/floorplan-extension'
 import {
   floorplanAnnotationObstacleMode,
@@ -321,6 +322,7 @@ function renderNode(
 ): React.ReactElement | null {
   switch (g.kind) {
     case 'path':
+      if ((g as any).planSurface && renderMode === 'screen') return <FloorplanSurface key={keyHint} geometry={g} pointerEventsOverride={pointerEventsOverride} />
       return (
         <path
           d={g.d}
@@ -552,7 +554,7 @@ function renderNode(
           height={g.height}
           key={keyHint}
           opacity={g.opacity}
-          preserveAspectRatio={g.preserveAspectRatio ?? 'xMidYMid meet'}
+          preserveAspectRatio={g.preserveAspectRatio ?? (g.url.startsWith(TOP_VIEW_PREFIX) ? 'none' : 'xMidYMid meet')}
           rotation={g.rotation ?? 0}
           url={g.url}
           width={g.width}
@@ -617,6 +619,45 @@ function formatTransform(t?: {
  * `<image>` centered at `center`, rotated around it, sized in plan-local
  * metres. While the resolution is in flight, renders nothing.
  */
+function FloorplanSurface({ geometry, pointerEventsOverride }: { geometry: any; pointerEventsOverride?: string }) {
+  const id = useId().replace(/:/g, '')
+  const nodes = useScene(s => s.nodes)
+  const slab = geometry.planSlabId ? nodes[geometry.planSlabId] : null
+  const zones = slab?.type === 'slab' ? (slab.zoneIds ?? []).map(zoneId => nodes[zoneId]).filter(zone => zone?.type === 'zone' && zone.floor?.finish) : []
+  const polygonPath = (polygon: number[][]) => polygon.length ? `M${polygon.map(p => p.join(',')).join('L')}Z` : ''
+  const ref = geometry.planSurface as string
+  const catalog = getCatalogMaterialById(ref.startsWith('library:') ? ref.slice(8) : undefined)
+  const preset = getMaterialPresetByRef(ref)
+  const maps = preset?.maps as any
+  const localTextures: Record<string, string> = {
+    'library:wood-woodplank48': '/plan-editor/material/wood/woodplank_48/woodplank_48_BaseColor.webp',
+    'library:wood-woodparquet14': '/plan-editor/material/wood/wood_parquet_14/woodparquet_14_basecolor.webp',
+    'library:flooring-tile85a': '/plan-editor/material/flooring/tile_quarry/tile_quarry_basecolor.webp',
+    'library:flooring-tiles4': '/plan-editor/material/flooring/tiles_grid/tiles_grid_diffuse.jpg',
+    'library:flooring-statuarettowhite': '/plan-editor/material/flooring/statuaretto/statuaretto_diffuse.jpg',
+  }
+  const texture = localTextures[ref] ?? (/\.(png|jpe?g|webp)(\?|$)/i.test(maps?.albedoMap ?? '') ? maps.albedoMap : null)
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let active = true
+    setUrl(null)
+    if (texture) loadAssetUrl(texture).then(value => { if (active) setUrl(value) }).catch(() => {})
+    return () => { active = false }
+  }, [texture])
+  const color = /^#[\da-f]{3,8}$/i.test(ref) ? ref : catalog?.previewColor ?? '#d7d2c8'
+  return <g>
+    {url && <defs><pattern id={id} patternUnits="userSpaceOnUse" width="2" height="2"><image href={url} width="2" height="2" preserveAspectRatio="none" onError={() => setUrl(null)} /></pattern></defs>}
+    <path {...styleAttrs(geometry, pointerEventsOverride)} d={geometry.d} fill={url ? `url(#${id})` : color} fillRule="evenodd" />
+    {zones.length > 0 && <>
+      <defs><clipPath id={`${id}-room-clip`}><path d={geometry.d} clipRule="evenodd" /></clipPath></defs>
+      <g clipPath={`url(#${id}-room-clip)`} pointerEvents="none">{zones.map((zone: any) => <FloorplanSurface key={zone.id} pointerEventsOverride="none" geometry={{
+        ...geometry, planSlabId: undefined, planSurface: zone.floor.finish,
+        d: [zone.polygon, ...(zone.holes ?? [])].map(polygonPath).join(' '),
+      }} />)}</g>
+    </>}
+  </g>
+}
+
 function FloorplanImage({
   url,
   center,
@@ -642,14 +683,15 @@ function FloorplanImage({
     }
     let cancelled = false
     setResolvedUrl(null)
-    loadAssetUrl(url).then((next) => {
+    const generated = url.startsWith(TOP_VIEW_PREFIX)
+    ;(generated ? itemTopView(url) : loadAssetUrl(url)).then((next) => {
       if (!cancelled) setResolvedUrl(next)
-    })
+    }).catch(() => { if (!cancelled) setResolvedUrl(null) })
     return () => {
       cancelled = true
     }
   }, [url])
-  if (!resolvedUrl) return null
+  if (!resolvedUrl) return <rect x={center[0] - width / 2} y={center[1] - height / 2} width={width} height={height} fill="#e2e8f0" fillOpacity={0.5} pointerEvents="none" transform={`rotate(${rotation * 180 / Math.PI} ${center[0]} ${center[1]})`} />
   const rotationDeg = (rotation * 180) / Math.PI
   return (
     <g
