@@ -72,15 +72,19 @@ function BuildPanel() {
     if (variant) selectWallDrawVariant(variant);
     editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, id === 'wall' ? { thickness: Number(wallThickness) / 100 } : id === 'column' ? columnDefaults() : null); editor.setMode('build'); editor.setTool(id);
   }
-  return <div className="p-3"><SelectionProperties /><h2 className="mb-3 font-semibold">Yapı araçları</h2><div className="grid grid-cols-2 gap-2">
-    {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => setPreviewTool(id)} onFocus={() => setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
+  return <div className="building-tools-panel p-3"><SelectionProperties /><h2 className="mb-3 font-semibold">Yapı araçları</h2>
+  {tool && <button type="button" className="building-select-button" onClick={() => {
+    const editor = useEditor.getState(); editor.setTool(null); editor.setMode('select');
+  }}>Seçim moduna dön</button>}
+  <div className="grid grid-cols-2 gap-2">
+    {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => !tool && setPreviewTool(id)} onFocus={() => !tool && setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
       setPreviewTool(id);
       activate(id, id === 'wall' ? 'walls' : undefined);
     }}>{label}</button>)}
-    <button onMouseEnter={() => setPreviewTool('wall')} onFocus={() => setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'rectangle')}>Dikdörtgen oda</button>
-    <button onMouseEnter={() => setPreviewTool('wall')} onFocus={() => setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'polygon')}>Çokgen oda</button>
-    <button onMouseEnter={() => setPreviewTool('axis')} onFocus={() => setPreviewTool('axis')} className={`rounded-lg border p-3 text-sm ${structural === 'axis' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
-    <button onMouseEnter={() => setPreviewTool('beam')} onFocus={() => setPreviewTool('beam')} className={`rounded-lg border p-3 text-sm ${structural === 'beam' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
+    <button onMouseEnter={() => !tool && setPreviewTool('wall')} onFocus={() => !tool && setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'rectangle')}>Dikdörtgen oda</button>
+    <button onMouseEnter={() => !tool && setPreviewTool('wall')} onFocus={() => !tool && setPreviewTool('wall')} className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'polygon')}>Çokgen oda</button>
+    <button onMouseEnter={() => !tool && setPreviewTool('axis')} onFocus={() => !tool && setPreviewTool('axis')} className={`rounded-lg border p-3 text-sm ${tool === 'structural-grid' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
+    <button onMouseEnter={() => !tool && setPreviewTool('beam')} onFocus={() => !tool && setPreviewTool('beam')} className={`rounded-lg border p-3 text-sm ${tool === 'block' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
   </div>
   {toolInfo[previewTool] && <aside key={previewTool} className="structural-options" aria-live="polite">
     <h3>{buildTools.find(([id]) => id === previewTool)?.[1] ?? (previewTool === 'axis' ? 'Aks' : 'Kiriş')} · Düzenleme bilgileri</h3>

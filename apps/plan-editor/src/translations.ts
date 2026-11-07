@@ -561,6 +561,7 @@ Element name|Eleman adı
 Wall finish|Duvar yüzeyi
 Current / custom finish|Mevcut / özel yüzey
 Plaster|Sıva
+Return to selection mode|Seçim moduna dön
 Beam length (m)|Kiriş uzunluğu (m)
 Beam height (m)|Kiriş yüksekliği (m)
 Beam width (m)|Kiriş eni (m)
