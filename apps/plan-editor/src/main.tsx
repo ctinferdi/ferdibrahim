@@ -36,8 +36,8 @@ function BuildPanel() {
     ceiling: 'Tavanın sınırını çiz. Seçince kot ve yüzey özelliklerini düzenleyebilirsin.',
     roof: 'Çatı sınırını çiz. Seçince çatı biçimi, eğim ve yüzey özelliklerini düzenleyebilirsin.',
     stair: 'Merdiveni yerleştir. Seçince basamak ve boyutlarını düzenleyebilirsin.',
-    axis: 'Aksı seçip adını ve uzunluğunu ayarla; Çizime başla ile yerleştir.',
-    beam: 'Kirişi seçip en, yükseklik, uzunluk ve alt kotunu ayarla; Çizime başla ile yerleştir.',
+    axis: 'Aks aracı hazır. Planda başlangıç ve bitiş noktalarını seç. Ölçüleri aşağıdan değiştirebilirsin.',
+    beam: 'Kiriş aracı hazır. Planda başlangıç ve bitiş yönüne tıkla. Ölçüleri aşağıdan değiştirebilirsin.',
   };
   const tool = useEditor(s => s.tool);
   useEffect(() => { if (tool && toolInfo[tool]) setPreviewTool(tool); }, [tool]);
@@ -51,11 +51,18 @@ function BuildPanel() {
   const [options, setOptions] = useState<StructuralOptions>(defaultStructuralOptions);
   function chooseStructural(kind: 'axis' | 'beam') {
     setPreviewTool(kind);
-    useEditor.getState().setTool(null);
-    useEditor.getState().setMode('select');
+    const next = structural === kind ? options : { ...defaultStructuralOptions, label: kind === 'axis' ? 'A' : 'K1', length: kind === 'axis' ? 10 : 5 };
     setStructural(kind);
-    setOptions({ ...defaultStructuralOptions, label: kind === 'axis' ? 'A' : 'K1', length: kind === 'axis' ? 10 : 5 });
+    setOptions(next);
+    if (!validateStructuralOptions(next)) return;
+    const editor = useEditor.getState(), nodeKind = kind === 'axis' ? 'structural-grid' : 'block';
+    editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(nodeKind, { ...next });
+    editor.showView('2d'); editor.setMode('build'); editor.setTool(nodeKind);
   }
+  useEffect(() => {
+    const nodeKind = structural === 'axis' ? 'structural-grid' : 'block';
+    if (structural && tool === nodeKind) useEditor.getState().setToolDefaults(nodeKind, { ...options });
+  }, [options, structural, tool]);
   function activate(id: string, variant?: 'walls' | 'rectangle' | 'polygon') {
     if (id === 'wall' && !validWallThickness) return;
     if (id === 'column' && !validColumn) return;
@@ -117,7 +124,7 @@ function BuildPanel() {
       <label>Alt kot — kat döşemesinden (m)<input type="number" min="-100" max="100" step="0.05" required value={Number.isFinite(options.elevation) ? options.elevation : ''} onChange={e => setOptions({ ...options, elevation: e.target.valueAsNumber })} /></label>
     </>}
     <button className="structural-start" type="submit" disabled={!validateStructuralOptions(options)}>Çizime başla</button>
-    <p>2D'de başlangıç ve bitiş yönüne tıkla. {options.fixedLength ? 'Girilen uzunluk uygulanır.' : 'Uzunluk iki nokta arasından alınır.'} Değiştirdiğin ölçüleri uygulamak için Çizime başla'ya bas.</p>
+    <p>2D'de başlangıç ve bitiş yönüne tıkla. {options.fixedLength ? 'Girilen uzunluk uygulanır.' : 'Uzunluk iki nokta arasından alınır.'} Ölçü değişiklikleri sonraki çizime uygulanır.</p>
   </form>}
   <p className="mt-4 text-xs text-muted-foreground">Aracı seçip çizim alanında çalış. Esc ile seçim moduna dön.</p></div>;
 }

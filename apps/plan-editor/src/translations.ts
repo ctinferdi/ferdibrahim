@@ -474,6 +474,9 @@ Added to library.|Kütüphaneye eklendi.
 Remove this item from the library? Copies in the drawing are preserved.|Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.
 `;
 const selectionEntries = `
+Axis tool ready. Pick the start and end points in the plan. Adjust dimensions below.|Aks aracı hazır. Planda başlangıç ve bitiş noktalarını seç. Ölçüleri aşağıdan değiştirebilirsin.
+Beam tool ready. Click the start point and end direction in the plan. Adjust dimensions below.|Kiriş aracı hazır. Planda başlangıç ve bitiş yönüne tıkla. Ölçüleri aşağıdan değiştirebilirsin.
+Dimension changes apply to the next drawing.|Ölçü değişiklikleri sonraki çizime uygulanır.
 A-Frame|A tipi taşıyıcı
 A-Frame Support|A tipi taşıyıcı
 Y Support|Y tipi taşıyıcı
