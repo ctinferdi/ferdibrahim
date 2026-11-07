@@ -455,6 +455,9 @@ The backup contains an invalid object.|Yedekte geçersiz nesne var.
 The backup could not be opened.|Yedek açılamadı.
 `;
 const personalEntries = `
+New wall thickness (cm)|Yeni duvar kalınlığı (cm)
+Enter a thickness between 1 and 100 cm.|1 ile 100 cm arasında bir kalınlık gir.
+Applies to new walls and rooms. Select an existing wall and change its Thickness field.|Yeni duvarlar ve oda çizimleri için geçerlidir. Mevcut duvarı seçip Kalınlık alanından değiştirebilirsin.
 Undo last removal|Son silmeyi geri al
 Remove from library?|Kütüphaneden kaldırılsın mı?
 Remove|Kaldır

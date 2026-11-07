@@ -25,6 +25,9 @@ const buildTools = [
 ] as const;
 function BuildPanel() {
   const tool = useEditor(s => s.tool);
+  const wallDefaults = useEditor(s => s.toolDefaults.wall);
+  const [wallThickness, setWallThickness] = useState(String(Number(wallDefaults?.thickness ?? 0.2) * 100));
+  const validWallThickness = Number.isFinite(Number(wallThickness)) && Number(wallThickness) >= 1 && Number(wallThickness) <= 100;
   const [structural, setStructural] = useState<'axis' | 'beam' | null>(null);
   const [options, setOptions] = useState<StructuralOptions>(defaultStructuralOptions);
   function chooseStructural(kind: 'axis' | 'beam') {
@@ -34,10 +37,11 @@ function BuildPanel() {
     setOptions({ ...defaultStructuralOptions, label: kind === 'axis' ? 'A' : 'K1', length: kind === 'axis' ? 10 : 5 });
   }
   function activate(id: string, variant?: 'walls' | 'rectangle' | 'polygon') {
+    if (id === 'wall' && !validWallThickness) return;
     setStructural(null);
     const editor = useEditor.getState();
     if (variant) selectWallDrawVariant(variant);
-    editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, null); editor.setMode('build'); editor.setTool(id);
+    editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, id === 'wall' ? { thickness: Number(wallThickness) / 100 } : null); editor.setMode('build'); editor.setTool(id);
   }
   return <div className="p-3"><h2 className="mb-3 font-semibold">Yapı araçları</h2><div className="grid grid-cols-2 gap-2">
     {buildTools.map(([id, label]) => <button key={id} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
@@ -47,6 +51,15 @@ function BuildPanel() {
     <button className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'polygon')}>Çokgen oda</button>
     <button className={`rounded-lg border p-3 text-sm ${structural === 'axis' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
     <button className={`rounded-lg border p-3 text-sm ${structural === 'beam' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
+  </div>
+  <div className="structural-options">
+    <label>Yeni duvar kalınlığı (cm)<input type="number" min="1" max="100" step="1" value={wallThickness} onChange={e => {
+      setWallThickness(e.target.value);
+      const cm = Number(e.target.value);
+      if (Number.isFinite(cm) && cm >= 1 && cm <= 100) useEditor.getState().setToolDefaults('wall', { thickness: cm / 100 });
+    }} /></label>
+    {!validWallThickness && <p role="alert">1 ile 100 cm arasında bir kalınlık gir.</p>}
+    <p>Yeni duvarlar ve oda çizimleri için geçerlidir. Mevcut duvarı seçip Kalınlık alanından değiştirebilirsin.</p>
   </div>
   {structural && <form className="structural-options" onSubmit={event => {
     event.preventDefault(); if (!validateStructuralOptions(options)) return;
