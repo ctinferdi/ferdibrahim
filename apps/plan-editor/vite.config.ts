@@ -12,6 +12,10 @@ export default defineConfig({
       if (!/\.[cm]?[jt]sx?$/.test(id)) return;
       if (/[\\/]viewer[\\/]dist[\\/]lib[\\/]asset-url\.js$/.test(id)) {
         code = code.replace(/export const ASSETS_CDN_URL = [^;]+;/, "export const ASSETS_CDN_URL = ''; ");
+        code = code.replaceAll("if (!url)", "if (url?.startsWith('data:image/') || url?.startsWith('data:model/gltf-binary;base64,')) return url;\n    if (!url)");
+      }
+      if (/[\\/]core[\\/]dist[\\/]schema[\\/]asset-url\.js$/.test(id)) {
+        code = code.replace("if (url.startsWith('data:image/'))", "if (/^data:model\\/gltf-binary;base64,[A-Za-z0-9+/]+={0,2}$/.test(url)) return true;\n    if (url.startsWith('data:image/'))");
       }
       const catalog = /[\\/](material-library\.js|catalog-items\.tsx)$/.test(id);
       return (catalog ? adaptBundledAssets(code, local('./public')) : code).replace(/(["'`])\/(icons|audios|hdri|items|material|fonts)\//g, '$1/plan-editor/$2/');

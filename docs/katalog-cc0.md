@@ -32,3 +32,16 @@ büyütür; mevcut 20 MB içe aktarma sınırı geçerlidir.
 
 Editör derlemesi ve 10 mevcut regresyon testi geçti. Dosya seçimi ve yerleştirme
 akışının bu sürümde tarayıcı üzerinden uçtan uca kontrolü henüz yapılmadı.
+
+## 2026-11-07 tarayıcı kontrolü
+
+Ayrı yerel QA çiziminde GLB ve WebP yükleme, modelin 3D yerleştirilmesi,
+görselin 2D yerleştirilmesi, yenilemede kayıtların korunması, arşivden kaldırma
+ve son kaldırmayı geri alma doğrulandı. Üretim kayıtlarına test verisi eklenmedi.
+
+Bulunan hatalar düzeltildi: GLB data adresinin şema tarafından reddedilmesi,
+veri adresine CDN öneki eklenmesi, zorunlu küçük resmin eksikliği ve görsel kartında
+boş kaynakla önizleme erişimi. Gömülü GLB için dar MIME/base64 doğrulaması eklendi;
+HTML, javascript ve file adreslerinin reddi regresyon testiyle korunuyor.
+Silme onayı panel içindedir. Son silmeyi geri al seçeneği panel açık kaldığı sürece
+kullanılabilir; yenilemeden sonra geri alma belleği sıfırlanır.

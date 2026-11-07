@@ -63,7 +63,7 @@ export function ItemCatalog({
             type="button"
           >
             <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-              <ColoredThumbnail name={item.name} src={resolveCdnUrl(item.src)} fallback={resolveCdnUrl(item.thumbnail) || ''} />
+              <ColoredThumbnail name={item.name} src={item.floorPlanUrl && item.id.startsWith('personal-') ? undefined : resolveCdnUrl(item.src)} fallback={resolveCdnUrl(item.thumbnail) || ''} />
               {snapTarget && (
                 <SnapTargetBadge className="absolute right-1 bottom-1" target={snapTarget} />
               )}

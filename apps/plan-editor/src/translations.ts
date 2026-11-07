@@ -455,6 +455,9 @@ The backup contains an invalid object.|Yedekte geçersiz nesne var.
 The backup could not be opened.|Yedek açılamadı.
 `;
 const personalEntries = `
+Undo last removal|Son silmeyi geri al
+Remove from library?|Kütüphaneden kaldırılsın mı?
+Remove|Kaldır
 My library|Kendi kütüphanem
 My library · Add / Delete|Kendi kütüphanem · Ekle / Sil
 Stored in this browser. PNG/JPG/WebP adds a flat image; GLB/GLTF adds a 3D model.|Bu tarayıcıda saklanır. PNG/JPG/WebP düz görsel, GLB/GLTF üç boyutlu model olarak eklenir.

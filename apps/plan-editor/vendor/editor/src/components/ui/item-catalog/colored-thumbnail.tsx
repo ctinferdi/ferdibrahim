@@ -97,5 +97,5 @@ export function ColoredThumbnail({ src, fallback, name }: { src?: string; fallba
     observer.observe(ref.current)
     return () => { active = false; observer.disconnect() }
   }, [src])
-  return <img ref={ref} alt={name} className="h-full w-full object-cover" loading="lazy" src={preview?.src === src ? preview.image : fallback} />
+  return <img ref={ref} alt={name} className="h-full w-full object-cover" loading="lazy" src={preview && preview.src === src ? preview.image : fallback} />
 }

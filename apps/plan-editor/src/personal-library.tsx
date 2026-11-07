@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import type { AssetInput } from '@pascal-app/core';
 
 const DB = 'personal-furniture-library-v1';
+function placeholder() {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext('2d')!; ctx.fillStyle = '#334155'; ctx.fillRect(0, 0, 128, 128);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 32px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('3D', 64, 76);
+  return canvas.toDataURL('image/png');
+}
 async function database() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB, 1);
@@ -18,7 +24,7 @@ async function records(action: 'read' | 'put' | 'delete', value?: any): Promise<
     if (action === 'put') store.put(value);
     if (action === 'delete') store.delete(value);
     const request = store.getAll();
-    tx.oncomplete = () => { db.close(); resolve(request.result); };
+    tx.oncomplete = () => { db.close(); resolve(request.result.map(item => ({ ...item, thumbnail: item.thumbnail || placeholder() }))); };
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
@@ -67,12 +73,13 @@ async function makeAsset(file: File, name: string, width: number, depth: number)
     const binary = await new GLTFExporter().parseAsync(scene, { binary: true, onlyVisible: false });
     if (!(binary instanceof ArrayBuffer) || binary.byteLength > 10 * 1024 * 1024) throw new Error('Dönüştürülen model en fazla 10 MB olabilir.');
     const src = await dataUrl(new Blob([binary], { type: 'model/gltf-binary' }));
-    return { id: `personal-${crypto.randomUUID()}`, name, category: 'furniture', tags: ['Personal', 'Kişisel'], src, thumbnail: thumbnail || undefined, floorPlanUrl, dimensions: [size.x, Math.max(size.y, 0.01), size.z], offset: [-center.x, -bounds.min.y, -center.z], rotation: [0, 0, 0], scale: [1, 1, 1] };
+    return { id: `personal-${crypto.randomUUID()}`, name, category: 'furniture', tags: ['Personal', 'Kişisel'], src, thumbnail: thumbnail || placeholder(), floorPlanUrl, dimensions: [size.x, Math.max(size.y, 0.01), size.z], offset: [-center.x, -bounds.min.y, -center.z], rotation: [0, 0, 0], scale: [1, 1, 1] };
   } finally {
     scene.traverse((object: any) => { object.geometry?.dispose(); for (const material of (Array.isArray(object.material) ? object.material : [object.material])) { if (material) { Object.values(material).forEach((v: any) => { if (v?.isTexture) v.dispose(); }); material.dispose(); } } });
   }
 }
 export function PersonalLibrary({ onChange }: { onChange: (items: AssetInput[]) => void }) {
+  const [pending, setPending] = useState<string>(), [removed, setRemoved] = useState<AssetInput>();
   const [items, setItems] = useState<AssetInput[]>([]), [busy, setBusy] = useState(false), [message, setMessage] = useState('');
   const [name, setName] = useState(''), [file, setFile] = useState<File>(), [width, setWidth] = useState(1), [depth, setDepth] = useState(1);
   const update = (next: AssetInput[]) => { setItems(next); onChange(next); };
@@ -87,6 +94,7 @@ export function PersonalLibrary({ onChange }: { onChange: (items: AssetInput[]) 
       <button className="design-primary" disabled={busy}>{busy ? 'İşleniyor…' : 'Kütüphaneye ekle'}</button>
     </form>
     <div role="status">{message}</div>
-    {items.map(item => <div className="personal-library-row" key={item.id}><span data-i18n-skip>{item.name}</span><button disabled={busy} aria-label={`${item.name} sil`} onClick={async () => { if (!confirm('Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.')) return; setBusy(true); try { update(await records('delete', item.id)); } catch { setMessage('Öğe silinemedi.'); } finally { setBusy(false); } }}>Sil</button></div>)}
+    {removed && <button disabled={busy} onClick={async () => { setBusy(true); try { update(await records('put', removed)); setRemoved(undefined); } catch { setMessage('Öğe geri alınamadı.'); } finally { setBusy(false); } }}>Son silmeyi geri al</button>}
+    {items.map(item => <div className="personal-library-row" key={item.id}><span data-i18n-skip>{item.name}</span>{pending === item.id ? <div><span>Kütüphaneden kaldırılsın mı?</span><button disabled={busy} onClick={async () => { setBusy(true); try { update(await records('delete', item.id)); setRemoved(item); setPending(undefined); } catch { setMessage('Öğe silinemedi.'); } finally { setBusy(false); } }}>Kaldır</button><button onClick={() => setPending(undefined)}>İptal</button></div> : <button disabled={busy} aria-label={`${item.name} sil`} onClick={() => setPending(item.id)}>Sil</button>}</div>)}
   </details>;
 }
