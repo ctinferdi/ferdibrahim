@@ -1,6 +1,8 @@
 'use client'
 
 import { createContext, type ReactNode, useContext, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
+import { useInspectorDock } from '../../lib/inspector-dock'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { cn } from '../../lib/utils'
 import { TOP_MENU_CLEARANCE } from './action-menu/placement'
@@ -72,6 +74,7 @@ export function RightStack({
   belowTopMenu?: boolean
 }) {
   const isMobile = useIsMobile()
+  const dock = useInspectorDock((state) => state.element)
   const stackRef = useRef<HTMLDivElement>(null)
   const inspectorRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -125,7 +128,14 @@ export function RightStack({
       resize.disconnect()
       mutation.disconnect()
     }
-  }, [isMobile])
+  }, [isMobile, dock])
+
+  if (dock && !isMobile) {
+    return createPortal(
+      <RightStackContext.Provider value={true}>{inspector}</RightStackContext.Provider>,
+      dock,
+    )
+  }
 
   if (isMobile) {
     return (

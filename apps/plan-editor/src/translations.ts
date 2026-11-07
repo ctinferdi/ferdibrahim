@@ -473,7 +473,33 @@ Processing…|İşleniyor…
 Added to library.|Kütüphaneye eklendi.
 Remove this item from the library? Copies in the drawing are preserved.|Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.
 `;
-const pairs = (entries + personalEntries).trim().split('\n').map(line => line.split('|'));
+const selectionEntries = `
+Units: cm / m|Ölçü birimleri: cm / m
+Wall · Editing information|Duvar · Düzenleme bilgileri
+Door · Editing information|Kapı · Düzenleme bilgileri
+Window · Editing information|Pencere · Düzenleme bilgileri
+Column · Editing information|Kolon · Düzenleme bilgileri
+Slab · Editing information|Döşeme · Düzenleme bilgileri
+Ceiling · Editing information|Tavan · Düzenleme bilgileri
+Roof · Editing information|Çatı · Düzenleme bilgileri
+Stair · Editing information|Merdiven · Düzenleme bilgileri
+Set thickness in cm, then pick the start and end points. Select a wall to edit its height and finish.|Kalınlığı cm olarak ayarla. Başlangıç ve bitiş noktalarını seç. Duvarı seçince yükseklik ve yüzeyini düzenleyebilirsin.
+Place on a wall. Select the door to edit width, height and opening direction.|Bir duvarın üzerine yerleştir. Kapıyı seçince en, yükseklik ve açılış yönünü düzenleyebilirsin.
+Place on a wall. Select the window to edit width, height and elevation.|Bir duvarın üzerine yerleştir. Pencereyi seçince en, yükseklik ve yerden yüksekliğini düzenleyebilirsin.
+Pick a position on the floor. Select the column to edit its section, width, depth and height.|Kat üzerinde konumunu seç. Kolonu seçince kesit tipi, en, derinlik ve yüksekliğini düzenleyebilirsin.
+Draw the slab boundary. Select it to edit thickness, elevation and finish.|Döşemenin sınır noktalarını çiz. Seçince kalınlık, kot ve kaplamayı düzenleyebilirsin.
+Draw the ceiling boundary. Select it to edit elevation and surface properties.|Tavanın sınırını çiz. Seçince kot ve yüzey özelliklerini düzenleyebilirsin.
+Draw the roof boundary. Select it to edit shape, pitch and surface properties.|Çatı sınırını çiz. Seçince çatı biçimi, eğim ve yüzey özelliklerini düzenleyebilirsin.
+Place the stair. Select it to edit steps and dimensions.|Merdiveni yerleştir. Seçince basamak ve boyutlarını düzenleyebilirsin.
+Element name|Eleman adı
+Wall finish|Duvar yüzeyi
+Current / custom finish|Mevcut / özel yüzey
+Plaster|Sıva
+Beam length (m)|Kiriş uzunluğu (m)
+Beam height (m)|Kiriş yüksekliği (m)
+Beam width (m)|Kiriş eni (m)
+`;
+const pairs = (entries + personalEntries + selectionEntries).trim().split('\n').map(line => line.split('|'));
 pairs.push(...kenneyCatalog.map(item => [item.name, item.nameTr]));
 const english = new Map(pairs.map(([en,tr]) => [tr,en]));
 const turkish = new Map(pairs.map(([en,tr]) => [en,tr]));

@@ -41,8 +41,7 @@ export function formatOpenWallEndDistance(meters: number, unit: LinearUnit): str
     return `${Number.parseFloat(inches.toFixed(inches < 1 ? 2 : 1))}"`
   }
   if (value >= 1) return formatLinearMeasurement(value, unit)
-  if (value < 0.01) return `${Math.max(1, Math.round(value * 1000))} mm`
-  return `${Math.round(value * 100)} cm`
+  return `${Number((value * 100).toFixed(2))} cm`
 }
 
 function candidateDistance(end: OpenWallEnd): number | null {

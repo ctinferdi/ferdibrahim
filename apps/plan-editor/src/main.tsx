@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { loadPlugin } from '@pascal-app/core';
 import { builtinPlugin } from '@pascal-app/nodes';
+import { useViewer } from '@pascal-app/viewer';
 import { Editor, useEditor, selectWallDrawVariant, ViewerToolbarLeft, ViewerToolbarRight, type SceneGraph } from '@pascal-app/editor';
 import { Hammer, Package, Layers, Settings, PaintBucket, Sun, Camera } from 'lucide-react';
 import { readDrawing, saveDrawing, replaceFromBackup, getImportBackup, getImportBackupViews } from './storage';
@@ -14,6 +15,7 @@ import { validateStructuralOptions, type StructuralOptions } from './structural-
 import { FurniturePanel, MaterialsPanel, AppearancePanel } from './design-panels';
 import { LanguageBridge, LanguageSelector, uiText } from './language';
 import { PresentationPanel } from './presentation-panel';
+import { SelectionProperties } from './selection-properties';
 
 const params = new URLSearchParams(location.search);
 const workspace = params.get('workspace');
@@ -24,6 +26,17 @@ const buildTools = [
   ['ceiling', 'Tavan'], ['roof', 'Çatı'], ['stair', 'Merdiven'], ['column', 'Kolon'],
 ] as const;
 function BuildPanel() {
+  const [previewTool, setPreviewTool] = useState<string>('wall');
+  const toolInfo: Record<string, string> = {
+    wall: 'Kalınlığı cm olarak ayarla. Başlangıç ve bitiş noktalarını seç. Duvarı seçince yükseklik ve yüzeyini düzenleyebilirsin.',
+    door: 'Bir duvarın üzerine yerleştir. Kapıyı seçince en, yükseklik ve açılış yönünü düzenleyebilirsin.',
+    window: 'Bir duvarın üzerine yerleştir. Pencereyi seçince en, yükseklik ve yerden yüksekliğini düzenleyebilirsin.',
+    column: 'Kat üzerinde konumunu seç. Kolonu seçince kesit tipi, en, derinlik ve yüksekliğini düzenleyebilirsin.',
+    slab: 'Döşemenin sınır noktalarını çiz. Seçince kalınlık, kot ve kaplamayı düzenleyebilirsin.',
+    ceiling: 'Tavanın sınırını çiz. Seçince kot ve yüzey özelliklerini düzenleyebilirsin.',
+    roof: 'Çatı sınırını çiz. Seçince çatı biçimi, eğim ve yüzey özelliklerini düzenleyebilirsin.',
+    stair: 'Merdiveni yerleştir. Seçince basamak ve boyutlarını düzenleyebilirsin.',
+  };
   const tool = useEditor(s => s.tool);
   const wallDefaults = useEditor(s => s.toolDefaults.wall);
   const [wallThickness, setWallThickness] = useState(String(Number(wallDefaults?.thickness ?? 0.2) * 100));
@@ -43,8 +56,9 @@ function BuildPanel() {
     if (variant) selectWallDrawVariant(variant);
     editor.setPhase('building'); editor.setCatalogCategory(null); editor.setToolDefaults(id, id === 'wall' ? { thickness: Number(wallThickness) / 100 } : null); editor.setMode('build'); editor.setTool(id);
   }
-  return <div className="p-3"><h2 className="mb-3 font-semibold">Yapı araçları</h2><div className="grid grid-cols-2 gap-2">
-    {buildTools.map(([id, label]) => <button key={id} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
+  return <div className="p-3"><SelectionProperties /><h2 className="mb-3 font-semibold">Yapı araçları</h2><div className="grid grid-cols-2 gap-2">
+    {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => setPreviewTool(id)} onFocus={() => setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
+      setPreviewTool(id);
       activate(id, id === 'wall' ? 'walls' : undefined);
     }}>{label}</button>)}
     <button className="rounded-lg border p-3 text-sm hover:bg-accent" onClick={() => activate('wall', 'rectangle')}>Dikdörtgen oda</button>
@@ -52,6 +66,11 @@ function BuildPanel() {
     <button className={`rounded-lg border p-3 text-sm ${structural === 'axis' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
     <button className={`rounded-lg border p-3 text-sm ${structural === 'beam' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
   </div>
+  <aside className="structural-options" aria-live="polite">
+    <h3>{buildTools.find(([id]) => id === previewTool)?.[1]} · Düzenleme bilgileri</h3>
+    <p>{toolInfo[previewTool]}</p>
+    <p>Ölçü birimleri: cm / m</p>
+  </aside>
   <div className="structural-options">
     <label>Yeni duvar kalınlığı (cm)<input type="number" min="1" max="100" step="1" value={wallThickness} onChange={e => {
       setWallThickness(e.target.value);
@@ -94,6 +113,17 @@ const tabs = [
 ];
 
 function PlanApp() {
+  useEffect(() => {
+    // Display preference only: scene geometry remains stored in meters.
+    const keepMetric = () => {
+      const state = useViewer.getState();
+      if (state.unit !== 'metric' || state.metricNotation !== 'meters') {
+        useViewer.setState({ unit: 'metric', metricNotation: 'meters' });
+      }
+    };
+    keepMetric();
+    return useViewer.subscribe(keepMetric);
+  }, []);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('Yükleniyor…');
   const [version, setVersion] = useState(0);

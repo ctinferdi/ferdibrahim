@@ -29,7 +29,7 @@ const end = (overrides: Partial<OpenWallEnd>): OpenWallEnd => ({
 describe('open wall end labels', () => {
   test('name the problem with the distance a person would say', () => {
     expect(openWallEndLabel(end({ reason: 'gap', gap: 0.04 }), 'metric')).toBe('4 cm gap')
-    expect(openWallEndLabel(end({ reason: 'gap', gap: 0.004 }), 'metric')).toBe('4 mm gap')
+    expect(openWallEndLabel(end({ reason: 'gap', gap: 0.004 }), 'metric')).toBe('0.4 cm gap')
     expect(
       openWallEndLabel(
         end({

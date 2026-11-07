@@ -171,8 +171,8 @@ export function PanelWrapper({
   }, [])
 
   useEffect(() => {
-    if (primaryExtension) setCollapsed(false)
-  }, [primaryExtension, selectedId, setCollapsed])
+    if (primaryExtension || ['wall', 'column', 'block'].includes(selectedType ?? '')) setCollapsed(false)
+  }, [primaryExtension, selectedId, selectedType, setCollapsed])
 
   const applyMode = useCallback(
     (next: { collapsed: boolean; activeExtensionId: string | null }) => {

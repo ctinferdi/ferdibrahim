@@ -11,7 +11,7 @@ body { font-family: Arial, sans-serif; }
 .structural-options { margin-top:16px; display:grid; gap:10px; border-top:1px solid #425067; padding-top:12px; }
 .structural-options h3 { font-weight:600; }
 .structural-options label { display:grid; gap:4px; font-size:12px; min-width:0; }
-.structural-options input:not([type=checkbox]) { width:100%; min-width:0; padding:8px; border:1px solid #425067; border-radius:6px; background:#242424; color:white; }
+.structural-options input:not([type=checkbox]), .structural-options select { width:100%; min-width:0; padding:8px; border:1px solid #425067; border-radius:6px; background:#242424; color:white; }
 .structural-options .structural-check { display:flex; align-items:center; gap:8px; }
 .structural-size-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 .structural-options .structural-start { border-radius:6px; background:#2563eb; color:white; padding:10px; font-size:13px; }
@@ -53,3 +53,6 @@ body { font-family: Arial, sans-serif; }
 .personal-library-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; }
 .personal-library-row span { overflow-wrap: anywhere; }
 .personal-library-row button { padding: 5px 9px; border: 1px solid #844; border-radius: 6px; }
+.building-inspector-dock:not(:empty) { margin-bottom: 16px; }
+.building-inspector-dock [data-panel-wrapper] { width: 100% !important; transform: none !important; max-height: 55vh; box-shadow: none; }
+.building-inspector-dock [data-panel-header] { cursor: default; touch-action: auto; }

@@ -14,6 +14,9 @@ import {
   Ungroup,
 } from 'lucide-react'
 import type { MouseEventHandler, PointerEventHandler, ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { useInspectorDock } from '../../lib/inspector-dock'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { ActionMenuButton } from './action-menu-button'
 import { RegistryActionContributions } from './registry-action-contributions'
 
@@ -68,7 +71,9 @@ export function NodeActionMenu({
   deleteLabel = 'Delete',
   deleteDisabledReason,
 }: NodeActionMenuProps) {
-  return (
+  const dock = useInspectorDock((state) => state.actions)
+  const isMobile = useIsMobile()
+  const menu = (
     <div
       className="pointer-events-auto flex items-center gap-1 rounded-lg border border-border bg-background/95 p-1 shadow-xl backdrop-blur-md"
       onPointerDown={onPointerDown}
@@ -146,4 +151,5 @@ export function NodeActionMenu({
       )}
     </div>
   )
+  return dock && !isMobile ? createPortal(menu, dock) : menu
 }
