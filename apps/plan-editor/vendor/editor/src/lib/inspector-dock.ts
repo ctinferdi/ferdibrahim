@@ -6,4 +6,6 @@ export const useInspectorDock = create<{
   setElement: (element: HTMLDivElement | null) => void
   actions: HTMLDivElement | null
   setActions: (actions: HTMLDivElement | null) => void
-}>((set) => ({ element: null, setElement: (element) => set({ element }), actions: null, setActions: (actions) => set({ actions }) }))
+  revealedNode: string | null
+  revealNode: (id: string | null) => void
+}>((set) => ({ element: null, setElement: (element) => set({ element }), actions: null, setActions: (actions) => set({ actions }), revealedNode: null, revealNode: (revealedNode) => set({ revealedNode }) }))

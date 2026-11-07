@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { MouseEventHandler, PointerEventHandler, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { useViewer } from '@pascal-app/viewer'
 import { useInspectorDock } from '../../lib/inspector-dock'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { ActionMenuButton } from './action-menu-button'
@@ -72,6 +73,8 @@ export function NodeActionMenu({
   deleteDisabledReason,
 }: NodeActionMenuProps) {
   const dock = useInspectorDock((state) => state.actions)
+  const selectedId = useViewer((s) => s.selection.selectedIds.length === 1 ? s.selection.selectedIds[0] : null)
+  const revealedNode = useInspectorDock((s) => s.revealedNode)
   const isMobile = useIsMobile()
   const menu = (
     <div
@@ -81,6 +84,7 @@ export function NodeActionMenu({
       onPointerLeave={onPointerLeave}
       onPointerUp={onPointerUp}
     >
+      {selectedId && <button type="button" className="px-2 py-1 text-xs" aria-expanded={revealedNode === selectedId} onClick={() => useInspectorDock.getState().revealNode(revealedNode === selectedId ? null : selectedId)}>{revealedNode === selectedId ? 'Özellikleri gizle' : 'Özellikleri göster'}</button>}
       {onFind && (
         <ActionMenuButton label="Find in catalog" onClick={onFind}>
           <Search className="h-4 w-4" />

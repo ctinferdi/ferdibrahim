@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useScene } from '@pascal-app/core';
 import { useViewer } from '@pascal-app/viewer';
 import { useInspectorDock } from '../vendor/editor/src/lib/inspector-dock';
@@ -10,6 +10,10 @@ export function SelectionProperties() {
   const readOnly = useScene(s => s.readOnly);
   const setDock = useInspectorDock(s => s.setElement);
   const setActions = useInspectorDock(s => s.setActions);
+  const revealedNode = useInspectorDock(s => s.revealedNode);
+  const revealNode = useInspectorDock(s => s.revealNode);
+  useEffect(() => { revealNode(null); }, [id, revealNode]);
+  const showProperties = revealedNode === id;
   const structural = node && ['wall', 'column', 'block'].includes(node.type);
   const update = (patch: any) => {
     if (!readOnly && node) useScene.getState().updateNode(node.id, patch);
@@ -17,7 +21,7 @@ export function SelectionProperties() {
   const beam = node?.type === 'block' && node.metadata?.insaatKind === 'beam';
   return <section className="selection-properties">
     <div ref={setActions} className="building-action-dock" />
-    {structural && <div className="structural-options" key={node.id}>
+    {structural && showProperties && <div className="structural-options" key={node.id}>
       <label>Eleman adı<input disabled={readOnly} defaultValue={node.name ?? ''} onBlur={e => {
         const name = e.target.value.trim(); if (name && name !== node.name) update({ name });
       }} /></label>

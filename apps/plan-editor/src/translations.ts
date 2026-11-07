@@ -474,6 +474,60 @@ Added to library.|Kütüphaneye eklendi.
 Remove this item from the library? Copies in the drawing are preserved.|Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.
 `;
 const selectionEntries = `
+A-Frame|A tipi taşıyıcı
+A-Frame Support|A tipi taşıyıcı
+Y Support|Y tipi taşıyıcı
+V Support|V tipi taşıyıcı
+X Brace|X çapraz
+K Brace|K çapraz
+Single Strut|Tek destek
+Tripod|Üç ayak
+Tripod Support|Üç ayaklı taşıyıcı
+Trestle|Sehpa taşıyıcı
+Trestle Frame|Sehpa çerçeve
+Portal Frame|Portal çerçeve
+Box Frame|Kutu çerçeve
+Tapered Round|Daralan yuvarlak kolon
+Soft Bulged|Hafif bombeli kolon
+Shape|Biçim
+Vertical|Dikey
+Round|Yuvarlak
+Square|Kare
+Rectangular|Dikdörtgen
+Edge Softness|Kenar yumuşaklığı
+Shaft Corner Radius|Gövde köşe yarıçapı
+Shaft|Gövde
+Shaft Width|Gövde eni
+Segment Twist|Bölüm burulması
+Ring Pairs|Halka çiftleri
+Ends|Uçlar
+Transform|Dönüşüm
+Yaw|Yatay dönüş
+Apply preset...|Hazır ayar seç…
+Apply proportion...|Oran seç…
+Straight|Düz
+Tapered|Daralan
+Bulged|Bombeli
+Hourglass|Kum saati
+No Top|Üst başlık yok
+No Bottom|Alt kaide yok
+Simple Top|Basit başlık
+Stepped Top|Kademeli başlık
+Rounded Top|Yuvarlak başlık
+Simple Block Bottom|Basit kaide
+Square Plinth Bottom|Kare kaide
+Stepped Bottom|Kademeli kaide
+Rounded Bottom|Yuvarlak kaide
+Split wall|Duvarı böl
+Left|Sol
+Right|Sağ
+Slender|İnce
+Heavy|Kalın
+Short / Stout|Kısa / geniş
+Straight Round|Düz yuvarlak kolon
+Square Block|Kare kolon
+Show properties|Özellikleri göster
+Hide properties|Özellikleri gizle
 Axis · Editing information|Aks · Düzenleme bilgileri
 Beam · Editing information|Kiriş · Düzenleme bilgileri
 Select the axis, set its name and length, then start drawing.|Aksı seçip adını ve uzunluğunu ayarla; Çizime başla ile yerleştir.

@@ -2,6 +2,7 @@
 
 import { createContext, type ReactNode, useContext, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useViewer } from '@pascal-app/viewer'
 import { useInspectorDock } from '../../lib/inspector-dock'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { cn } from '../../lib/utils'
@@ -75,6 +76,10 @@ export function RightStack({
 }) {
   const isMobile = useIsMobile()
   const dock = useInspectorDock((state) => state.element)
+  const selectedId = useViewer((s) => s.selection.selectedIds.length === 1 ? s.selection.selectedIds[0] : null)
+  const revealedNode = useInspectorDock((s) => s.revealedNode)
+  useEffect(() => { useInspectorDock.getState().revealNode(null) }, [selectedId])
+  if (selectedId && revealedNode !== selectedId) inspector = null
   const stackRef = useRef<HTMLDivElement>(null)
   const inspectorRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
