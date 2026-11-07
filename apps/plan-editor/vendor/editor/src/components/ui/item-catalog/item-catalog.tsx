@@ -8,6 +8,7 @@ import { cn } from './../../../lib/utils'
 import useEditor, { type CatalogCategory } from './../../../store/use-editor'
 import { resolveAssetSnapTarget, SnapTargetBadge } from '../snap-target-badge'
 import { activateCatalogItem, filterCatalogItems, isCatalogItemSelected } from '../../../lib/catalog-panel-model'
+import { ColoredThumbnail } from './colored-thumbnail'
 
 export function ItemCatalog({
   category,
@@ -62,12 +63,7 @@ export function ItemCatalog({
             type="button"
           >
             <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-              <img
-                alt={item.name}
-                className="h-full w-full object-cover"
-                loading="eager"
-                src={resolveCdnUrl(item.thumbnail) || ''}
-              />
+              <ColoredThumbnail name={item.name} src={resolveCdnUrl(item.src)} fallback={resolveCdnUrl(item.thumbnail) || ''} />
               {snapTarget && (
                 <SnapTargetBadge className="absolute right-1 bottom-1" target={snapTarget} />
               )}

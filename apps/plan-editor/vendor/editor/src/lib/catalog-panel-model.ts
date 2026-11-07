@@ -30,6 +30,7 @@ export function filterCatalogItems({
 }
 
 export function activateCatalogItem(item: CatalogItem) {
+  useViewer.getState().setTextures(true)
   useViewer.getState().setSelection({ selectedIds: [], zoneId: null })
   const editor = useEditor.getState()
   editor.setSelectedItem(item)

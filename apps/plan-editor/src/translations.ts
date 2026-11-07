@@ -1,5 +1,10 @@
+import kenneyCatalog from './kenney-catalog.json' with { type: 'json' };
 export type Language = 'tr' | 'en';
 const entries = `
+Colored 3D view|Renkli 3D görünüm
+All models|Tüm modeller
+Original library|Mevcut arşiv
+Library|Kütüphane
 Could not prepare the backup. Please try again.|Yedek hazırlanamadı. Lütfen tekrar dene.
 Wall type|Duvar türü
 Standard|Standart
@@ -450,6 +455,7 @@ The backup contains an invalid object.|Yedekte geçersiz nesne var.
 The backup could not be opened.|Yedek açılamadı.
 `;
 const pairs = entries.trim().split('\n').map(line => line.split('|'));
+pairs.push(...kenneyCatalog.map(item => [item.name, item.nameTr]));
 const english = new Map(pairs.map(([en,tr]) => [tr,en]));
 const turkish = new Map(pairs.map(([en,tr]) => [en,tr]));
 export function translateLabel(text: string, language: Language) {

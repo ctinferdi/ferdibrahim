@@ -1,0 +1,3962 @@
+[
+  {
+    "id": "kenney-bathroomcabinet",
+    "name": "Bathroom Cabinet · Kenney",
+    "nameTr": "Banyo dolabı · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Banyo dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/bathroomcabinet/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathroomcabinet/thumbnail.webp",
+    "dimensions": [
+      0.46,
+      0.78,
+      0.26
+    ],
+    "offset": [
+      -0.63,
+      0,
+      0.29
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bathroomcabinetdrawer",
+    "name": "Bathroom Cabinet Drawer · Kenney",
+    "nameTr": "Çekmeceli banyo dolabı · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çekmeceli banyo dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/bathroomcabinetdrawer/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathroomcabinetdrawer/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.943516,
+      0.64
+    ],
+    "offset": [
+      -0.43,
+      -0.116484,
+      0.58
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bathroommirror",
+    "name": "Bathroom Mirror · Kenney",
+    "nameTr": "Banyo aynası · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Banyo aynası"
+    ],
+    "src": "/plan-editor/items/kenney/bathroommirror/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathroommirror/thumbnail.webp",
+    "dimensions": [
+      0.60268,
+      0.86925,
+      0.2888
+    ],
+    "offset": [
+      -0.30134,
+      0,
+      -0.0468
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bathroomsink",
+    "name": "Bathroom Sink · Kenney",
+    "nameTr": "Banyo lavabosu · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Banyo lavabosu"
+    ],
+    "src": "/plan-editor/items/kenney/bathroomsink/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathroomsink/thumbnail.webp",
+    "dimensions": [
+      0.68,
+      1.12,
+      0.58
+    ],
+    "offset": [
+      -0.34,
+      0.8,
+      0.29
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bathroomsinksquare",
+    "name": "Bathroom Sink Square · Kenney",
+    "nameTr": "Kare lavabo · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare lavabo"
+    ],
+    "src": "/plan-editor/items/kenney/bathroomsinksquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathroomsinksquare/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      1.16,
+      0.6
+    ],
+    "offset": [
+      -0.43,
+      -0.113616,
+      0.6
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bathtub",
+    "name": "Bathtub · Kenney",
+    "nameTr": "Küvet · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Küvet"
+    ],
+    "src": "/plan-editor/items/kenney/bathtub/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bathtub/thumbnail.webp",
+    "dimensions": [
+      2.38,
+      0.84,
+      1.12
+    ],
+    "offset": [
+      -1.19,
+      0,
+      0.56
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bear",
+    "name": "Bear · Kenney",
+    "nameTr": "Oyuncak ayı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Oyuncak ayı"
+    ],
+    "src": "/plan-editor/items/kenney/bear/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bear/thumbnail.webp",
+    "dimensions": [
+      0.779423,
+      0.9,
+      0.495
+    ],
+    "offset": [
+      -0.389711,
+      0,
+      0.2475
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bedbunk",
+    "name": "Bed Bunk · Kenney",
+    "nameTr": "Ranza · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Ranza"
+    ],
+    "src": "/plan-editor/items/kenney/bedbunk/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bedbunk/thumbnail.webp",
+    "dimensions": [
+      1.142,
+      1.7,
+      2.19
+    ],
+    "offset": [
+      -0.571,
+      0,
+      1.095
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-beddouble",
+    "name": "Bed Double · Kenney",
+    "nameTr": "Çift kişilik yatak · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çift kişilik yatak"
+    ],
+    "src": "/plan-editor/items/kenney/beddouble/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/beddouble/thumbnail.webp",
+    "dimensions": [
+      1.912,
+      0.75,
+      2.25
+    ],
+    "offset": [
+      -0.956,
+      0,
+      1.125
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bedsingle",
+    "name": "Bed Single · Kenney",
+    "nameTr": "Tek kişilik yatak · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Tek kişilik yatak"
+    ],
+    "src": "/plan-editor/items/kenney/bedsingle/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bedsingle/thumbnail.webp",
+    "dimensions": [
+      1.142,
+      0.75,
+      2.25
+    ],
+    "offset": [
+      -1.341,
+      0,
+      1.125
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bench",
+    "name": "Bench · Kenney",
+    "nameTr": "Bank · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Bank"
+    ],
+    "src": "/plan-editor/items/kenney/bench/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bench/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      0.94,
+      0.4
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-benchcushion",
+    "name": "Bench Cushion · Kenney",
+    "nameTr": "Minderli bank · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Minderli bank"
+    ],
+    "src": "/plan-editor/items/kenney/benchcushion/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/benchcushion/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      0.92,
+      0.4
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-benchcushionlow",
+    "name": "Bench Cushion Low · Kenney",
+    "nameTr": "Alçak minderli bank · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Alçak minderli bank"
+    ],
+    "src": "/plan-editor/items/kenney/benchcushionlow/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/benchcushionlow/thumbnail.webp",
+    "dimensions": [
+      0.84,
+      0.4,
+      0.44
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bookcaseclosed",
+    "name": "Bookcase Closed · Kenney",
+    "nameTr": "Kapalı kitaplık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kapalı kitaplık"
+    ],
+    "src": "/plan-editor/items/kenney/bookcaseclosed/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bookcaseclosed/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      1.7,
+      0.5
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bookcasecloseddoors",
+    "name": "Bookcase Closed Doors · Kenney",
+    "nameTr": "Kapaklı kitaplık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kapaklı kitaplık"
+    ],
+    "src": "/plan-editor/items/kenney/bookcasecloseddoors/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bookcasecloseddoors/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      1.7,
+      0.5
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bookcaseclosedwide",
+    "name": "Bookcase Closed Wide · Kenney",
+    "nameTr": "Geniş kitaplık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Geniş kitaplık"
+    ],
+    "src": "/plan-editor/items/kenney/bookcaseclosedwide/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bookcaseclosedwide/thumbnail.webp",
+    "dimensions": [
+      1.6,
+      1.58,
+      0.5
+    ],
+    "offset": [
+      -0.8,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bookcaseopen",
+    "name": "Bookcase Open · Kenney",
+    "nameTr": "Açık kitaplık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Açık kitaplık"
+    ],
+    "src": "/plan-editor/items/kenney/bookcaseopen/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bookcaseopen/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      1.76,
+      0.5
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-bookcaseopenlow",
+    "name": "Bookcase Open Low · Kenney",
+    "nameTr": "Alçak kitaplık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Alçak kitaplık"
+    ],
+    "src": "/plan-editor/items/kenney/bookcaseopenlow/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/bookcaseopenlow/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      0.8,
+      0.5
+    ],
+    "offset": [
+      -0.4,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-books",
+    "name": "Books · Kenney",
+    "nameTr": "Kitaplar · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kitaplar"
+    ],
+    "src": "/plan-editor/items/kenney/books/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/books/thumbnail.webp",
+    "dimensions": [
+      0.300895,
+      0.207805,
+      0.189
+    ],
+    "offset": [
+      -0.150448,
+      0,
+      0.0945
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cabinetbed",
+    "name": "Cabinet Bed · Kenney",
+    "nameTr": "Komodin · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Komodin"
+    ],
+    "src": "/plan-editor/items/kenney/cabinetbed/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cabinetbed/thumbnail.webp",
+    "dimensions": [
+      0.532,
+      0.4664,
+      0.43
+    ],
+    "offset": [
+      -0.246,
+      0,
+      0.195
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cabinetbeddrawer",
+    "name": "Cabinet Bed Drawer · Kenney",
+    "nameTr": "Çekmeceli komodin · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çekmeceli komodin"
+    ],
+    "src": "/plan-editor/items/kenney/cabinetbeddrawer/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cabinetbeddrawer/thumbnail.webp",
+    "dimensions": [
+      0.532,
+      0.5264,
+      0.4346
+    ],
+    "offset": [
+      -0.246,
+      0,
+      0.1927
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cabinetbeddrawertable",
+    "name": "Cabinet Bed Drawer Table · Kenney",
+    "nameTr": "Raflı komodin · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Raflı komodin"
+    ],
+    "src": "/plan-editor/items/kenney/cabinetbeddrawertable/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cabinetbeddrawertable/thumbnail.webp",
+    "dimensions": [
+      0.532,
+      0.5264,
+      0.4346
+    ],
+    "offset": [
+      -0.246,
+      0,
+      0.1927
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cabinettelevision",
+    "name": "Cabinet Television · Kenney",
+    "nameTr": "TV ünitesi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "TV ünitesi"
+    ],
+    "src": "/plan-editor/items/kenney/cabinettelevision/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cabinettelevision/thumbnail.webp",
+    "dimensions": [
+      1.6,
+      0.62,
+      0.5
+    ],
+    "offset": [
+      -0.8,
+      0,
+      0.25
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cabinettelevisiondoors",
+    "name": "Cabinet Television Doors · Kenney",
+    "nameTr": "Kapaklı TV ünitesi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kapaklı TV ünitesi"
+    ],
+    "src": "/plan-editor/items/kenney/cabinettelevisiondoors/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cabinettelevisiondoors/thumbnail.webp",
+    "dimensions": [
+      1.6,
+      0.62,
+      0.52
+    ],
+    "offset": [
+      -0.8,
+      0,
+      0.24
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cardboardboxclosed",
+    "name": "Cardboard Box Closed · Kenney",
+    "nameTr": "Kapalı karton kutu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kapalı karton kutu"
+    ],
+    "src": "/plan-editor/items/kenney/cardboardboxclosed/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cardboardboxclosed/thumbnail.webp",
+    "dimensions": [
+      0.425,
+      0.562,
+      0.425
+    ],
+    "offset": [
+      -0.2125,
+      0,
+      0.2125
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-cardboardboxopen",
+    "name": "Cardboard Box Open · Kenney",
+    "nameTr": "Açık karton kutu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Açık karton kutu"
+    ],
+    "src": "/plan-editor/items/kenney/cardboardboxopen/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/cardboardboxopen/thumbnail.webp",
+    "dimensions": [
+      0.74375,
+      0.562,
+      0.425
+    ],
+    "offset": [
+      -0.2125,
+      0,
+      0.2125
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-ceilingfan",
+    "name": "Ceiling Fan · Kenney",
+    "nameTr": "Tavan vantilatörü · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Tavan vantilatörü"
+    ],
+    "src": "/plan-editor/items/kenney/ceilingfan/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/ceilingfan/thumbnail.webp",
+    "dimensions": [
+      0.909472,
+      0.267436,
+      1.050167
+    ],
+    "offset": [
+      -0.110923,
+      0.267436,
+      0.002389
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chair",
+    "name": "Chair · Kenney",
+    "nameTr": "Sandalye · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Sandalye"
+    ],
+    "src": "/plan-editor/items/kenney/chair/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chair/thumbnail.webp",
+    "dimensions": [
+      0.4,
+      0.94,
+      0.4
+    ],
+    "offset": [
+      -0.2,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chaircushion",
+    "name": "Chair Cushion · Kenney",
+    "nameTr": "Minderli sandalye · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Minderli sandalye"
+    ],
+    "src": "/plan-editor/items/kenney/chaircushion/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chaircushion/thumbnail.webp",
+    "dimensions": [
+      0.4,
+      0.92,
+      0.4
+    ],
+    "offset": [
+      -0.2,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chairdesk",
+    "name": "Chair Desk · Kenney",
+    "nameTr": "Çalışma sandalyesi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çalışma sandalyesi"
+    ],
+    "src": "/plan-editor/items/kenney/chairdesk/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chairdesk/thumbnail.webp",
+    "dimensions": [
+      0.6699,
+      1.2152,
+      0.628598
+    ],
+    "offset": [
+      -0.33495,
+      0,
+      0.314299
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chairmoderncushion",
+    "name": "Chair Modern Cushion · Kenney",
+    "nameTr": "Modern minderli sandalye · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Modern minderli sandalye"
+    ],
+    "src": "/plan-editor/items/kenney/chairmoderncushion/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chairmoderncushion/thumbnail.webp",
+    "dimensions": [
+      0.4,
+      0.92,
+      0.4
+    ],
+    "offset": [
+      -0.2,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chairmodernframecushion",
+    "name": "Chair Modern Frame Cushion · Kenney",
+    "nameTr": "Çerçeveli sandalye · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çerçeveli sandalye"
+    ],
+    "src": "/plan-editor/items/kenney/chairmodernframecushion/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chairmodernframecushion/thumbnail.webp",
+    "dimensions": [
+      0.4,
+      0.92,
+      0.4
+    ],
+    "offset": [
+      -0.2,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-chairrounded",
+    "name": "Chair Rounded · Kenney",
+    "nameTr": "Yuvarlak sırtlı sandalye · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak sırtlı sandalye"
+    ],
+    "src": "/plan-editor/items/kenney/chairrounded/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/chairrounded/thumbnail.webp",
+    "dimensions": [
+      0.4,
+      0.91,
+      0.4
+    ],
+    "offset": [
+      -0.2,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-coatrack",
+    "name": "Coat Rack · Kenney",
+    "nameTr": "Duvar askılığı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Duvar askılığı"
+    ],
+    "src": "/plan-editor/items/kenney/coatrack/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/coatrack/thumbnail.webp",
+    "dimensions": [
+      0.896,
+      0.56,
+      0.2688
+    ],
+    "offset": [
+      -0.448,
+      0,
+      0.1344
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-coatrackstanding",
+    "name": "Coat Rack Standing · Kenney",
+    "nameTr": "Ayaklı askılık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Ayaklı askılık"
+    ],
+    "src": "/plan-editor/items/kenney/coatrackstanding/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/coatrackstanding/thumbnail.webp",
+    "dimensions": [
+      0.5456,
+      1.54,
+      0.5456
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-computerkeyboard",
+    "name": "Computer Keyboard · Kenney",
+    "nameTr": "Klavye · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Klavye"
+    ],
+    "src": "/plan-editor/items/kenney/computerkeyboard/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/computerkeyboard/thumbnail.webp",
+    "dimensions": [
+      0.5644,
+      0.055112,
+      0.236384
+    ],
+    "offset": [
+      -0.2822,
+      0,
+      0.118192
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-computermouse",
+    "name": "Computer Mouse · Kenney",
+    "nameTr": "Fare · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Fare"
+    ],
+    "src": "/plan-editor/items/kenney/computermouse/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/computermouse/thumbnail.webp",
+    "dimensions": [
+      0.0994,
+      0.047144,
+      0.170208
+    ],
+    "offset": [
+      0,
+      0,
+      0.085104
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-computerscreen",
+    "name": "Computer Screen · Kenney",
+    "nameTr": "Bilgisayar ekranı · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Bilgisayar ekranı"
+    ],
+    "src": "/plan-editor/items/kenney/computerscreen/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/computerscreen/thumbnail.webp",
+    "dimensions": [
+      0.785376,
+      0.58857,
+      0.208008
+    ],
+    "offset": [
+      -0.392688,
+      0,
+      0.104004
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-desk",
+    "name": "Desk · Kenney",
+    "nameTr": "Çalışma masası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çalışma masası"
+    ],
+    "src": "/plan-editor/items/kenney/desk/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/desk/thumbnail.webp",
+    "dimensions": [
+      1.468951,
+      0.768815,
+      0.7846
+    ],
+    "offset": [
+      -0.714475,
+      0,
+      0.3677
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-deskcorner",
+    "name": "Desk Corner · Kenney",
+    "nameTr": "Köşe çalışma masası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Köşe çalışma masası"
+    ],
+    "src": "/plan-editor/items/kenney/deskcorner/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/deskcorner/thumbnail.webp",
+    "dimensions": [
+      1.948951,
+      0.768815,
+      1.948951
+    ],
+    "offset": [
+      -0.974476,
+      0,
+      0.974476
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-dryer",
+    "name": "Dryer · Kenney",
+    "nameTr": "Kurutma makinesi · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kurutma makinesi"
+    ],
+    "src": "/plan-editor/items/kenney/dryer/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/dryer/thumbnail.webp",
+    "dimensions": [
+      0.78,
+      0.94,
+      0.76
+    ],
+    "offset": [
+      -0.39,
+      0,
+      0.32
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-hoodlarge",
+    "name": "Hood Large · Kenney",
+    "nameTr": "Geniş davlumbaz · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Geniş davlumbaz"
+    ],
+    "src": "/plan-editor/items/kenney/hoodlarge/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/hoodlarge/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.739063,
+      0.5698
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.2849
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-hoodmodern",
+    "name": "Hood Modern · Kenney",
+    "nameTr": "Modern davlumbaz · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Modern davlumbaz"
+    ],
+    "src": "/plan-editor/items/kenney/hoodmodern/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/hoodmodern/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.799063,
+      0.5698
+    ],
+    "offset": [
+      -0.43,
+      0.06,
+      0.2849
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenbar",
+    "name": "Kitchen Bar · Kenney",
+    "nameTr": "Mutfak barı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mutfak barı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenbar/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenbar/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.84,
+      0.42
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.21
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenbarend",
+    "name": "Kitchen Bar End · Kenney",
+    "nameTr": "Mutfak barı uç modülü · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mutfak barı uç modülü"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenbarend/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenbarend/thumbnail.webp",
+    "dimensions": [
+      0.203125,
+      0.84,
+      0.42
+    ],
+    "offset": [
+      -0.101563,
+      0,
+      0.21
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenblender",
+    "name": "Kitchen Blender · Kenney",
+    "nameTr": "Blender · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Blender"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenblender/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenblender/thumbnail.webp",
+    "dimensions": [
+      0.271652,
+      0.45504,
+      0.218238
+    ],
+    "offset": [
+      -0.135826,
+      0,
+      0.109119
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinet",
+    "name": "Kitchen Cabinet · Kenney",
+    "nameTr": "Mutfak alt dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mutfak alt dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinet/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinet/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.9,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetcornerinner",
+    "name": "Kitchen Cabinet Corner Inner · Kenney",
+    "nameTr": "İç köşe mutfak dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "İç köşe mutfak dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetcornerinner/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetcornerinner/thumbnail.webp",
+    "dimensions": [
+      0.92,
+      0.9,
+      0.92
+    ],
+    "offset": [
+      -0.46,
+      0,
+      0.46
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetcornerround",
+    "name": "Kitchen Cabinet Corner Round · Kenney",
+    "nameTr": "Yuvarlak köşe dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak köşe dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetcornerround/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetcornerround/thumbnail.webp",
+    "dimensions": [
+      0.9,
+      0.9,
+      0.9
+    ],
+    "offset": [
+      -0.45,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetdrawer",
+    "name": "Kitchen Cabinet Drawer · Kenney",
+    "nameTr": "Çekmeceli mutfak dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çekmeceli mutfak dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetdrawer/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetdrawer/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.9,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetupper",
+    "name": "Kitchen Cabinet Upper · Kenney",
+    "nameTr": "Mutfak üst dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mutfak üst dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetupper/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetupper/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.78,
+      0.44
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetuppercorner",
+    "name": "Kitchen Cabinet Upper Corner · Kenney",
+    "nameTr": "Köşe üst dolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Köşe üst dolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetuppercorner/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetuppercorner/thumbnail.webp",
+    "dimensions": [
+      0.43,
+      0.78,
+      0.42
+    ],
+    "offset": [
+      -0.215,
+      0,
+      0.21
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetupperdouble",
+    "name": "Kitchen Cabinet Upper Double · Kenney",
+    "nameTr": "Çift kapaklı üst dolap · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çift kapaklı üst dolap"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetupperdouble/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetupperdouble/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.78,
+      0.44
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencabinetupperlow",
+    "name": "Kitchen Cabinet Upper Low · Kenney",
+    "nameTr": "Kısa üst dolap · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kısa üst dolap"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencabinetupperlow/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencabinetupperlow/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.39,
+      0.44
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchencoffeemachine",
+    "name": "Kitchen Coffee Machine · Kenney",
+    "nameTr": "Kahve makinesi · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kahve makinesi"
+    ],
+    "src": "/plan-editor/items/kenney/kitchencoffeemachine/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchencoffeemachine/thumbnail.webp",
+    "dimensions": [
+      0.37908,
+      0.354978,
+      0.480334
+    ],
+    "offset": [
+      -0.18954,
+      0,
+      0.240167
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenfridge",
+    "name": "Kitchen Fridge · Kenney",
+    "nameTr": "Buzdolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Buzdolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenfridge/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenfridge/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      1.84,
+      0.583868
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.271934
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenfridgebuiltin",
+    "name": "Kitchen Fridge Built In · Kenney",
+    "nameTr": "Ankastre buzdolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Ankastre buzdolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenfridgebuiltin/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenfridgebuiltin/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      1.737496,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenfridgelarge",
+    "name": "Kitchen Fridge Large · Kenney",
+    "nameTr": "Geniş buzdolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Geniş buzdolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenfridgelarge/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenfridgelarge/thumbnail.webp",
+    "dimensions": [
+      1.04,
+      1.84,
+      0.8111
+    ],
+    "offset": [
+      -0.52,
+      0,
+      0.278318
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenfridgesmall",
+    "name": "Kitchen Fridge Small · Kenney",
+    "nameTr": "Mini buzdolabı · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mini buzdolabı"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenfridgesmall/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenfridgesmall/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      1.200493,
+      0.583868
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.271934
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenmicrowave",
+    "name": "Kitchen Microwave · Kenney",
+    "nameTr": "Mikrodalga · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mikrodalga"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenmicrowave/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenmicrowave/thumbnail.webp",
+    "dimensions": [
+      0.58,
+      0.36,
+      0.46
+    ],
+    "offset": [
+      -0.29,
+      0,
+      0.21
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchensink",
+    "name": "Kitchen Sink · Kenney",
+    "nameTr": "Mutfak evyesi · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mutfak evyesi"
+    ],
+    "src": "/plan-editor/items/kenney/kitchensink/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchensink/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.98,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenstove",
+    "name": "Kitchen Stove · Kenney",
+    "nameTr": "Fırınlı ocak · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Fırınlı ocak"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenstove/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenstove/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.9,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-kitchenstoveelectric",
+    "name": "Kitchen Stove Electric · Kenney",
+    "nameTr": "Elektrikli ocak · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Elektrikli ocak"
+    ],
+    "src": "/plan-editor/items/kenney/kitchenstoveelectric/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/kitchenstoveelectric/thumbnail.webp",
+    "dimensions": [
+      0.86,
+      0.9,
+      0.9
+    ],
+    "offset": [
+      -0.43,
+      0,
+      0.45
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lamproundfloor",
+    "name": "Lamp Round Floor · Kenney",
+    "nameTr": "Yuvarlak lambader · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak lambader"
+    ],
+    "src": "/plan-editor/items/kenney/lamproundfloor/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lamproundfloor/thumbnail.webp",
+    "dimensions": [
+      0.304079,
+      1.72,
+      0.35112
+    ],
+    "offset": [
+      -0.12,
+      0,
+      0.12
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lamproundtable",
+    "name": "Lamp Round Table · Kenney",
+    "nameTr": "Yuvarlak masa lambası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak masa lambası"
+    ],
+    "src": "/plan-editor/items/kenney/lamproundtable/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lamproundtable/thumbnail.webp",
+    "dimensions": [
+      0.304079,
+      0.6285,
+      0.35112
+    ],
+    "offset": [
+      -0.12,
+      0,
+      0.12
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lampsquareceiling",
+    "name": "Lamp Square Ceiling · Kenney",
+    "nameTr": "Kare tavan lambası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare tavan lambası"
+    ],
+    "src": "/plan-editor/items/kenney/lampsquareceiling/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lampsquareceiling/thumbnail.webp",
+    "dimensions": [
+      0.24,
+      0.46,
+      0.24
+    ],
+    "offset": [
+      -0.12,
+      0,
+      0.12
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lampsquarefloor",
+    "name": "Lamp Square Floor · Kenney",
+    "nameTr": "Kare lambader · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare lambader"
+    ],
+    "src": "/plan-editor/items/kenney/lampsquarefloor/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lampsquarefloor/thumbnail.webp",
+    "dimensions": [
+      0.24,
+      1.72,
+      0.24
+    ],
+    "offset": [
+      -0.12,
+      0,
+      0.12
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lampsquaretable",
+    "name": "Lamp Square Table · Kenney",
+    "nameTr": "Kare masa lambası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare masa lambası"
+    ],
+    "src": "/plan-editor/items/kenney/lampsquaretable/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lampsquaretable/thumbnail.webp",
+    "dimensions": [
+      0.24,
+      0.58,
+      0.24
+    ],
+    "offset": [
+      -0.12,
+      0,
+      0.12
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-lampwall",
+    "name": "Lamp Wall · Kenney",
+    "nameTr": "Duvar apliği · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Duvar apliği"
+    ],
+    "src": "/plan-editor/items/kenney/lampwall/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/lampwall/thumbnail.webp",
+    "dimensions": [
+      0.453271,
+      0.1856,
+      0.300672
+    ],
+    "offset": [
+      0,
+      0,
+      -0.150336
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-laptop",
+    "name": "Laptop · Kenney",
+    "nameTr": "Dizüstü bilgisayar · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Dizüstü bilgisayar"
+    ],
+    "src": "/plan-editor/items/kenney/laptop/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/laptop/thumbnail.webp",
+    "dimensions": [
+      0.528,
+      0.323619,
+      0.48013
+    ],
+    "offset": [
+      -0.264,
+      0,
+      0.240065
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungechair",
+    "name": "Lounge Chair · Kenney",
+    "nameTr": "Salon koltuğu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Salon koltuğu"
+    ],
+    "src": "/plan-editor/items/kenney/loungechair/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungechair/thumbnail.webp",
+    "dimensions": [
+      0.98,
+      0.92,
+      0.82
+    ],
+    "offset": [
+      -0.49,
+      0,
+      0.41
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungechairrelax",
+    "name": "Lounge Chair Relax · Kenney",
+    "nameTr": "Dinlenme koltuğu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Dinlenme koltuğu"
+    ],
+    "src": "/plan-editor/items/kenney/loungechairrelax/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungechairrelax/thumbnail.webp",
+    "dimensions": [
+      0.98,
+      1.26,
+      1.349385
+    ],
+    "offset": [
+      -0.49,
+      0,
+      0.674693
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungedesignchair",
+    "name": "Lounge Design Chair · Kenney",
+    "nameTr": "Tasarım koltuk · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Tasarım koltuk"
+    ],
+    "src": "/plan-editor/items/kenney/loungedesignchair/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungedesignchair/thumbnail.webp",
+    "dimensions": [
+      1.459191,
+      0.8,
+      0.82
+    ],
+    "offset": [
+      -0.729595,
+      0,
+      0.41
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungedesignsofa",
+    "name": "Lounge Design Sofa · Kenney",
+    "nameTr": "Tasarım kanepe · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Tasarım kanepe"
+    ],
+    "src": "/plan-editor/items/kenney/loungedesignsofa/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungedesignsofa/thumbnail.webp",
+    "dimensions": [
+      2.24,
+      0.8,
+      0.82
+    ],
+    "offset": [
+      -1.12,
+      0,
+      0.41
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungedesignsofacorner",
+    "name": "Lounge Design Sofa Corner · Kenney",
+    "nameTr": "Tasarım köşe kanepe · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Tasarım köşe kanepe"
+    ],
+    "src": "/plan-editor/items/kenney/loungedesignsofacorner/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungedesignsofacorner/thumbnail.webp",
+    "dimensions": [
+      2.699657,
+      0.8,
+      2.699657
+    ],
+    "offset": [
+      -1.349828,
+      0,
+      1.349828
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungesofa",
+    "name": "Lounge Sofa · Kenney",
+    "nameTr": "Kanepe · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kanepe"
+    ],
+    "src": "/plan-editor/items/kenney/loungesofa/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungesofa/thumbnail.webp",
+    "dimensions": [
+      1.96,
+      0.92,
+      0.82
+    ],
+    "offset": [
+      -0.98,
+      0,
+      0.41
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungesofacorner",
+    "name": "Lounge Sofa Corner · Kenney",
+    "nameTr": "Köşe kanepe · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Köşe kanepe"
+    ],
+    "src": "/plan-editor/items/kenney/loungesofacorner/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungesofacorner/thumbnail.webp",
+    "dimensions": [
+      1.96,
+      0.92,
+      1.96
+    ],
+    "offset": [
+      -0.98,
+      0,
+      0.98
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungesofalong",
+    "name": "Lounge Sofa Long · Kenney",
+    "nameTr": "Uzun kanepe · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Uzun kanepe"
+    ],
+    "src": "/plan-editor/items/kenney/loungesofalong/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungesofalong/thumbnail.webp",
+    "dimensions": [
+      1.96,
+      0.92,
+      1.64
+    ],
+    "offset": [
+      -0.98,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-loungesofaottoman",
+    "name": "Lounge Sofa Ottoman · Kenney",
+    "nameTr": "Koltuk pufu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Koltuk pufu"
+    ],
+    "src": "/plan-editor/items/kenney/loungesofaottoman/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/loungesofaottoman/thumbnail.webp",
+    "dimensions": [
+      0.879657,
+      0.46,
+      0.9
+    ],
+    "offset": [
+      -1.379829,
+      0,
+      -0.37
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-pillow",
+    "name": "Pillow · Kenney",
+    "nameTr": "Yastık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yastık"
+    ],
+    "src": "/plan-editor/items/kenney/pillow/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/pillow/thumbnail.webp",
+    "dimensions": [
+      0.46,
+      0.444326,
+      0.176967
+    ],
+    "offset": [
+      -0.23,
+      0,
+      0.088484
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-pillowblue",
+    "name": "Pillow Blue · Kenney",
+    "nameTr": "Mavi yastık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Mavi yastık"
+    ],
+    "src": "/plan-editor/items/kenney/pillowblue/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/pillowblue/thumbnail.webp",
+    "dimensions": [
+      0.46,
+      0.257024,
+      0.12678
+    ],
+    "offset": [
+      -0.23,
+      0,
+      0.06339
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-pillowbluelong",
+    "name": "Pillow Blue Long · Kenney",
+    "nameTr": "Uzun mavi yastık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Uzun mavi yastık"
+    ],
+    "src": "/plan-editor/items/kenney/pillowbluelong/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/pillowbluelong/thumbnail.webp",
+    "dimensions": [
+      1.033151,
+      0.444326,
+      0.176967
+    ],
+    "offset": [
+      -0.256576,
+      0,
+      0.088484
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-pillowlong",
+    "name": "Pillow Long · Kenney",
+    "nameTr": "Uzun yastık · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Uzun yastık"
+    ],
+    "src": "/plan-editor/items/kenney/pillowlong/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/pillowlong/thumbnail.webp",
+    "dimensions": [
+      0.773151,
+      0.444326,
+      0.176967
+    ],
+    "offset": [
+      -0.386576,
+      0,
+      0.088484
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-plantsmall1",
+    "name": "Plant Small 1 · Kenney",
+    "nameTr": "Küçük bitki 1 · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Küçük bitki 1"
+    ],
+    "src": "/plan-editor/items/kenney/plantsmall1/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/plantsmall1/thumbnail.webp",
+    "dimensions": [
+      0.189321,
+      0.28,
+      0.189321
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-plantsmall2",
+    "name": "Plant Small 2 · Kenney",
+    "nameTr": "Küçük bitki 2 · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Küçük bitki 2"
+    ],
+    "src": "/plan-editor/items/kenney/plantsmall2/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/plantsmall2/thumbnail.webp",
+    "dimensions": [
+      0.189321,
+      0.28,
+      0.189321
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-plantsmall3",
+    "name": "Plant Small 3 · Kenney",
+    "nameTr": "Küçük bitki 3 · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Küçük bitki 3"
+    ],
+    "src": "/plan-editor/items/kenney/plantsmall3/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/plantsmall3/thumbnail.webp",
+    "dimensions": [
+      0.196,
+      0.29,
+      0.169741
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-pottedplant",
+    "name": "Potted Plant · Kenney",
+    "nameTr": "Saksı bitkisi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Saksı bitkisi"
+    ],
+    "src": "/plan-editor/items/kenney/pottedplant/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/pottedplant/thumbnail.webp",
+    "dimensions": [
+      0.424119,
+      1.308034,
+      0.482924
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-radio",
+    "name": "Radio · Kenney",
+    "nameTr": "Radyo · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Radyo"
+    ],
+    "src": "/plan-editor/items/kenney/radio/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/radio/thumbnail.webp",
+    "dimensions": [
+      0.63,
+      0.456382,
+      0.195
+    ],
+    "offset": [
+      -0.315,
+      0,
+      0.0975
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-rugdoormat",
+    "name": "Rug Doormat · Kenney",
+    "nameTr": "Kapı paspası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kapı paspası"
+    ],
+    "src": "/plan-editor/items/kenney/rugdoormat/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/rugdoormat/thumbnail.webp",
+    "dimensions": [
+      0.8586,
+      0.02,
+      0.474018
+    ],
+    "offset": [
+      -0.4293,
+      0,
+      0.237009
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-rugrectangle",
+    "name": "Rug Rectangle · Kenney",
+    "nameTr": "Dikdörtgen halı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Dikdörtgen halı"
+    ],
+    "src": "/plan-editor/items/kenney/rugrectangle/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/rugrectangle/thumbnail.webp",
+    "dimensions": [
+      3.14,
+      0.02,
+      1.84
+    ],
+    "offset": [
+      -1.57,
+      0,
+      0.92
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-ruground",
+    "name": "Rug Round · Kenney",
+    "nameTr": "Yuvarlak halı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak halı"
+    ],
+    "src": "/plan-editor/items/kenney/ruground/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/ruground/thumbnail.webp",
+    "dimensions": [
+      1.84,
+      0.02,
+      1.84
+    ],
+    "offset": [
+      -0.92,
+      0,
+      0.92
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-rugrounded",
+    "name": "Rug Rounded · Kenney",
+    "nameTr": "Oval halı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Oval halı"
+    ],
+    "src": "/plan-editor/items/kenney/rugrounded/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/rugrounded/thumbnail.webp",
+    "dimensions": [
+      3.14,
+      0.02,
+      1.84
+    ],
+    "offset": [
+      -1.57,
+      0,
+      0.92
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-rugsquare",
+    "name": "Rug Square · Kenney",
+    "nameTr": "Kare halı · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare halı"
+    ],
+    "src": "/plan-editor/items/kenney/rugsquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/rugsquare/thumbnail.webp",
+    "dimensions": [
+      1.808652,
+      0.02,
+      1.84
+    ],
+    "offset": [
+      -0.904326,
+      0,
+      0.92
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-shower",
+    "name": "Shower · Kenney",
+    "nameTr": "Duş kabini · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Duş kabini"
+    ],
+    "src": "/plan-editor/items/kenney/shower/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/shower/thumbnail.webp",
+    "dimensions": [
+      1.123584,
+      2.188066,
+      1.163584
+    ],
+    "offset": [
+      0.561792,
+      0,
+      0.541792
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-showerround",
+    "name": "Shower Round · Kenney",
+    "nameTr": "Yuvarlak duş kabini · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak duş kabini"
+    ],
+    "src": "/plan-editor/items/kenney/showerround/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/showerround/thumbnail.webp",
+    "dimensions": [
+      1.123584,
+      2.188067,
+      1.123584
+    ],
+    "offset": [
+      -0.561792,
+      0,
+      0.561792
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-sidetable",
+    "name": "Side Table · Kenney",
+    "nameTr": "Yan sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yan sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/sidetable/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/sidetable/thumbnail.webp",
+    "dimensions": [
+      1.068951,
+      0.768815,
+      0.44
+    ],
+    "offset": [
+      -0.514475,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-sidetabledrawers",
+    "name": "Side Table Drawers · Kenney",
+    "nameTr": "Çekmeceli yan sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çekmeceli yan sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/sidetabledrawers/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/sidetabledrawers/thumbnail.webp",
+    "dimensions": [
+      1.068951,
+      0.768815,
+      0.4446
+    ],
+    "offset": [
+      -0.514475,
+      0,
+      0.1977
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-speaker",
+    "name": "Speaker · Kenney",
+    "nameTr": "Hoparlör · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Hoparlör"
+    ],
+    "src": "/plan-editor/items/kenney/speaker/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/speaker/thumbnail.webp",
+    "dimensions": [
+      0.296,
+      1.2728,
+      0.296
+    ],
+    "offset": [
+      -0.148,
+      0,
+      0.148
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-speakersmall",
+    "name": "Speaker Small · Kenney",
+    "nameTr": "Küçük hoparlör · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Küçük hoparlör"
+    ],
+    "src": "/plan-editor/items/kenney/speakersmall/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/speakersmall/thumbnail.webp",
+    "dimensions": [
+      0.296,
+      0.595959,
+      0.2664
+    ],
+    "offset": [
+      -0.148,
+      0,
+      0.1332
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-stoolbar",
+    "name": "Stool Bar · Kenney",
+    "nameTr": "Bar taburesi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Bar taburesi"
+    ],
+    "src": "/plan-editor/items/kenney/stoolbar/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/stoolbar/thumbnail.webp",
+    "dimensions": [
+      0.53088,
+      0.87,
+      0.459756
+    ],
+    "offset": [
+      -0.26544,
+      0,
+      0.229878
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-stoolbarsquare",
+    "name": "Stool Bar Square · Kenney",
+    "nameTr": "Kare bar taburesi · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare bar taburesi"
+    ],
+    "src": "/plan-editor/items/kenney/stoolbarsquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/stoolbarsquare/thumbnail.webp",
+    "dimensions": [
+      0.307,
+      0.81,
+      0.295248
+    ],
+    "offset": [
+      -0.26544,
+      0,
+      0.229878
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-table",
+    "name": "Table · Kenney",
+    "nameTr": "Yemek masası · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yemek masası"
+    ],
+    "src": "/plan-editor/items/kenney/table/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/table/thumbnail.webp",
+    "dimensions": [
+      1.682976,
+      0.653468,
+      0.894747
+    ],
+    "offset": [
+      -0.841488,
+      0,
+      0.447373
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecloth",
+    "name": "Table Cloth · Kenney",
+    "nameTr": "Örtülü masa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Örtülü masa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecloth/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecloth/thumbnail.webp",
+    "dimensions": [
+      1.682976,
+      0.653468,
+      0.894747
+    ],
+    "offset": [
+      -0.841488,
+      0,
+      0.447373
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecoffee",
+    "name": "Table Coffee · Kenney",
+    "nameTr": "Orta sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Orta sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecoffee/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecoffee/thumbnail.webp",
+    "dimensions": [
+      1.321992,
+      0.46,
+      0.8
+    ],
+    "offset": [
+      0.260996,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecoffeeglass",
+    "name": "Table Coffee Glass · Kenney",
+    "nameTr": "Cam orta sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Cam orta sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecoffeeglass/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecoffeeglass/thumbnail.webp",
+    "dimensions": [
+      1.321992,
+      0.46,
+      0.8
+    ],
+    "offset": [
+      0.260996,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecoffeeglasssquare",
+    "name": "Table Coffee Glass Square · Kenney",
+    "nameTr": "Kare cam sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare cam sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecoffeeglasssquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecoffeeglasssquare/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      0.46,
+      0.8
+    ],
+    "offset": [
+      0.521992,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecoffeesquare",
+    "name": "Table Coffee Square · Kenney",
+    "nameTr": "Kare orta sehpa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare orta sehpa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecoffeesquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecoffeesquare/thumbnail.webp",
+    "dimensions": [
+      0.8,
+      0.46,
+      0.8
+    ],
+    "offset": [
+      0.521992,
+      0,
+      0.2
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecross",
+    "name": "Table Cross · Kenney",
+    "nameTr": "Çapraz ayaklı masa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çapraz ayaklı masa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecross/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecross/thumbnail.webp",
+    "dimensions": [
+      1.70424,
+      0.694827,
+      0.894747
+    ],
+    "offset": [
+      -0.85212,
+      0,
+      0.447373
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tablecrosscloth",
+    "name": "Table Cross Cloth · Kenney",
+    "nameTr": "Örtülü çapraz masa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Örtülü çapraz masa"
+    ],
+    "src": "/plan-editor/items/kenney/tablecrosscloth/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tablecrosscloth/thumbnail.webp",
+    "dimensions": [
+      1.70424,
+      0.694827,
+      0.894747
+    ],
+    "offset": [
+      -0.85212,
+      0,
+      0.447373
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tableglass",
+    "name": "Table Glass · Kenney",
+    "nameTr": "Cam masa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Cam masa"
+    ],
+    "src": "/plan-editor/items/kenney/tableglass/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tableglass/thumbnail.webp",
+    "dimensions": [
+      1.682976,
+      0.653468,
+      0.894747
+    ],
+    "offset": [
+      -0.841488,
+      0,
+      0.447373
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-tableround",
+    "name": "Table Round · Kenney",
+    "nameTr": "Yuvarlak masa · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Yuvarlak masa"
+    ],
+    "src": "/plan-editor/items/kenney/tableround/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/tableround/thumbnail.webp",
+    "dimensions": [
+      1.385641,
+      0.733468,
+      1.6
+    ],
+    "offset": [
+      -0.69282,
+      0.54,
+      0.8
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-televisionantenna",
+    "name": "Television Antenna · Kenney",
+    "nameTr": "Antenli televizyon · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Antenli televizyon"
+    ],
+    "src": "/plan-editor/items/kenney/televisionantenna/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/televisionantenna/thumbnail.webp",
+    "dimensions": [
+      0.529055,
+      0.205469,
+      0.16
+    ],
+    "offset": [
+      0,
+      0,
+      0.08
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-televisionmodern",
+    "name": "Television Modern · Kenney",
+    "nameTr": "Modern televizyon · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Modern televizyon"
+    ],
+    "src": "/plan-editor/items/kenney/televisionmodern/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/televisionmodern/thumbnail.webp",
+    "dimensions": [
+      1.3696,
+      0.9095,
+      0.2568
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-televisionvintage",
+    "name": "Television Vintage · Kenney",
+    "nameTr": "Klasik televizyon · Kenney",
+    "category": "appliance",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Klasik televizyon"
+    ],
+    "src": "/plan-editor/items/kenney/televisionvintage/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/televisionvintage/thumbnail.webp",
+    "dimensions": [
+      0.82,
+      0.54,
+      0.54
+    ],
+    "offset": [
+      -0.41,
+      0,
+      0.27
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-toaster",
+    "name": "Toaster · Kenney",
+    "nameTr": "Ekmek kızartma makinesi · Kenney",
+    "category": "kitchen",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Ekmek kızartma makinesi"
+    ],
+    "src": "/plan-editor/items/kenney/toaster/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/toaster/thumbnail.webp",
+    "dimensions": [
+      0.375967,
+      0.26,
+      0.2
+    ],
+    "offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-toilet",
+    "name": "Toilet · Kenney",
+    "nameTr": "Klozet · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Klozet"
+    ],
+    "src": "/plan-editor/items/kenney/toilet/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/toilet/thumbnail.webp",
+    "dimensions": [
+      0.6251,
+      0.90193,
+      0.954353
+    ],
+    "offset": [
+      -0.31255,
+      0,
+      -0.477177
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-toiletsquare",
+    "name": "Toilet Square · Kenney",
+    "nameTr": "Kare klozet · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Kare klozet"
+    ],
+    "src": "/plan-editor/items/kenney/toiletsquare/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/toiletsquare/thumbnail.webp",
+    "dimensions": [
+      0.60724,
+      0.90193,
+      0.774353
+    ],
+    "offset": [
+      -0.30362,
+      0,
+      0.387177
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-trashcan",
+    "name": "Trashcan · Kenney",
+    "nameTr": "Çöp kutusu · Kenney",
+    "category": "furniture",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çöp kutusu"
+    ],
+    "src": "/plan-editor/items/kenney/trashcan/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/trashcan/thumbnail.webp",
+    "dimensions": [
+      0.415387,
+      0.855732,
+      0.468248
+    ],
+    "offset": [
+      0,
+      0,
+      -0.010851
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-washer",
+    "name": "Washer · Kenney",
+    "nameTr": "Çamaşır makinesi · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çamaşır makinesi"
+    ],
+    "src": "/plan-editor/items/kenney/washer/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/washer/thumbnail.webp",
+    "dimensions": [
+      0.78,
+      0.94,
+      0.78
+    ],
+    "offset": [
+      -0.39,
+      0,
+      0.31
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  },
+  {
+    "id": "kenney-washerdryerstacked",
+    "name": "Washer Dryer Stacked · Kenney",
+    "nameTr": "Çamaşır ve kurutma kulesi · Kenney",
+    "category": "bathroom",
+    "tags": [
+      "Kenney",
+      "CC0",
+      "Çamaşır ve kurutma kulesi"
+    ],
+    "src": "/plan-editor/items/kenney/washerdryerstacked/model.glb",
+    "thumbnail": "/plan-editor/items/kenney/washerdryerstacked/thumbnail.webp",
+    "dimensions": [
+      0.78,
+      1.88,
+      0.78
+    ],
+    "offset": [
+      -0.39,
+      0,
+      0.31
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "scale": [
+      2,
+      2,
+      2
+    ]
+  }
+]

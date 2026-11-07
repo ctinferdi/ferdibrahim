@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ItemsPanel, MaterialPaintPanel, armMaterialPaint, useEditor, useViewer } from '@pascal-app/editor';
 import { CATALOG_ITEMS } from '../vendor/editor/src/components/ui/item-catalog/catalog-items';
 import { translateLabel } from './translations';
+import kenneyCatalog from './kenney-catalog.json';
+import type { AssetInput } from '@pascal-app/core';
 const bundledFurniture = CATALOG_ITEMS.filter(item => typeof item.src === 'string' && item.src.startsWith('/plan-editor/items/')).map(item => ({
   ...item, tags: [...(item.tags ?? []), translateLabel(item.name, 'tr'), ...(item.name === 'Sofa' ? ['koltuk'] : [])],
 }));
 
 export function FurniturePanel() {
+  const [library, setLibrary] = useState('all');
+  const items = library === 'kenney' ? kenneyCatalog : library === 'original' ? bundledFurniture : [...bundledFurniture, ...kenneyCatalog];
   return <div className="design-catalog-panel">
-    <header><h2>Mobilya kütüphanesi</h2><p>Kategoriden bir ürün seç, planda yerleştir. Seçtiğin ürünün konumunu ve boyutlarını özellikler panelinden düzenleyebilirsin.</p></header>
-    <div className="design-catalog-body"><ItemsPanel items={bundledFurniture} showSourceFilter={false} showTagFilters={false} /></div>
+    <header><h2>Mobilya kütüphanesi</h2><p>Kategoriden bir ürün seç, planda yerleştir. Seçtiğin ürünün konumunu ve boyutlarını özellikler panelinden düzenleyebilirsin.</p>
+      <button className="design-primary" onClick={() => {
+        useEditor.getState().showView('3d');
+        useViewer.getState().setShading('rendered'); useViewer.getState().setTextures(true);
+      }}>Renkli 3D görünüm</button>
+      <label className="catalog-library-filter">Kütüphane<select aria-label="Kütüphane" value={library} onChange={e => setLibrary(e.target.value)}>
+        <option value="all">Tüm modeller</option><option value="original">Mevcut arşiv</option><option value="kenney">Kenney · CC0</option>
+      </select><span data-i18n-skip>{items.length}</span></label>
+    </header>
+    <div className="design-catalog-body"><ItemsPanel items={items as AssetInput[]} showSourceFilter={false} showTagFilters={false} /></div>
   </div>;
 }
 
