@@ -1,6 +1,37 @@
 import kenneyCatalog from './kenney-catalog.json' with { type: 'json' };
 export type Language = 'tr' | 'en';
 const entries = `
+Lift shaft wall|Asansör perdesi
+Foundation|Temel
+Lift door|Asansör kapısı
+Fire door|Yangın kapısı
+Terrain|Arazi
+Lift shaft wall · Dimensions|Asansör perdesi · Ölçüler
+Foundation · Dimensions|Temel · Ölçüler
+Lift door · Dimensions|Asansör kapısı · Ölçüler
+Fire door · Dimensions|Yangın kapısı · Ölçüler
+Terrain · Dimensions|Arazi · Ölçüler
+Shaft wall thickness (cm)|Perde kalınlığı (cm)
+Shaft wall height (cm)|Perde yüksekliği (cm)
+Door width (cm)|Kapı eni (cm)
+Door height (cm)|Kapı yüksekliği (cm)
+Foundation thickness (cm)|Temel kalınlığı (cm)
+Terrain depth (cm)|Arazi derinliği (cm)
+Top elevation (m)|Üst kot (m)
+Terrain surface|Arazi yüzeyi
+Grass|Çim
+Soil|Toprak
+Gravel|Çakıl
+Custom surface|Özel yüzey
+Leaf count|Kanat sayısı
+Single leaf|Tek kanat
+Double leaf|Çift kanat
+Enter valid dimensions.|Geçerli ölçüler girin.
+Choose start and end points. Press Esc to stop drawing shaft walls.|Başlangıç ve bitiş noktalarını seç. Perde çizimi Esc ile durur.
+Double sliding door. Place on a wall or shaft wall.|Çift kanatlı sürgülü kapı. Duvarın veya perdenin üzerine yerleştir.
+Outward-opening door with panic bar. Place on a wall or shaft wall.|Panik barlı, dışa açılan kapı. Duvarın veya perdenin üzerine yerleştir.
+Draw the foundation boundary; close at the starting point. Thickness extends below the top elevation.|Temelin sınırlarını çiz; başlangıç noktasına dönerek kapat. Kalınlık üst kottan aşağı uzanır.
+Draw a flat terrain boundary; close at the starting point. Top elevation is relative to the selected level.|Düz arazi sınırlarını çiz; başlangıç noktasına dönerek kapat. Üst kot seçili kata göredir.
 Edit selected element|Seçili elemanı düzenle
 Floor finish|Zemin kaplaması
 Wood planks|Düz parke

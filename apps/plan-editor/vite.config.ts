@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { adaptBundledAssets } from './asset-paths.mjs';
 import { adaptColumnDefaults } from './column-defaults.mjs';
 import { adaptWallContinuation } from './wall-continuation.mjs';
+import { adaptDoorDefaults } from './door-defaults.mjs';
+import { adaptBuildingPlacement } from './building-placement.mjs';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 export default defineConfig({
@@ -13,6 +15,12 @@ export default defineConfig({
     { name: 'pascal-local-assets', enforce: 'pre', transform(code, id) {
       if (!/\.[cm]?[jt]sx?$/.test(id)) return;
       if (/[\\/]nodes[\\/]dist[\\/]wall[\\/]tool\.js$/.test(id)) code = adaptWallContinuation(code);
+      if (/[\\/]nodes[\\/]dist[\\/]door[\\/]tool\.js$/.test(id)) code = adaptDoorDefaults(code);
+      if (/[\\/]nodes[\\/]dist[\\/]slab[\\/]tool\.js$/.test(id)) code = adaptBuildingPlacement(code, 'slab');
+      if (/[\\/]core[\\/]dist[\\/]systems[\\/]wall[\\/]wall-topology\.js$/.test(id)) code = adaptBuildingPlacement(code, 'wall');
+      if (/[\\/]core[\\/]dist[\\/]systems[\\/]slab[\\/]slab-placement\.js$/.test(id)) code = adaptBuildingPlacement(code, 'elevation');
+      if (/[\\/]nodes[\\/]dist[\\/]site[\\/]recessed-slab-ground-holes\.js$/.test(id)) code = adaptBuildingPlacement(code, 'ground');
+      if (/[\\/]nodes[\\/]dist[\\/]slab[\\/]dependency-tracker\.js$/.test(id)) code = adaptBuildingPlacement(code, 'terrain-dependencies');
       if (/[\\/]nodes[\\/]dist[\\/]column[\\/]tool\.js$/.test(id)) code = adaptColumnDefaults(code);
       if (/[\\/]viewer[\\/]dist[\\/]lib[\\/]asset-url\.js$/.test(id)) {
         code = code.replace(/export const ASSETS_CDN_URL = [^;]+;/, "export const ASSETS_CDN_URL = ''; ");

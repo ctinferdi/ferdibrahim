@@ -16,6 +16,8 @@ import { FurniturePanel, MaterialsPanel, AppearancePanel } from './design-panels
 import { LanguageBridge, LanguageSelector, uiText } from './language';
 import { PresentationPanel } from './presentation-panel';
 import { SelectionProperties } from './selection-properties';
+import { BuildingPresetControls } from './building-preset-controls';
+import { buildingPresets } from './building-presets';
 
 const params = new URLSearchParams(location.search);
 const workspace = params.get('workspace');
@@ -40,9 +42,11 @@ function BuildPanel() {
     beam: 'Kiriş aracı hazır. Planda başlangıç ve bitiş yönüne tıkla. Ölçüleri aşağıdan değiştirebilirsin.',
   };
   const tool = useEditor(s => s.tool);
+  const toolDefaults = useEditor(s => s.toolDefaults);
+  const specialTool = buildingPresets.some(p => p.kind === tool && toolDefaults[p.kind]?.metadata?.insaatKind === p.id);
   const hasSelection = useViewer(s => s.selection.selectedIds.length > 0);
   const showCreationOptions = Boolean(tool) || !hasSelection;
-  useEffect(() => { if (tool && toolInfo[tool]) setPreviewTool(tool); }, [tool]);
+  useEffect(() => { if (tool && toolInfo[tool] && !specialTool) setPreviewTool(tool); }, [tool, specialTool]);
   const [columnSize, setColumnSize] = useState({ width: '40', depth: '40', height: '300' });
   const validColumn = Object.values(columnSize).every(v => v.trim() !== '' && Number.isFinite(Number(v)) && Number(v) >= 5 && Number(v) <= 2000);
   const columnDefaults = (size = columnSize) => ({ name: 'Kolon', crossSection: 'rectangular', width: Number(size.width) / 100, depth: Number(size.depth) / 100, height: Number(size.height) / 100, baseStyle: 'none', capitalStyle: 'none', baseHeight: 0, capitalHeight: 0 });
@@ -79,7 +83,7 @@ function BuildPanel() {
     const editor = useEditor.getState(); editor.setTool(null); editor.setMode('select');
   }}>Seçim moduna dön</button>}
   <div className="grid grid-cols-2 gap-2">
-    {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => !tool && setPreviewTool(id)} onFocus={() => !tool && setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
+    {buildTools.map(([id, label]) => <button key={id} onMouseEnter={() => !tool && setPreviewTool(id)} onFocus={() => !tool && setPreviewTool(id)} className={`rounded-lg border p-3 text-sm ${tool === id && !specialTool ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => {
       setPreviewTool(id);
       activate(id, id === 'wall' ? 'walls' : undefined);
     }}>{label}</button>)}
@@ -88,7 +92,8 @@ function BuildPanel() {
     <button onMouseEnter={() => !tool && setPreviewTool('axis')} onFocus={() => !tool && setPreviewTool('axis')} className={`rounded-lg border p-3 text-sm ${tool === 'structural-grid' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('axis')}>Aks</button>
     <button onMouseEnter={() => !tool && setPreviewTool('beam')} onFocus={() => !tool && setPreviewTool('beam')} className={`rounded-lg border p-3 text-sm ${tool === 'block' ? 'bg-blue-600 text-white' : 'hover:bg-accent'}`} onClick={() => chooseStructural('beam')}>Kiriş</button>
   </div>
-  {showCreationOptions && <>
+  <BuildingPresetControls onChoose={() => { setStructural(null); setPreviewTool(''); }} />
+  {showCreationOptions && !specialTool && <>
   {toolInfo[previewTool] && <aside key={previewTool} className="structural-options" aria-live="polite">
     <h3>{buildTools.find(([id]) => id === previewTool)?.[1] ?? (previewTool === 'axis' ? 'Aks' : 'Kiriş')} · Düzenleme bilgileri</h3>
     <p>{toolInfo[previewTool]}</p>

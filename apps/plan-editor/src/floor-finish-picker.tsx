@@ -4,6 +4,7 @@ import { useViewer } from '@pascal-app/viewer';
 import { useEditor } from '@pascal-app/editor';
 import { RoomSelectionIndex } from '../vendor/editor/src/lib/room-selection';
 import { roomFloorOwner } from '../vendor/editor/src/lib/floor-footprints';
+import { resolveFloorFinishTarget } from './floor-finish-target';
 
 const finishes = [
   ['wood-woodplank48', 'Düz parke', 'wood/woodplank_48/woodplank_48_BaseColor.webp'],
@@ -18,17 +19,11 @@ export function useFloorFinishTarget() {
   const selected = useViewer(s => s.selection.selectedIds);
   const nodes = useScene(s => s.nodes);
   const index = useMemo(() => room ? new RoomSelectionIndex(room.levelId) : null, [room?.levelId]);
-  const slabId = useMemo(() => {
-    if (selected.length === 1 && nodes[selected[0]]?.type === 'slab') return selected[0];
+  return useMemo(() => resolveFloorFinishTarget(nodes, selected, room?.zoneId ?? null, () => {
     if (!room || !index) return null;
-    // Resolve this room's floor, never a shared building base plate.
+    // Resolve this room's floor, never an unrelated previously selected room.
     return index.update(nodes).find(record => record.zoneId === room.zoneId)?.slabId ?? roomFloorOwner(nodes, room.zoneId)?.id ?? null;
-  }, [nodes, selected, room, index]);
-  const slab = slabId ? nodes[slabId] : null;
-  if (!slab || slab.type !== 'slab') return null;
-  const zoneId = room?.zoneId ?? (slab.zoneIds?.length === 1 ? slab.zoneIds[0] : null);
-  const zone = zoneId ? nodes[zoneId] : null;
-  return { slab, zone };
+  }), [nodes, selected, room, index]);
 }
 
 export function FloorFinishPicker() {

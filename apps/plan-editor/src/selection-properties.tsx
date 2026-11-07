@@ -7,6 +7,7 @@ import { beamBounds, resizeBeam } from './beam-resize';
 import { resizeFurnitureAxis } from './furniture-size';
 import { SelectionPopover } from './wall-measure-popover';
 import { FloorFinishPicker, useFloorFinishTarget } from './floor-finish-picker';
+import { buildingPresets } from './building-presets';
 
 // Keep unfinished input (e.g. an empty field) local, but apply valid dimensions
 // immediately without remounting the focused input on every scene update.
@@ -27,11 +28,13 @@ function DimensionInput({ label, value, max, disabled, onCommit }: {
 }
 
 export function SelectionProperties() {
+  const hasObjectSelection = useViewer(s => s.selection.selectedIds.length > 0);
   const id = useViewer(s => s.selection.selectedIds.length === 1 ? s.selection.selectedIds[0] : null);
   const node = useScene(s => id ? s.nodes[id] : null) as any;
   const readOnly = useScene(s => s.readOnly);
   const tool = useEditor(s => s.tool);
-  const roomId = useEditor(s => s.room?.zoneId ?? null);
+  const retainedRoomId = useEditor(s => s.room?.zoneId ?? null);
+  const roomId = hasObjectSelection ? null : retainedRoomId;
   const floorTarget = useFloorFinishTarget();
   const [roomDetails, setRoomDetails] = useState(false);
   const setDock = useInspectorDock(s => s.setElement);
@@ -46,6 +49,7 @@ export function SelectionProperties() {
     if (!readOnly && node) useScene.getState().updateNode(node.id, patch);
   };
   const beam = node?.type === 'block' && node.metadata?.insaatKind === 'beam';
+  const preset = buildingPresets.find(p => p.id === node?.metadata?.insaatKind);
   const wallHeight = useScene(s => node?.type === 'wall' ? getWallEffectiveHeightForNodes(node, s.nodes) : 0);
   const wallThicknessCm = node?.type === 'wall' ? Number(((node.assembly ? assemblyThickness(node.assembly) : node.thickness ?? 0.1) * 100).toFixed(2)) : 0;
   const setWallThickness = (cm: number) => {
@@ -60,7 +64,7 @@ export function SelectionProperties() {
     <SelectionPopover id={id ?? floorTarget?.slab.id ?? roomId} enabled={!tool && !!(id || roomId)}>
     <FloorFinishPicker />
     {node?.type === 'wall' && !tool && <div className="structural-options selected-wall-measures" key={node.id}>
-      <h3>Seçili duvar</h3>
+      <h3>{preset?.id === 'lift-wall' ? 'Asansör perdesi' : 'Seçili duvar'}</h3>
       <p data-i18n-skip>{node.name || 'Duvar'}</p>
       <div className="structural-size-row">
         <DimensionInput label="Duvar kalınlığı (cm)" value={wallThicknessCm} max={100} disabled={readOnly} onCommit={setWallThickness} />
@@ -70,6 +74,17 @@ export function SelectionProperties() {
         <option value="">Özel kalınlık</option>
         {[10, 15, 20, 25, 30, 40].map(cm => <option key={cm} value={cm}>{cm} cm</option>)}
       </select></label>
+    </div>}
+    {!tool && preset && node?.type !== 'wall' && <div className="structural-options">
+      <h3>{preset.label}</h3>
+      {node.type === 'slab' && <>
+        <DimensionInput label={preset.id === 'foundation' ? 'Temel kalınlığı (cm)' : 'Arazi derinliği (cm)'} value={Number((node.thickness * 100).toFixed(2))} max={500} disabled={readOnly} onCommit={cm => { if (cm >= 2) update({ thickness: cm / 100 }); }} />
+        <label>Üst kot (m)<input type="number" key={`${node.id}-${node.elevation}`} min="-100" max="100" step="0.05" disabled={readOnly} defaultValue={node.elevation}
+          onBlur={e => { const value = e.target.valueAsNumber; if (Number.isFinite(value) && value >= -100 && value <= 100) update({ elevation: value }); else e.target.value = String(node.elevation); }} /></label>
+        {preset.id === 'terrain' && <label>Arazi yüzeyi<select disabled={readOnly} value={node.slots?.surface ?? '#71834b'} onChange={e => { if (e.target.value) update({ slots: { ...node.slots, surface: e.target.value } }); }}>
+          <option value="">Özel yüzey</option><option value="#71834b">Çim</option><option value="#916b45">Toprak</option><option value="#92918a">Çakıl</option>
+        </select></label>}
+      </>}
     </div>}
     {!tool && (node || roomId) && <button className="selection-properties-toggle" type="button" aria-expanded={showProperties}
       onClick={() => id ? revealNode(showProperties ? null : id) : setRoomDetails(!roomDetails)}>

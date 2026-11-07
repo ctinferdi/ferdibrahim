@@ -1,5 +1,9 @@
 # Kat Planı geliştirme kaydı
 
+## Seçili öğeye ait kaplama paneli — 7 Kasım 2026
+
+Duvar veya başka bir nesne seçildiğinde arka planda tutulan oda seçimi artık zemin kaplamasını açmaz. Çoklu seçimde de oda paneline düşülmez. Başka bir döşeme seçildiğinde yalnızca o döşemeye bağlı odanın kaplaması hedeflenir; önceki odanın kaplaması kullanılmaz. Ayrı localhost test çiziminde 2D ve 3D oda → duvar geçişi, mobilya seçimi ve zemine dönünce kaplama panelinin açılması doğrulandı. Üç regresyon testi ve editör üretim derlemesi geçti. Gerçek proje verileri değiştirilmedi.
+
 ## Yüzeyin yanında düzenleme — 7 Kasım 2026
 
 Duvarın yanındaki panel ortak seçim paneline dönüştürüldü. Oda/döşeme seçildiğinde parke, fayans ve mermer küçük resimleri çizim alanındaki panelde gösterilir; oda kaplaması zone.floor.finish üzerinden değiştirilir. Mobilya, kapı, pencere ve diğer seçili elemanların mevcut özellikleri aynı panelde “Özellikleri göster” ile açılır. Fareyle başka aracın üstünden geçmek seçimi değiştirmez. 2D panel geometriyi yakınlaştırma/kaydırma sırasında takip eder; 3D panel tıklanan konuma yakın açılır. Panel yüksekliği görünümle sınırlıdır ve içeriği kaydırılabilir.
@@ -87,3 +91,21 @@ Testler santimetre/metre dönüşümü, kiriş yönü ve merkezi, sabit/serbest 
 - 2D kaplamalar döşemenin dış sınırına ve boşluklarına kırpılır; 3D ile aynı malzeme referanslarını kullanır.
 - Yerel ayrı test çizimlerinde fayansın 2D görünümü, mermerin 2D/3D görünümü ve yenileme sonrası saklanması doğrulandı. Duvarın hazır 40 cm kalınlığı ve zoom sırasında panel takibi kontrol edildi. Üretim proje/gider verileri değiştirilmedi.
 - Editör build başarılı; 9 ilgili otomatik test geçti. Büyük JavaScript paket uyarısı sürüyor. Yerel sunucu 3014 portunda açık; bu değişiklikler henüz push edilmedi.
+
+## 7 Kasım 2026 — Arazi, temel ve özel yapı elemanları
+
+- Yapı araçlarına Asansör perdesi, Temel, Asansör kapısı, Yangın kapısı ve Arazi eklendi. Yerleştirmeden önce ölçüler cm/m olarak ayarlanır; mevcut duvar, kapı ve döşeme veri biçimleri metadata ile korunur.
+- Perde beton yüzeyli duvardır; kalınlık/yükseklik düzenlenir. Temel kapalı sınır, kalınlık ve üst kot ile çizilir. Asansör kapısı sürgülü; yangın kapısı panik barlı ve kapı kapatıcılı tek/çift kanatlı modeldir. Bu araçlar statik hesap veya yangın dayanım sertifikası üretmez.
+- Arazi bu sürümde düz çokgen yüzeydir. Sınır, derinlik, seçili kata göre üst kot ve çim/toprak/çakıl yüzey rengi düzenlenir. Eğimli topoğrafya ve kazı/dolgu hesabı henüz yoktur. Alt kotlu arazi/temel en alt katta hazır zemine açıklık açarak 3D'de görünür kalır.
+- Kapı aracının önizleme ve iki yerleştirme yolu özel ölçüleri, türü ve yüzeyi koruyacak şekilde düzeltildi. Normal kapı/döşeme araçlarının varsayılan akışı korunur.
+- Duvar/mobilya seçimi eski oda seçiminin zemin kaplama panelini açmaz. Arazi ve temelde de parke seçimi gösterilmez.
+- Ayrı `building-presets-qa-20261107` yerel çalışma alanında beş araç çizildi; 120 cm asansör kapısı, panik barlı yangın kapısı, beton perde/temel ve arazi 2D/3D kontrol edildi. 40 cm arazi derinliği, -0,20 m kot ve toprak yüzeyi yenilemeden sonra korundu; ardından çim görünümü doğrulandı. Kullanıcının gerçek çizimleri ve finansal verileri değiştirilmedi.
+- Editör üretim derlemesi ve 9 ilgili otomatik test geçti. Büyük paket uyarısı mevcut. 3014 yerel sunucusu açık; bu eklemeler henüz push edilmedi.
+
+## 7 Kasım 2026 — Arazinin bina dış sınırında kesilmesi
+
+- Arazi görünümü aynı kattaki görünür duvarların dış yüzlerinden ve döşemelerden türetilen bina alanında kesilir. Eğri ve girintili duvarlar, birden fazla bina, mevcut arazi boşlukları ve parçalanan yüzeyler desteklenir.
+- Kesim hem 2D hem 3D için uygulanır. Seçim taraması bina içindeki parkeyi örtmez; arazi sınırının özgün düzenleme noktaları korunur. Saklanan çizim geometrisi değiştirilmez.
+- Duvar ölçüsü, silme, geri alma ve görünürlük değişiklikleri 3D arazi geometrisini yeniden hesaplatır.
+- Ayrı test çiziminde L biçimli bina 2D/3D kontrol edildi. Kullanıcının mevcut 166,3 m² eğri duvarlı çiziminde parke içeride, arazi dışarıda doğrulandı; finansal verilere ve kayıtlı çizim nesnelerine yazılmadı.
+- 15 ilgili otomatik test ve editör üretim derlemesi geçti. Büyük paket uyarısı sürüyor. Yerel sunucu 3014 portunda açık; push yapılmadı.

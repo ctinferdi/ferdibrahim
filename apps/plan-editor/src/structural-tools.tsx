@@ -4,6 +4,8 @@ import type { FloorplanToolContext } from '../vendor/editor/src/lib/floorplan/fl
 import { resolveStructuralEnd, validateStructuralOptions, type PlanPoint, type StructuralOptions } from './structural-model';
 import { createStructuralNode } from './structural-nodes';
 import { decoratePlanGeometry } from './plan-appearance';
+import { Group } from 'three';
+import { isTerrain, terrainRegions, clipTerrainFloorplan } from './terrain-clipping';
 
 export const defaultStructuralOptions: StructuralOptions = { label: 'K1', length: 5, fixedLength: false, width: 30, height: 50, elevation: 2.5 };
 
@@ -79,8 +81,19 @@ export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gr
 // established undo, geometry, selection, autosave and JSON backup support.
 export function withStructuralTools(plugin: any) {
   return { ...plugin, nodes: plugin.nodes.map((definition: any) => {
-    if (['slab', 'door', 'window', 'wall'].includes(definition.kind)) return { ...definition, floorplan: (node: any, context: any) => {
-      const geometry = definition.floorplan?.(node, context);
+    if (['slab', 'door', 'window', 'wall'].includes(definition.kind)) return { ...definition,
+      ...(definition.kind === 'slab' ? { geometry: (node: any, context: any, ...args: any[]) => {
+        if (!isTerrain(node)) return definition.geometry(node, context, ...args);
+        const group = new Group();
+        for (const region of terrainRegions(node, context)) {
+          // The boolean result is already on exterior wall faces; do not heal
+          // it back toward wall centre lines or lift it onto the building floor.
+          group.add(definition.geometry({ ...node, boundary: 'auto', polygon: region.outer, holes: region.holes }, context, ...args));
+        }
+        return group;
+      } } : {}), floorplan: (node: any, context: any) => {
+      let geometry = definition.floorplan?.(node, context);
+      if (isTerrain(node)) geometry = clipTerrainFloorplan(geometry, terrainRegions(node, context));
       if (readFloorplanContext(context).drafting) return geometry;
       return decoratePlanGeometry(definition.kind, node, geometry, context.viewState?.selected || context.viewState?.highlighted);
     } };

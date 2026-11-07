@@ -7983,7 +7983,7 @@ export function FloorplanPanel({
       const defaults = useEditor.getState().toolDefaults.slab ?? {}
       const authored = SlabNodeSchema.parse({
         ...defaults,
-        name: `Slab ${slabCount + 1}`,
+        name: defaults.name ? `${defaults.name} ${slabCount + 1}` : `Slab ${slabCount + 1}`,
         polygon: points.map(([x, z]) => [x, z] as [number, number]),
       })
       const slab = {
