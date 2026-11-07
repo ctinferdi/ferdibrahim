@@ -17,3 +17,18 @@ Doğrulama: 16 editör/varlık/dil/yedekleme testi ve kök TypeScript kontrolü 
 120 modelin GLB yapısı, gömülü kaynakları, önizlemesi ve ölçüleri doğrulandı.
 Eski kataloğun renkli önizlemeleri tarayıcıda örnek kategorilerde kontrol edildi.
 Yeni 120 modelin tamamının etkileşimli yerleştirme kontrolü henüz tamamlanmadı.
+
+## Kişisel kütüphane
+
+Mobilya panelinde `Kendi kütüphanem · Ekle / Sil` açılır. PNG/JPG/WebP
+bir düz görsel olarak, gömülü GLB/GLTF statik 3D model olarak eklenir.
+Görsel için metre cinsinden genişlik ve derinlik seçilir. Dosya sınırı 10 MB,
+görsel sınırı 16 megapikseldir. Harici dosyaya bağımlı GLTF reddedilir.
+
+Kütüphane bu tarayıcının IndexedDB alanında saklanır; cihazlar arasında
+senkronize edilmez. Yerleştirilmiş öğe kendi gömülü modelini taşır; arşivden
+silmek çizimdeki kopyayı silmez. Büyük gömülü modeller çizim JSON yedeğini
+büyütür; mevcut 20 MB içe aktarma sınırı geçerlidir.
+
+Editör derlemesi ve 10 mevcut regresyon testi geçti. Dosya seçimi ve yerleştirme
+akışının bu sürümde tarayıcı üzerinden uçtan uca kontrolü henüz yapılmadı.

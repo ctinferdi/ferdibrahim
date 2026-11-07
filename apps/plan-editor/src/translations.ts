@@ -454,7 +454,20 @@ The backup is too large.|Yedek çok büyük.
 The backup contains an invalid object.|Yedekte geçersiz nesne var.
 The backup could not be opened.|Yedek açılamadı.
 `;
-const pairs = entries.trim().split('\n').map(line => line.split('|'));
+const personalEntries = `
+My library|Kendi kütüphanem
+My library · Add / Delete|Kendi kütüphanem · Ekle / Sil
+Stored in this browser. PNG/JPG/WebP adds a flat image; GLB/GLTF adds a 3D model.|Bu tarayıcıda saklanır. PNG/JPG/WebP düz görsel, GLB/GLTF üç boyutlu model olarak eklenir.
+Item name|Öğe adı
+File|Dosya
+Image width (m)|Görsel genişliği (m)
+Image depth (m)|Görsel derinliği (m)
+Add to library|Kütüphaneye ekle
+Processing…|İşleniyor…
+Added to library.|Kütüphaneye eklendi.
+Remove this item from the library? Copies in the drawing are preserved.|Bu öğe kütüphaneden kaldırılsın mı? Plandaki kopyaları korunur.
+`;
+const pairs = (entries + personalEntries).trim().split('\n').map(line => line.split('|'));
 pairs.push(...kenneyCatalog.map(item => [item.name, item.nameTr]));
 const english = new Map(pairs.map(([en,tr]) => [tr,en]));
 const turkish = new Map(pairs.map(([en,tr]) => [en,tr]));

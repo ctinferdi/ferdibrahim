@@ -75,7 +75,7 @@ export function ColoredThumbnail({ src, fallback, name }: { src?: string; fallba
   const [preview, setPreview] = useState<{ src: string; image: string }>()
   useEffect(() => {
     // The CC0 pack already ships colored renders; avoid decoding those models twice.
-    if (!src?.startsWith('/plan-editor/items/') || src.startsWith('/plan-editor/items/kenney/') || !ref.current) return
+    if (!(src?.startsWith('/plan-editor/items/') || src?.startsWith('data:model/gltf-binary')) || src.startsWith('/plan-editor/items/kenney/') || !ref.current) return
     let active = true
     const observer = new IntersectionObserver(entries => {
       if (!entries.some(entry => entry.isIntersecting)) return
