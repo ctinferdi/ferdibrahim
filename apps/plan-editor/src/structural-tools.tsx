@@ -4,7 +4,7 @@ import type { FloorplanToolContext } from '../vendor/editor/src/lib/floorplan/fl
 import { resolveStructuralEnd, validateStructuralOptions, type PlanPoint, type StructuralOptions } from './structural-model';
 import { createStructuralNode } from './structural-nodes';
 
-export const defaultStructuralOptions: StructuralOptions = { label: 'K1', length: 5, fixedLength: true, width: 30, height: 50, elevation: 2.5 };
+export const defaultStructuralOptions: StructuralOptions = { label: 'K1', length: 5, fixedLength: false, width: 30, height: 50, elevation: 2.5 };
 
 export default function StructuralTool({ activeLevelId, sceneApi, selectNode, gridSnapStep, toolDefaults, finishTool }: FloorplanToolContext) {
   const group = useRef<SVGGElement>(null);
